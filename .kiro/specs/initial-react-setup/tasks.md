@@ -33,12 +33,13 @@ This plan implements a modern React development environment using Vite, Tailwind
   - Start dev server and verify styles apply correctly
   - _Requirements: US-2.4_
 
-- [ ] 3. Configure TypeScript path aliases
-- [ ] 3.1 Update tsconfig.json
+- [x] 3. Configure TypeScript path aliases
+
+- [x] 3.1 Update tsconfig.json
   - Add `"baseUrl": "."` and `"paths": { "@/*": ["./src/*"] }` to compilerOptions
   - _Requirements: US-3.1_
 
-- [ ] 3.2 Update tsconfig.app.json
+- [x] 3.2 Update tsconfig.app.json
   - Add `"baseUrl": "."` and `"paths": { "@/*": ["./src/*"] }` to compilerOptions
   - _Requirements: US-3.1_
 
