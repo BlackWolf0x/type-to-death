@@ -43,43 +43,46 @@ This plan implements a modern React development environment using Vite, Tailwind
   - Add `"baseUrl": "."` and `"paths": { "@/*": ["./src/*"] }` to compilerOptions
   - _Requirements: US-3.1_
 
-- [ ] 4. Initialize shadcn/ui
-- [ ] 4.1 Run shadcn/ui init
+- [x] 4. Initialize shadcn/ui
+
+- [x] 4.1 Run shadcn/ui init
   - Execute `pnpm dlx shadcn@latest init` in app directory
   - Select appropriate options (style: new-york, base color: slate, CSS variables: yes)
   - Verify components.json is created with correct configuration
   - _Requirements: US-3.2, US-3.3_
 
-- [ ] 4.2 Verify shadcn/ui configuration
+- [x] 4.2 Verify shadcn/ui configuration
   - Ensure components.json has correct paths for components (@/components), utils (@/lib/utils), and ui (@/components/ui)
   - Verify tailwind.config is empty string (v4 uses CSS-based config)
   - Confirm css path points to "src/index.css"
   - _Requirements: US-3.3_
 
-- [ ] 4.3 Add design tokens to index.css
+- [x] 4.3 Add design tokens to index.css
   - Add CSS custom properties for light and dark themes using OKLCH color space
   - Include all required design tokens (background, foreground, primary, secondary, etc.)
   - Add .dark class overrides for dark mode
   - _Requirements: US-3.4_
 
-- [ ] 5. Add and verify test component
-- [ ] 5.1 Add Button component
+- [x] 5. Add and verify test component
+
+- [x] 5.1 Add Button component
   - Run `pnpm dlx shadcn@latest add button` in app directory
   - Verify component files are created in src/components/ui/
   - _Requirements: US-3.5_
 
-- [ ] 5.2 Integrate Button in App.tsx
+
+- [x] 5.2 Integrate Button in App.tsx
   - Import Button component using @/ alias
   - Render Button in App.tsx with test content
   - Verify component renders with proper styling
   - _Requirements: US-3.6_
 
-- [ ] 5.3 Test hot module replacement
+- [x] 5.3 Test hot module replacement
   - Make changes to App.tsx while dev server is running
   - Verify changes reflect immediately without full page reload
   - _Requirements: US-1.5_
 
-- [ ] 5.4 Run build verification
+- [x] 5.4 Run build verification
   - Execute `pnpm run build` to check for TypeScript errors
   - Verify build completes successfully with no errors
   - _Requirements: US-1.5_
