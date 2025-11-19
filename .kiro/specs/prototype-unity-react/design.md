@@ -40,6 +40,7 @@ The application follows a layered architecture:
 - Displays loading progress
 - Handles game visibility based on load state
 - Full-screen fixed positioning
+- Disables pointer events to allow UI overlay interaction
 
 **Props**: None (self-contained)
 
@@ -52,22 +53,66 @@ The application follows a layered architecture:
 - Fixed positioning covering entire viewport
 - z-index: 0 (background layer)
 - Width: 100vw, Height: 100vh
-- Tailwind classes: `fixed inset-0 w-screen h-screen`
+- Pointer events disabled to allow overlay interaction
+- Tailwind classes: `fixed inset-0 w-screen h-screen pointer-events-none!`
+
+**Implementation**:
+```tsx
+import { Unity, useUnityContext } from "react-unity-webgl";
+
+export function UnityGame() {
+  const { unityProvider, loadingProgression, isLoaded } = useUnityContext({
+    loaderUrl: "/build/cursor-test-webgl-build.loader.js",
+    dataUrl: "/build/cursor-test-webgl-build.data",
+    frameworkUrl: "/build/cursor-test-webgl-build.framework.js",
+    codeUrl: "/build/cursor-test-webgl-build.wasm",
+  });
+
+  return (
+    <>
+      {!isLoaded && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl z-20">
+          Loading... {Math.round(loadingProgression * 100)}%
+        </div>
+      )}
+      <Unity
+        unityProvider={unityProvider}
+        style={{ visibility: isLoaded ? "visible" : "hidden" }}
+        className="fixed inset-0 w-screen h-screen z-0 pointer-events-none!"
+      />
+    </>
+  );
+}
+```
 
 ### 2. Game Component
 
 **Location**: `src/components/game/Game.tsx`
 
-**Purpose**: Provides a UI overlay that sits on top of the Unity game
+**Purpose**: Provides a UI overlay that sits on top of the Unity game with interactive elements
 
 **Props**: None (static for prototype)
 
 **Styling**:
-- Fixed positioning at bottom-center
+- Fixed positioning at bottom-center (20px from bottom)
 - Dimensions: 500px × 400px
-- Background: Red (#FF0000 or Tailwind `bg-red-500`)
+- Background: Uses theme background color
 - z-index: 10 (above game layer)
-- Tailwind classes: `fixed bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-red-500`
+- Pointer events enabled for interaction
+- Tailwind classes: `pointer-events-auto fixed bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-background`
+
+**Implementation**:
+```tsx
+import { Input } from "../ui/input";
+
+export function Game() {
+  return (
+    <div className="pointer-events-auto fixed bottom-20 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-background z-10 p-4">
+      <Input className="pointer-events-auto" />
+    </div>
+  );
+}
+```
 
 ### 3. App Component
 
@@ -77,14 +122,20 @@ The application follows a layered architecture:
 
 **Structure**:
 ```tsx
+import './App.css'
+import { UnityGame } from './components/unity/UnityGame'
+import { Game } from './components/game/Game'
+
 function App() {
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
+    <>
       <UnityGame />
       <Game />
-    </div>
-  );
+    </>
+  )
 }
+
+export default App
 ```
 
 ## Data Models
@@ -190,12 +241,14 @@ Following the official package guidelines from https://github.com/jeffreylanters
 **Game Layer**:
 - `position: fixed` with `inset-0` ensures full viewport coverage
 - `z-index: 0` keeps it in the background
+- `pointer-events: none` disables Unity input capture, allowing overlay interaction
 - No scrolling or overflow
 
 **Overlay Layer**:
-- `position: fixed` with `bottom-0` anchors to bottom
+- `position: fixed` with `bottom-20` anchors 20px from bottom
 - `left-1/2` + `translate-x-[-50%]` centers horizontally
 - `z-index: 10` ensures it renders above the game
+- `pointer-events: auto` re-enables interaction for UI elements
 - Fixed dimensions prevent layout shifts
 
 ### Tailwind CSS Classes
@@ -203,12 +256,15 @@ Following the official package guidelines from https://github.com/jeffreylanters
 **UnityGame**:
 - `fixed inset-0 w-screen h-screen` - Full screen coverage
 - `z-0` - Background layer
+- `pointer-events-none!` - Disables Unity input capture (important override)
 
 **Game**:
-- `fixed bottom-0 left-1/2 -translate-x-1/2` - Bottom-center positioning
+- `pointer-events-auto` - Re-enables interaction for overlay
+- `fixed bottom-20 left-1/2 -translate-x-1/2` - Bottom-center positioning (20px from bottom)
 - `w-[500px] h-[400px]` - Fixed dimensions
-- `bg-red-500` - Red background color
+- `bg-background` - Theme background color
 - `z-10` - Foreground layer
+- `p-4` - Padding for content
 
 **Loading Indicator**:
 - `fixed inset-0 flex items-center justify-center` - Centered overlay
@@ -278,11 +334,40 @@ Following the official package guidelines from https://github.com/jeffreylanters
 - Loading times depend on build file sizes
 - Fixed positioning with GPU-accelerated transforms (translate) for smooth rendering
 - No unnecessary re-renders (components are mostly static)
+- Pointer events disabled on Unity canvas prevents input conflicts and improves overlay performance
+
+## Input Handling Strategy
+
+### Problem: Unity WebGL Input Capture
+
+Unity WebGL games with "Run In Background" enabled capture all input events (keyboard, mouse, touch), preventing React UI elements from receiving focus or input.
+
+### Solution: Pointer Events Management
+
+1. **Disable Unity Input**: Add `pointer-events: none` to the Unity canvas
+   - Prevents Unity from capturing any input events
+   - Unity game still renders but doesn't intercept interactions
+
+2. **Enable Overlay Input**: Add `pointer-events: auto` to overlay components
+   - Re-enables interaction for React UI elements
+   - Input fields, buttons, and other interactive elements work normally
+
+3. **Selective Interaction**: Future enhancement could toggle pointer events
+   - Allow switching between Unity game control and UI interaction
+   - Use React state to dynamically enable/disable pointer events
+
+### Implementation Notes
+
+- The `pointer-events-none!` class uses `!important` to override any conflicting styles
+- All interactive overlay elements should explicitly set `pointer-events: auto`
+- This approach maintains visual rendering while controlling input routing
 
 ## Future Enhancements
 
-- Add interactive elements to the overlay
+- Add more interactive elements to the overlay (buttons, forms, etc.)
 - Implement communication between React and Unity (using `sendMessage`)
 - Add error boundaries for Unity loading failures
 - Make Game component configurable (size, position, color)
 - Add responsive design for mobile devices
+- Implement toggle mechanism to switch between Unity game control and UI interaction
+- Add keyboard shortcuts for switching input focus

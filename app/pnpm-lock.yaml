@@ -29,6 +29,9 @@ importers:
       react-dom:
         specifier: ^19.2.0
         version: 19.2.0(react@19.2.0)
+      react-unity-webgl:
+        specifier: ^10.1.6
+        version: 10.1.6(react@19.2.0)
       tailwind-merge:
         specifier: ^3.4.0
         version: 3.4.0
@@ -1211,6 +1214,11 @@ packages:
   react-refresh@0.18.0:
     resolution: {integrity: sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw==}
     engines: {node: '>=0.10.0'}
+
+  react-unity-webgl@10.1.6:
+    resolution: {integrity: sha512-N67RdvdeCfKDpzxKdu9K1fnFpb0xmqDF2Qk74f4B07iP9H/4XouG/RjSK4hYYCUmzeBv76G7DWTUK7hgF43TYw==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   react@19.2.0:
     resolution: {integrity: sha512-tmbWg6W31tQLeB5cdIBOicJDJRR2KzXsV7uSK9iNfLWQ5bIZfxuPEHp7M8wiHyHnn0DD1i7w3Zmin0FtkrwoCQ==}
@@ -2421,6 +2429,10 @@ snapshots:
       scheduler: 0.27.0
 
   react-refresh@0.18.0: {}
+
+  react-unity-webgl@10.1.6(react@19.2.0):
+    dependencies:
+      react: 19.2.0
 
   react@19.2.0: {}
 
