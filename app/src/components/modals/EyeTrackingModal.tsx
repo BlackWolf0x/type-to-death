@@ -15,7 +15,7 @@ export function EyeTrackingModal() {
                     Eye Tracking Calibration
                 </button>
             </DialogTrigger>
-            <DialogContent className="z-50">
+            <DialogContent className="sm:max-w-[100vw-10px] h-[calc(100vh-40px)] z-50">
                 <DialogHeader>
                     <DialogTitle>Eye Tracking Calibration</DialogTitle>
                     <DialogDescription>

@@ -32,7 +32,7 @@ export function MainMenu() {
                     <h1 className="text-6xl font-bold text-white mb-2">Type To Death</h1>
                 </header>
 
-                <div className="flex flex-col gap-4 w-full max-w-md">
+                <div className="flex flex-col gap-4">
                     <button
                         onClick={handleStartGame}
                         className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
