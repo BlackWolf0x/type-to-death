@@ -74,3 +74,20 @@
   - Verify modals can be closed without affecting main menu state
   - Verify z-index layering is correct (modals > menu > game UI > unity)
   - _Requirements: 1.1, 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 4.3, 4.4, 4.5, 5.1, 5.3, 6.1, 6.3, 7.2, 7.3_
+
+## Custom Iteration Tasks
+
+- [x] 8. Refactor modals to use self-contained DialogTrigger pattern
+
+  - Update all imports to use `@` aliases instead of relative paths
+  - Refactor EyeTrackingModal to include DialogTrigger with button
+  - Refactor LeaderboardModal to include DialogTrigger with button
+  - Keep IntroModal as controlled component (special logic required)
+  - Remove `showEyeTrackingModal` and `setShowEyeTrackingModal` state from MainMenu
+  - Remove `showLeaderboardModal` and `setShowLeaderboardModal` state from MainMenu
+  - Remove separate button elements for Eye Tracking and Leaderboard from MainMenu
+  - Render EyeTrackingModal and LeaderboardModal components directly in MainMenu
+  - Update App.tsx imports to use `@` aliases
+  - Update Game.tsx imports to use `@` aliases
+  - Test that all modals still open and close correctly
+  - _Custom Iteration: Simplified Modal Pattern_

@@ -7,8 +7,6 @@ import { LeaderboardModal } from "@/components/modals/LeaderboardModal";
 export function MainMenu() {
     const { showMainMenu, skipIntro, hideMainMenu, setSkipIntro } = useAppStore();
     const [showIntroModal, setShowIntroModal] = useState(false);
-    const [showEyeTrackingModal, setShowEyeTrackingModal] = useState(false);
-    const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
 
     const handleStartGame = () => {
         if (skipIntro) {
@@ -42,19 +40,8 @@ export function MainMenu() {
                         Start Game
                     </button>
 
-                    <button
-                        onClick={() => setShowEyeTrackingModal(true)}
-                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                        Eye Tracking Calibration
-                    </button>
-
-                    <button
-                        onClick={() => setShowLeaderboardModal(true)}
-                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                        Leaderboard
-                    </button>
+                    <EyeTrackingModal />
+                    <LeaderboardModal />
 
                     <label className="flex items-center gap-2 text-white cursor-pointer">
                         <input
@@ -69,14 +56,6 @@ export function MainMenu() {
             </div>
 
             <IntroModal open={showIntroModal} onClose={handleIntroClose} />
-            <EyeTrackingModal
-                open={showEyeTrackingModal}
-                onOpenChange={setShowEyeTrackingModal}
-            />
-            <LeaderboardModal
-                open={showLeaderboardModal}
-                onOpenChange={setShowLeaderboardModal}
-            />
         </>
     );
 }

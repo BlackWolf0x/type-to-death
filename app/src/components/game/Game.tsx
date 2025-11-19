@@ -1,5 +1,5 @@
-import { Input } from "../ui/input";
-import { useAppStore } from "../../stores/appStore";
+import { Input } from "@/components/ui/input";
+import { useAppStore } from "@/stores/appStore";
 
 export function Game() {
 	const showMainMenu = useAppStore((state) => state.showMainMenu);

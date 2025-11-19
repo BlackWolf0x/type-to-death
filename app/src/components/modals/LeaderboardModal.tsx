@@ -4,16 +4,17 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 
-interface LeaderboardModalProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
-
-export function LeaderboardModal({ open, onOpenChange }: LeaderboardModalProps) {
+export function LeaderboardModal() {
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog>
+            <DialogTrigger asChild>
+                <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors">
+                    Leaderboard
+                </button>
+            </DialogTrigger>
             <DialogContent className="z-50">
                 <DialogHeader>
                     <DialogTitle>Leaderboard</DialogTitle>

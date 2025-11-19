@@ -4,16 +4,17 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 
-interface EyeTrackingModalProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
-
-export function EyeTrackingModal({ open, onOpenChange }: EyeTrackingModalProps) {
+export function EyeTrackingModal() {
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog>
+            <DialogTrigger asChild>
+                <button className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition-colors">
+                    Eye Tracking Calibration
+                </button>
+            </DialogTrigger>
             <DialogContent className="z-50">
                 <DialogHeader>
                     <DialogTitle>Eye Tracking Calibration</DialogTitle>

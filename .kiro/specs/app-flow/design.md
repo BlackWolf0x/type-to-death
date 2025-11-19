@@ -270,3 +270,94 @@ pnpm dlx shadcn@latest add dialog
 - Checkbox should have associated label with proper for/id attributes
 - Ensure keyboard navigation works for all interactive elements
 - Consider adding aria-hidden to Unity game when main menu is visible
+
+## Custom Iteration: Simplified Modal Pattern
+
+### Rationale
+The current implementation uses prop drilling with controlled modal states (`open`, `onOpenChange`) managed in the parent MainMenu component. This creates unnecessary complexity and state management overhead. The shadcn Dialog component supports a simpler pattern using `DialogTrigger` that eliminates the need for external state management.
+
+### Updated Modal Pattern
+
+**Before (Prop Drilling):**
+```typescript
+// Parent manages state
+const [showEyeTrackingModal, setShowEyeTrackingModal] = useState(false);
+
+// Pass props to modal
+<EyeTrackingModal open={showEyeTrackingModal} onOpenChange={setShowEyeTrackingModal} />
+
+// Separate trigger button
+<button onClick={() => setShowEyeTrackingModal(true)}>Eye Tracking</button>
+```
+
+**After (Self-Contained):**
+```typescript
+// Modal contains its own trigger
+<EyeTrackingModal />
+
+// Modal implementation
+<Dialog>
+  <DialogTrigger asChild>
+    <button>Eye Tracking Calibration</button>
+  </DialogTrigger>
+  <DialogContent>
+    {/* Modal content */}
+  </DialogContent>
+</Dialog>
+```
+
+### Benefits
+- Eliminates unnecessary state variables in parent component
+- Reduces prop drilling
+- Each modal is self-contained and reusable
+- Simpler component API
+- Dialog component handles its own open/close state internally
+
+### Components to Refactor
+1. **EyeTrackingModal** - Remove `open` and `onOpenChange` props, add `DialogTrigger` with button
+2. **LeaderboardModal** - Remove `open` and `onOpenChange` props, add `DialogTrigger` with button
+3. **IntroModal** - Keep controlled pattern since it needs special logic (triggered by Start Game button with skipIntro check)
+
+### MainMenu Component Updates
+- Remove `showEyeTrackingModal` and `setShowEyeTrackingModal` state
+- Remove `showLeaderboardModal` and `setShowLeaderboardModal` state
+- Remove separate button elements for Eye Tracking and Leaderboard
+- Render modal components directly (they contain their own triggers)
+- Keep `showIntroModal` state since it has conditional logic
+
+### Updated Component Structure
+```typescript
+export function MainMenu() {
+  const { showMainMenu, skipIntro, hideMainMenu, setSkipIntro } = useAppStore();
+  const [showIntroModal, setShowIntroModal] = useState(false);
+  
+  // Only intro modal needs special handling
+  const handleStartGame = () => {
+    if (skipIntro) {
+      hideMainMenu();
+    } else {
+      setShowIntroModal(true);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed z-40 ...">
+        <button onClick={handleStartGame}>Start Game</button>
+        
+        {/* Self-contained modals with triggers */}
+        <EyeTrackingModal />
+        <LeaderboardModal />
+        
+        <label>
+          <input type="checkbox" checked={skipIntro} onChange={(e) => setSkipIntro(e.target.checked)} />
+          Skip Intro
+        </label>
+      </div>
+      
+      {/* Intro modal still controlled due to special logic */}
+      <IntroModal open={showIntroModal} onClose={handleIntroClose} />
+    </>
+  );
+}
+```
