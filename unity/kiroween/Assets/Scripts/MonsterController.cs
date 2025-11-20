@@ -6,6 +6,7 @@ public class MonsterController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float startingDistance = 10f;
     [SerializeField] private float walkSpeed = 1f;
+    [SerializeField] private float sprintSpeed = 3f;
     [SerializeField] private float goalDistance = 2f;
     
     [Header("Animation Settings")]
@@ -16,6 +17,7 @@ public class MonsterController : MonoBehaviour
     private Animator animator;
     private bool isBeingWatched;
     private bool hasReachedGoal;
+    private bool isAttacking;
     
     void Awake()
     {
@@ -48,7 +50,17 @@ public class MonsterController : MonoBehaviour
     
     void Update()
     {
-        if (hasReachedGoal || mainCamera == null)
+        if (mainCamera == null)
+            return;
+        
+        // If attacking, sprint toward camera regardless of cursor position
+        if (isAttacking)
+        {
+            SprintTowardCamera();
+            return;
+        }
+        
+        if (hasReachedGoal)
             return;
         
         // Check if monster is being watched via raycast
@@ -135,15 +147,43 @@ public class MonsterController : MonoBehaviour
         }
     }
     
+    private void SprintTowardCamera()
+    {
+        // Calculate direction toward camera (ignore y-axis to keep on ground)
+        Vector3 cameraPositionFlat = new Vector3(mainCamera.transform.position.x, 0f, mainCamera.transform.position.z);
+        Vector3 monsterPositionFlat = new Vector3(transform.position.x, 0f, transform.position.z);
+        Vector3 directionToCamera = (cameraPositionFlat - monsterPositionFlat).normalized;
+        
+        // Check if very close to camera to stop overshooting
+        float distanceToCamera = Vector3.Distance(monsterPositionFlat, cameraPositionFlat);
+        if (distanceToCamera < 0.5f)
+        {
+            return; // Stop sprinting when very close
+        }
+        
+        // Sprint toward camera at faster speed (keeping y = 0)
+        Vector3 newPosition = transform.position + directionToCamera * sprintSpeed * Time.deltaTime;
+        newPosition.y = 0f; // Keep on ground
+        transform.position = newPosition;
+        
+        // Make monster face the camera (only rotate on y-axis)
+        Vector3 lookTarget = new Vector3(mainCamera.transform.position.x, transform.position.y, mainCamera.transform.position.z);
+        transform.LookAt(lookTarget);
+    }
+    
     private void TriggerGameOver()
     {
-        // Stop all movement and animation
-        StopWalkAnimation();
+        // Start attack sequence
+        isAttacking = true;
         
-        Debug.Log("Game Over! Monster reached the player!");
+        // Trigger sprint animation via parameter for smooth transition
+        if (animator != null)
+        {
+            animator.speed = animationSpeed; // Ensure animator is playing
+            animator.SetBool("isSprinting", true);
+        }
         
-        // TODO: Implement attack animation and game over sequence
-        // This will be handled in a future spec
+        Debug.Log("Game Over! Monster is attacking!");
     }
     
     // Public method to check if game is over (can be called from other scripts)

@@ -70,11 +70,22 @@ This feature implements the core "Weeping Angel" mechanic for the Type to Death 
 #### Acceptance Criteria
 
 1. THE Monster SHALL check its distance from the camera every frame
-2. WHEN the Monster reaches the goal distance, THE Monster SHALL trigger game over
-3. WHEN game over is triggered, THE Monster SHALL stop all movement
-4. WHEN game over is triggered, THE Monster SHALL stop all animation
-5. THE Monster SHALL log "Game Over" message for debugging
-6. THE Monster SHALL provide a public method to check if goal has been reached
+2. WHEN the Monster reaches the goal distance, THE Monster SHALL trigger game over sequence
+3. WHEN game over is triggered, THE Monster SHALL ignore player input (cursor detection disabled)
+4. THE Monster SHALL provide a public method to check if goal has been reached
+
+### Requirement 7
+
+**User Story:** As a player, I want to see a dramatic attack animation when the monster reaches me, so that the game over feels impactful
+
+#### Acceptance Criteria
+
+1. WHEN the Monster reaches goal distance, THE Monster SHALL play the "sprint" animation
+2. THE Monster SHALL sprint toward the camera at a faster speed (sprintSpeed)
+3. THE Monster SHALL have a configurable sprint speed separate from walk speed
+4. THE Monster SHALL use animator.Play() to trigger the sprint animation directly
+5. THE Monster SHALL continue sprinting until reaching the camera position
+6. THE sprint attack SHALL ignore cursor position (player cannot stop it)
 
 ### Requirement 6
 

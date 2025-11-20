@@ -273,14 +273,18 @@ Monster (GameObject)
 **Requirements**:
 - Animator Controller assigned
 - "walk" animation state exists
-- Animation is set to loop
-- No special parameters needed (using speed control)
+- "sprint" animation state exists
+- Animations are set to loop
+- "isSprinting" bool parameter for sprint transition
 
 **Setup Steps**:
 1. Create Animator Controller asset
 2. Add "walk" animation clip to controller
-3. Set as default state
-4. Assign controller to Animator component
+3. Add "sprint" animation clip to controller
+4. Set walk as default state
+5. Add "isSprinting" bool parameter
+6. Create transition from walk to sprint when isSprinting = true
+7. Assign controller to Animator component
 
 ### Collider Setup
 
