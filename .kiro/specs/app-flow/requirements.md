@@ -14,6 +14,7 @@ This specification defines the main application flow for "Type To Death", a sing
 - **Eye Tracking Calibration Modal**: A dialog component for configuring eye tracking functionality
 - **Leaderboard Modal**: A dialog component displaying player rankings and scores
 - **Global State Store**: A Zustand store managing application-wide state without prop drilling
+- **Back Button**: A floating UI element that allows players to return to the main menu during gameplay
 - **SPA**: Single-Page Application - all features exist within one page using component visibility
 
 ## Requirements
@@ -107,3 +108,15 @@ This specification defines the main application flow for "Type To Death", a sing
 3. THE Global State Store SHALL provide actions to toggle component visibility
 4. THE Global State Store SHALL provide actions to update the Skip Intro Preference
 5. THE SPA SHALL use the Global State Store to coordinate state between all components
+
+### Requirement 9
+
+**User Story:** As a player, I want to return to the main menu during gameplay, so that I can access other features or restart
+
+#### Acceptance Criteria
+
+1. WHEN the Main Menu Component is hidden, THE SPA SHALL display a back button in the top-left corner
+2. THE back button SHALL be positioned as a floating element with appropriate z-index
+3. WHEN the player clicks the back button, THE SPA SHALL call the showMainMenu action
+4. THE back button SHALL be implemented using shadcn button component
+5. THE back button SHALL be visually distinct and easily accessible during gameplay

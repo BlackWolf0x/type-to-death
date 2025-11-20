@@ -7,6 +7,7 @@ interface AppStore {
 
     // Actions
     hideMainMenu: () => void;
+    setShowMainMenu: (show: boolean) => void;
     setSkipIntro: (skip: boolean) => void;
     initializeFromLocalStorage: () => void;
 }
@@ -20,6 +21,7 @@ export const useAppStore = create<AppStore>((set) => ({
 
     // Actions
     hideMainMenu: () => set({ showMainMenu: false }),
+    setShowMainMenu: (show: boolean) => set({ showMainMenu: show }),
 
     setSkipIntro: (skip: boolean) => {
         set({ skipIntro: skip });

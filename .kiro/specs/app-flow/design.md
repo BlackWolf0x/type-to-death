@@ -20,6 +20,9 @@ The architecture leverages Zustand for centralized state management, shadcn/ui d
 │  Main Menu (z-40)                       │
 │  - Overlays everything when visible     │
 ├─────────────────────────────────────────┤
+│  Back Button (z-20)                     │
+│  - Visible only during gameplay         │
+├─────────────────────────────────────────┤
 │  Game UI Component (z-10)               │
 │  - Input field and game controls        │
 ├─────────────────────────────────────────┤
@@ -65,7 +68,7 @@ interface AppStore {
   
   // Actions
   hideMainMenu: () => void;
-  showMainMenu: () => void;
+  showMainMenu: () => void; // Used by back button to return to menu
   setSkipIntro: (skip: boolean) => void;
   initializeFromLocalStorage: () => void;
 }
@@ -196,6 +199,37 @@ interface LeaderboardModalProps {
 **Current Implementation:** Already exists with input field
 
 **Potential Enhancement:** May need to conditionally show/hide based on `showMainMenu` state, but this can be handled via CSS visibility or by checking store state
+
+### 9. Back Button Component
+
+**Location:** `app/src/components/ui/BackButton.tsx`
+
+**Props:** None (uses Zustand store)
+
+**Structure:**
+```typescript
+export function BackButton() {
+  const { showMainMenu, showMainMenu: showMenu } = useAppStore();
+  
+  if (showMainMenu) {
+    return null; // Hidden when main menu is visible
+  }
+  
+  return (
+    <Button onClick={showMenu}>
+      Back to Menu
+    </Button>
+  );
+}
+```
+
+**Implementation:**
+- Uses shadcn Button component
+- Fixed positioned in top-left corner
+- Z-index: 20 (above game UI, below main menu)
+- Only visible when `showMainMenu` is false
+- Calls `showMainMenu()` action when clicked
+- Styled with appropriate padding and visual distinction
 
 ## Data Models
 

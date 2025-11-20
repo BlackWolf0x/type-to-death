@@ -91,3 +91,19 @@
   - Update Game.tsx imports to use `@` aliases
   - Test that all modals still open and close correctly
   - _Custom Iteration: Simplified Modal Pattern_
+
+- [x] 9. Add floating back button for returning to main menu
+
+
+
+  - Create `app/src/components/ui/BackButton.tsx` component
+  - Import useAppStore hook and Button component from shadcn
+  - Implement conditional rendering (only show when showMainMenu is false)
+  - Add fixed positioning in top-left corner with appropriate spacing
+  - Set z-index to z-20 (above game UI, below main menu)
+  - Add onClick handler that calls showMainMenu() action from store
+  - Style button with appropriate colors and hover states
+  - Add icon (ArrowLeft from lucide-react) for better UX
+  - Import and render BackButton in App.tsx
+  - Test that button appears during gameplay and returns to main menu when clicked
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
