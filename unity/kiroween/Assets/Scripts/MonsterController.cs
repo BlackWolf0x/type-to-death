@@ -48,12 +48,25 @@ public class MonsterController : MonoBehaviour
         }
 
         Debug.Log("MonsterController: Awake completed successfully.");
+
+        // Calculate spawn position at startingDistance from camera
+        Vector3 cameraPosition = mainCamera.transform.position;
+        Vector3 cameraForward = mainCamera.transform.forward.normalized;
+        
+        // Position monster at startingDistance in front of camera
+        Vector3 spawnPosition = cameraPosition + (cameraForward * startingDistance);
+        
+        // Set Y position to 0 (ground level)
+        spawnPosition.y = 0f;
+        
+        // Apply spawn position
+        transform.position = spawnPosition;
         
         // Set up editor testing input (New Input System)
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         testBlinkAction = new InputAction("TestBlink", binding: "<Keyboard>/space");
         testBlinkAction.performed += OnTestBlinkPerformed;
-        #endif
+#endif
     }
     
     void OnEnable()
@@ -99,28 +112,7 @@ public class MonsterController : MonoBehaviour
             Debug.LogWarning("MonsterController: Lives is set to 1 or less. Teleport distance set to 0.");
         }
 
-        // Calculate spawn position at startingDistance from camera
-        Vector3 cameraPosition = mainCamera.transform.position;
-        Vector3 cameraForward = mainCamera.transform.forward.normalized;
-        
-        // Position monster at startingDistance in front of camera
-        Vector3 spawnPosition = cameraPosition + (cameraForward * startingDistance);
-        
-        // Set Y position to 0 (ground level)
-        spawnPosition.y = 0f;
-        
-        // Apply spawn position
-        transform.position = spawnPosition;
-
-        // Rotate monster to face camera
-        Vector3 directionToCamera = cameraPosition - transform.position;
-        directionToCamera.y = 0f; // Keep rotation on horizontal plane
-        
-        if (directionToCamera != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(directionToCamera);
-        }
-
+    
         Debug.Log($"MonsterController: Spawned at distance {startingDistance} from camera. Lives: {currentLives}, Teleport Distance: {teleportDistance}");
     }
 
