@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class MonsterController : MonoBehaviour
+public class DeprecatedMonsterController : MonoBehaviour
 {
     [Header("Movement Settings")]
     [SerializeField] private float startingDistance = 10f;
