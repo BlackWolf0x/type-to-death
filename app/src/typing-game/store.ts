@@ -216,6 +216,30 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             // Error occurs when input doesn't match the word prefix
             const hasError = matchingLength < value.length;
 
+            // Check if this is the last word and it's fully typed
+            const isLastWord = state.currentWordIndex === state.words.length - 1;
+            const isWordComplete = matchingLength === currentWord.length;
+
+            // If last word is fully typed, auto-complete the challenge
+            if (isLastWord && isWordComplete) {
+                const newCompletedWords = [...state.completedWords];
+                newCompletedWords[state.currentWordIndex] = true;
+
+                // Trigger nextChallenge after a delay
+                setTimeout(() => {
+                    useTypingGameStore.getState().nextChallenge();
+                }, 500);
+
+                return {
+                    inputValue: validPrefix,
+                    currentCharIndex: matchingLength,
+                    hasError: false,
+                    errorCount: 0,
+                    completedWords: newCompletedWords,
+                    isChallengeComplete: true,
+                };
+            }
+
             return {
                 inputValue: validPrefix,
                 currentCharIndex: matchingLength,

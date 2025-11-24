@@ -202,3 +202,11 @@
   - Test typing correct character after incorrect sequence and verify cursor advances correctly
   - Test backspace functionality to move cursor backward through completed characters
   - Verify green (completed) characters always match input field exactly
+
+- [x] Improvement 6. Auto-complete challenge on last character
+  - Update `setInputValue` in store to detect when typing the last character of the last word
+  - When last word is fully typed (currentCharIndex === currentWord.length AND currentWordIndex === words.length - 1), automatically trigger completion
+  - Set `isChallengeComplete` to true and mark last word as completed in `completedWords` array
+  - Trigger `nextChallenge()` after delay (existing logic already handles this in `handleSpaceOrEnter`)
+  - Note: Success message display and progression to next challenge already exist in TextDisplay and nextChallenge action
+  - Test by typing the complete last word without pressing Space/Enter and verify automatic completion
