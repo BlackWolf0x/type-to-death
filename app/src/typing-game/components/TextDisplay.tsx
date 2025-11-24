@@ -14,6 +14,7 @@ export function TextDisplay() {
     const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
     const [cursorLeft, setCursorLeft] = useState(0);
     const [cursorReady, setCursorReady] = useState(false);
+    const [cursorWordIndex, setCursorWordIndex] = useState(currentWordIndex);
     const prevWordIndexRef = useRef(currentWordIndex);
 
     // Memoize character splitting for current word to avoid re-splitting on every render
@@ -33,6 +34,7 @@ export function TextDisplay() {
             if (currentCharIndex === 0) {
                 setCursorLeft(0);
                 setCursorReady(true);
+                setCursorWordIndex(currentWordIndex);
                 return;
             }
 
@@ -50,11 +52,13 @@ export function TextDisplay() {
         if (currentCharIndex === 0) {
             setCursorLeft(0);
             setCursorReady(true);
+            setCursorWordIndex(currentWordIndex);
         } else if (currentCharIndex <= currentWordChars.length) {
             const prevChar = charRefs.current[currentCharIndex - 1];
             if (prevChar) {
                 setCursorLeft(prevChar.offsetLeft + prevChar.offsetWidth);
                 setCursorReady(true);
+                setCursorWordIndex(currentWordIndex);
             } else {
                 setCursorReady(false);
             }
@@ -115,7 +119,7 @@ export function TextDisplay() {
                             <span key={wordIndex}>
                                 <span className="relative inline-block underline decoration-2 decoration-gray-800">
                                     {/* Cursor - positioned absolutely relative to word, animates smoothly */}
-                                    {cursorReady && currentCharIndex <= currentWordChars.length && (
+                                    {cursorReady && cursorWordIndex === currentWordIndex && currentCharIndex <= currentWordChars.length && (
                                         <span
                                             key={`cursor-${currentWordIndex}-${currentCharIndex}`}
                                             className="absolute top-0 text-black pointer-events-none"
