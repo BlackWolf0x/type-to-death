@@ -34,7 +34,13 @@ export function TypingInput() {
     }, [errorCount, hasError]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(e.target.value);
+        const newValue = e.target.value;
+        setInputValue(newValue);
+
+        // After validation, ensure input field shows only the valid prefix
+        // This happens automatically through the store update and re-render
+        // The store will update currentCharIndex to the matching length
+        // and we'll trim the input on the next render if needed
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

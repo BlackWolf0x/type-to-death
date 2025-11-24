@@ -381,6 +381,30 @@ export function isInputCorrectSoFar(input: string, target: string): boolean {
 - Punctuation must match exactly
 - Provide partial validation for visual feedback
 
+#### Input Backtracking and Synchronization (Improvement 5)
+
+The typing system implements intelligent backtracking to ensure the input field always matches the word being typed:
+
+**Core Principle**: The input value must always be a valid prefix of the target word. If it diverges, the cursor backtracks to the last valid position.
+
+**Backtracking Logic**:
+1. On each input change, validate the entire input string against the word prefix
+2. Find the longest matching prefix between input and target word
+3. Set `currentCharIndex` to the length of the matching prefix
+4. If input doesn't match (e.g., typing "Tl" in "The"), cursor moves back to last valid position (1, after "T")
+5. Typing the correct character advances the cursor forward again
+
+**Backspace Support**:
+- Backspace removes the last character from input
+- Cursor moves backward to reflect the shorter input
+- Green (completed) characters update to match current input length
+
+**Benefits**:
+- Input field always shows exactly what matches the word
+- Cursor position always reflects actual progress
+- Natural correction flow: type wrong → cursor backs up → type correct → cursor advances
+- Prevents "getting stuck" with invalid input
+
 ### Visual Feedback Strategy
 
 Use Tailwind CSS classes to style words based on state:

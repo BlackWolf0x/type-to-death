@@ -190,3 +190,15 @@
   - Test cursor appears clearly separated from text without overlap
   - Verify underline spans the complete word from first to last character
   - Confirm cursor movement has smooth animation between positions
+
+- [x] Improvement 5. Implement input backtracking and validation synchronization
+  - Update store validation logic to validate entire input value against word prefix
+  - Implement backtracking: if input doesn't match word prefix, move cursor back to last valid position
+  - Support backspace key to move cursor backward and update validation state
+  - Ensure input field value always matches the word characters up to current cursor position
+  - Update currentCharIndex to reflect actual matching length, not just input length
+  - Add visual feedback when input diverges from expected word
+  - Test typing incorrect sequence (e.g., "Tl" in "The") and verify cursor backtracks
+  - Test typing correct character after incorrect sequence and verify cursor advances correctly
+  - Test backspace functionality to move cursor backward through completed characters
+  - Verify green (completed) characters always match input field exactly

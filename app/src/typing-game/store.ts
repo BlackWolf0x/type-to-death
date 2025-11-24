@@ -189,32 +189,39 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             // Get current word
             const currentWord = state.words[state.currentWordIndex];
 
-            // Update input value
-            const newState: Partial<TypingGameStore> = { inputValue: value };
-
             // If input is empty, reset to no error
             if (value === '') {
-                newState.hasError = false;
-                newState.currentCharIndex = 0;
-                return newState;
+                return {
+                    inputValue: '',
+                    hasError: false,
+                    currentCharIndex: 0,
+                };
             }
 
-            // Get the character at current position
-            const expectedChar = currentWord[state.currentCharIndex];
-            const typedChar = value[value.length - 1];
-
-            // Validate the character (case-sensitive)
-            if (typedChar === expectedChar) {
-                // Correct character - advance cursor
-                newState.currentCharIndex = state.currentCharIndex + 1;
-                newState.hasError = false;
-            } else {
-                // Incorrect character - show error, keep cursor position, increment error counter
-                newState.hasError = true;
-                newState.errorCount = (state.errorCount || 0) + 1;
+            // Validate entire input value against word prefix
+            // Find the longest matching prefix between input and target word
+            let matchingLength = 0;
+            for (let i = 0; i < value.length && i < currentWord.length; i++) {
+                if (value[i] === currentWord[i]) {
+                    matchingLength++;
+                } else {
+                    break;
+                }
             }
 
-            return newState;
+            // Trim input to only the valid prefix (backtracking)
+            const validPrefix = currentWord.substring(0, matchingLength);
+
+            // Determine if there's an error
+            // Error occurs when input doesn't match the word prefix
+            const hasError = matchingLength < value.length;
+
+            return {
+                inputValue: validPrefix,
+                currentCharIndex: matchingLength,
+                hasError: hasError,
+                errorCount: hasError ? (state.errorCount || 0) + 1 : state.errorCount,
+            };
         });
     },
 
