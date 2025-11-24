@@ -2,8 +2,10 @@
 @import "tw-animate-css";
 
 
-
 @theme inline {
+
+  --font-metal: "Metal Mania";
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
