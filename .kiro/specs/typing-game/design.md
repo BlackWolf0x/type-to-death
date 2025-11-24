@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Typing Game design implements TypeRacer-style word-by-word typing mechanics within the existing React component structure. The system manages challenge state, validates player input in real-time, provides visual progress feedback, and automatically progresses through difficulty levels. The design emphasizes performance, immediate feedback, and a smooth typing experience that integrates seamlessly with the horror game's tension mechanics.
+The Typing Game design implements character-by-character typing mechanics with a visual cursor that moves through each word as the player types. The system validates each character in real-time, provides immediate error feedback, and requires players to press Space (or Enter for the last word) to advance to the next word. The design emphasizes precise character-level feedback, error indication through visual cues (red border, shake animation), and a smooth typing experience that integrates seamlessly with the horror game's tension mechanics.
 
 ## Architecture
 
@@ -39,20 +39,25 @@ TypingGame (index.tsx)
 ```
 data.ts → Load challenges → Initialize first challenge
                                     ↓
-                          Display words in container
+                          Display words with cursor at first character
                                     ↓
-                          Player types in input field
+                          Player types character in input field
                                     ↓
-                          Validate against current word
+                          Validate character against current position
                                     ↓
-                    Match? → Yes → Mark word complete
-                                → Clear input
-                                → Advance to next word
-                                → Check if challenge complete
-                                    ↓
-                    Match? → No → Keep current word
-                                → Maintain input value
-                                → Show error feedback
+            Character Match? → Yes → Advance cursor to next character
+                                   → Update visual feedback (underline)
+                                   → Check if word complete
+                                        ↓
+                            Player presses Space/Enter?
+                                        ↓
+                                   Yes → Advance to next word
+                                      → Clear input
+                                      → Reset cursor to start of new word
+                                        ↓
+            Character Match? → No → Keep cursor on same character
+                                 → Show error feedback (red border, shake)
+                                 → Wait for correct character
 ```
 
 ## Components and Interfaces
@@ -71,17 +76,23 @@ interface TypingGameStore {
   currentWordIndex: number;
   completedWords: boolean[];
   
+  // Character tracking
+  currentCharIndex: number;
+  
   // Input management
   inputValue: string;
+  hasError: boolean;
   
   // Status
   isComplete: boolean;
   isChallengeComplete: boolean;
+  isAllComplete: boolean;
   
   // Actions
   loadChallenges: () => void;
   setInputValue: (value: string) => void;
-  validateAndAdvance: () => void;
+  validateCharacter: () => void;
+  handleSpaceOrEnter: () => void;
   nextChallenge: () => void;
   reset: () => void;
 }
@@ -222,43 +233,48 @@ Each property-based test will run a minimum of 100 iterations to ensure thorough
 
 ### Property 2: Initial state consistency
 
-*For any* loaded challenge set, the game should start with the first challenge (index 0) and the first word (index 0) as the current target.
+*For any* loaded challenge set, the game should start with the first challenge (index 0), the first word (index 0), and the first character (index 0) as the current target.
 **Validates: Requirements 6.1, 8.1**
 
-### Property 3: Word completion advances progress
+### Property 3: Character validation advances cursor
 
-*For any* word in a challenge, when the player types that word exactly, the system should mark it as completed, clear the input field, and advance to the next word.
-**Validates: Requirements 3.1, 3.3, 4.3, 5.2, 6.2**
+*For any* character in a word, when the player types that character correctly, the system should advance the cursor to the next character position.
+**Validates: Requirements 4.1, 5.2**
 
-### Property 4: Incorrect input maintains state
+### Property 4: Incorrect character maintains cursor position
 
-*For any* word in a challenge, when the player types input that does not match the current target word exactly, the progress tracker should remain on the same word and the input should be preserved.
-**Validates: Requirements 5.3**
+*For any* character in a word, when the player types an incorrect character, the cursor should remain on the same character position and error feedback should be displayed.
+**Validates: Requirements 5.3, 9.1, 9.3**
 
-### Property 5: Case-sensitive validation
+### Property 5: Case-sensitive character validation
 
-*For any* word in a challenge, validation should be case-sensitive such that "Hello" and "hello" are treated as different inputs.
+*For any* character in a word, validation should be case-sensitive such that "H" and "h" are treated as different characters.
 **Validates: Requirements 5.4**
 
 ### Property 6: Punctuation exact matching
 
-*For any* word containing punctuation, the validation should require exact character-by-character match including all punctuation marks.
+*For any* character including punctuation, the validation should require exact match.
 **Validates: Requirements 5.5**
 
-### Property 7: Sequential typing enforcement
+### Property 7: Space advances to next word
 
-*For any* challenge, the system should only accept input matching the current target word, preventing players from skipping ahead to future words regardless of what they type.
-**Validates: Requirements 6.3, 6.4**
+*For any* word that is fully typed correctly, pressing Space should advance to the next word, clear the input field, and reset the character cursor to position 0.
+**Validates: Requirements 3.1, 3.3**
 
-### Property 8: Visual state differentiation
+### Property 8: Enter completes last word
 
-*For any* word in the displayed challenge, the system should apply distinct visual styling based on its state (completed, current, or upcoming), ensuring each state is visually distinguishable.
-**Validates: Requirements 4.1, 4.2**
+*For any* last word in a challenge that is fully typed correctly, pressing Enter should complete the challenge.
+**Validates: Requirements 3.2**
 
-### Property 9: Input field focus retention
+### Property 9: Cursor visual feedback
+
+*For any* character position in the current word, the system should display a visual cursor (|) before that character and underline it.
+**Validates: Requirements 4.2, 4.3**
+
+### Property 10: Input field focus retention
 
 *For any* word completion, the input field should maintain focus after being cleared, allowing immediate typing of the next word without manual refocusing.
-**Validates: Requirements 3.2**
+**Validates: Requirements 3.3**
 
 ### Property 10: Challenge progression
 
@@ -267,13 +283,13 @@ Each property-based test will run a minimum of 100 iterations to ensure thorough
 
 ### Property 11: Input event validation trigger
 
-*For any* character typed in the input field, the system should trigger validation against the current target word.
+*For any* character typed in the input field, the system should trigger validation against the current target character.
 **Validates: Requirements 2.4, 5.1**
 
-### Property 12: Visual feedback state
+### Property 12: Error visual feedback
 
-*For any* input state, the system should provide appropriate visual feedback indicating whether the current input is correct (matches the beginning of the target word) or incorrect.
-**Validates: Requirements 9.1, 9.2, 9.3**
+*For any* incorrect character input, the system should display a red border on the input field and apply a shake animation.
+**Validates: Requirements 9.1, 9.2**
 
 ### Property 13: Text display persistence
 
@@ -369,10 +385,64 @@ export function isInputCorrectSoFar(input: string, target: string): boolean {
 
 Use Tailwind CSS classes to style words based on state:
 - **Completed**: Green text, slightly faded
-- **Current**: Bold, highlighted background, distinct color
+- **Current**: Bold, highlighted background, distinct color, entire word underlined
 - **Upcoming**: Default text color
 
 Apply classes conditionally based on word index comparison.
+
+#### Cursor Design (Updated)
+
+The cursor implementation uses the following design principles:
+- **Color**: Black for maximum visibility and contrast
+- **Height**: Increased height to make cursor more prominent
+- **Positioning**: Absolute positioning to prevent layout shifts
+- **Animation**: Smooth pulse animation (1s ease-in-out infinite)
+- **Placement**: Floats beside the current character using `translateX(-0.15em)`
+
+#### Text Spacing
+
+Letter spacing (`tracking-wide`) is applied to the text container to:
+- Improve cursor visibility between characters
+- Enhance readability during typing
+- Provide better visual separation of characters
+
+#### Word Underline
+
+The entire current word is underlined (not just the current character) to:
+- Clearly indicate which word is being typed
+- Provide better context for the player
+- Maintain visual consistency throughout the word
+- Underline should only apply to word characters, not trailing spaces
+
+#### Cursor Refinements (Improvement 3)
+
+Additional cursor improvements for better user experience:
+- **Thickness**: Reduced font-weight or thinner character for more elegant appearance
+- **Visibility**: Maintains black color for maximum contrast while being less obtrusive
+
+#### Shake Animation Behavior (Improvement 3)
+
+The shake animation on typing errors should:
+- Retrigger every time an incorrect character is typed
+- Use a key-based or state-based animation reset mechanism
+- Provide consistent feedback for repeated errors on the same character
+- Implementation approach: Use a counter or timestamp to force animation restart
+
+#### Cursor Positioning and Animation (Improvement 4)
+
+Enhanced cursor behavior for optimal user experience:
+- **Positioning**: Cursor should be positioned slightly more to the left to avoid overlapping with text characters
+- **Smooth Movement**: Add CSS transition for smooth animation when cursor moves between character positions
+- **Transition Properties**: Use `transition-all` or specific `transition-transform` for fluid movement
+- **Duration**: Recommended 150-200ms for natural feel without lag
+
+#### Complete Word Underline (Improvement 4)
+
+The underline should:
+- Span the entire current word from first character to last character
+- Include all characters in the word, not just up to the current cursor position
+- Maintain consistent styling throughout the word
+- Provide clear visual indication of the complete word being typed
 
 ### Performance Optimizations
 
