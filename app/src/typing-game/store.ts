@@ -198,29 +198,45 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 };
             }
 
-            // Validate entire input value against word prefix
-            // Find the longest matching prefix between input and target word
-            let matchingLength = 0;
-            for (let i = 0; i < value.length && i < currentWord.length; i++) {
-                if (value[i] === currentWord[i]) {
-                    matchingLength++;
-                } else {
+            // Allow any characters to be typed (no automatic backtracking)
+            // Validate each character in input against target word
+            let hasAnyError = false;
+            for (let i = 0; i < value.length; i++) {
+                // Check if character exists in target word and matches
+                if (i >= currentWord.length || value[i] !== currentWord[i]) {
+                    hasAnyError = true;
                     break;
                 }
             }
 
-            // Trim input to only the valid prefix (backtracking)
-            const validPrefix = currentWord.substring(0, matchingLength);
+            // If there's an error and input length is 10 or more, limit to 10 and show alert
+            if (hasAnyError && value.length >= 10) {
+                // Show alert when trying to type more than 10 characters with errors
+                if (value.length > state.inputValue.length) {
+                    alert('Maximum 10 characters allowed when there are errors. Please backspace to correct your mistakes.');
+                }
+                // Limit to 10 characters
+                const limitedValue = value.substring(0, 10);
+                return {
+                    inputValue: limitedValue,
+                    currentCharIndex: limitedValue.length,
+                    hasError: true,
+                    errorCount: state.errorCount,
+                };
+            }
 
-            // Determine if there's an error
-            // Error occurs when input doesn't match the word prefix
-            const hasError = matchingLength < value.length;
+            // Cursor follows input length (not matching length)
+            const newCharIndex = value.length;
 
-            // Check if this is the last word and it's fully typed
+            // Increment error count only when a NEW error is introduced
+            const previousHadError = state.hasError;
+            const shouldIncrementError = hasAnyError && (!previousHadError || value.length > state.inputValue.length);
+
+            // Check if this is the last word and it's fully typed correctly
             const isLastWord = state.currentWordIndex === state.words.length - 1;
-            const isWordComplete = matchingLength === currentWord.length;
+            const isWordComplete = !hasAnyError && value.length === currentWord.length;
 
-            // If last word is fully typed, auto-complete the challenge
+            // If last word is fully typed correctly, auto-complete the challenge
             if (isLastWord && isWordComplete) {
                 const newCompletedWords = [...state.completedWords];
                 newCompletedWords[state.currentWordIndex] = true;
@@ -231,8 +247,8 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 }, 500);
 
                 return {
-                    inputValue: validPrefix,
-                    currentCharIndex: matchingLength,
+                    inputValue: value,
+                    currentCharIndex: newCharIndex,
                     hasError: false,
                     errorCount: 0,
                     completedWords: newCompletedWords,
@@ -241,10 +257,10 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             }
 
             return {
-                inputValue: validPrefix,
-                currentCharIndex: matchingLength,
-                hasError: hasError,
-                errorCount: hasError ? (state.errorCount || 0) + 1 : state.errorCount,
+                inputValue: value,
+                currentCharIndex: newCharIndex,
+                hasError: hasAnyError,
+                errorCount: shouldIncrementError ? (state.errorCount || 0) + 1 : state.errorCount,
             };
         });
     },
@@ -258,13 +274,19 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
         set((state) => {
             const currentWord = state.words[state.currentWordIndex];
 
-            // Check if current word is fully typed
-            if (state.currentCharIndex !== currentWord.length) {
-                // Word not complete, don't advance
+            // Prevent advancement if there are any errors
+            if (state.hasError) {
+                // Don't advance if input contains errors
                 return state;
             }
 
-            // Word is complete - advance to next word
+            // Check if input exactly matches the target word
+            if (state.inputValue !== currentWord) {
+                // Word not complete or doesn't match, don't advance
+                return state;
+            }
+
+            // Word is complete and correct - advance to next word
             const newCurrentWordIndex = state.currentWordIndex + 1;
             const newCompletedWords = [...state.completedWords];
             newCompletedWords[state.currentWordIndex] = true;

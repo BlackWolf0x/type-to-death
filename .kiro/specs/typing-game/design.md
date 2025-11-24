@@ -381,29 +381,46 @@ export function isInputCorrectSoFar(input: string, target: string): boolean {
 - Punctuation must match exactly
 - Provide partial validation for visual feedback
 
-#### Input Backtracking and Synchronization (Improvement 5)
+#### Input Backtracking and Synchronization (Improvement 5 - Deprecated)
 
-The typing system implements intelligent backtracking to ensure the input field always matches the word being typed:
+**Note**: This approach has been replaced by Improvement 7 which allows natural typing with mistakes.
 
-**Core Principle**: The input value must always be a valid prefix of the target word. If it diverges, the cursor backtracks to the last valid position.
+~~The typing system implements intelligent backtracking to ensure the input field always matches the word being typed:~~
 
-**Backtracking Logic**:
-1. On each input change, validate the entire input string against the word prefix
-2. Find the longest matching prefix between input and target word
-3. Set `currentCharIndex` to the length of the matching prefix
-4. If input doesn't match (e.g., typing "Tl" in "The"), cursor moves back to last valid position (1, after "T")
-5. Typing the correct character advances the cursor forward again
+~~**Core Principle**: The input value must always be a valid prefix of the target word. If it diverges, the cursor backtracks to the last valid position.~~
+
+#### Natural Typing with Error Correction (Improvement 7)
+
+The typing system now allows users to make natural typing mistakes and correct them using backspace:
+
+**Core Principle**: Users can type freely, including mistakes. The system provides visual feedback for errors but allows the full input to remain, enabling natural self-correction with backspace.
+
+**Typing Behavior**:
+1. Users can type any characters, including incorrect ones
+2. The cursor advances with each character typed (correct or incorrect)
+3. Visual feedback shows which characters are correct (green) and which are incorrect (red highlight)
+4. The input field shows an error state (red border, shake animation) when mistakes are present
+5. Users can use backspace to delete characters and correct their mistakes
+6. Only when the entire word is typed correctly can users press Space/Enter to advance
+
+**Error Detection**:
+- Compare each character in the input against the corresponding character in the target word
+- Track if any character doesn't match
+- Set `hasError` to true if any mismatches exist
+- Update error count to retrigger shake animation on new mistakes
 
 **Backspace Support**:
 - Backspace removes the last character from input
 - Cursor moves backward to reflect the shorter input
-- Green (completed) characters update to match current input length
+- Error state updates based on remaining characters
+- Green/red highlighting updates to reflect current input
 
 **Benefits**:
-- Input field always shows exactly what matches the word
-- Cursor position always reflects actual progress
-- Natural correction flow: type wrong → cursor backs up → type correct → cursor advances
-- Prevents "getting stuck" with invalid input
+- Natural typing experience - users can type at full speed
+- Self-correction with backspace feels intuitive
+- Visual feedback clearly shows where mistakes are
+- No forced backtracking - users control their corrections
+- Matches real-world typing behavior
 
 ### Visual Feedback Strategy
 

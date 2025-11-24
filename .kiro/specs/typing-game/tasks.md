@@ -210,3 +210,16 @@
   - Trigger `nextChallenge()` after delay (existing logic already handles this in `handleSpaceOrEnter`)
   - Note: Success message display and progression to next challenge already exist in TextDisplay and nextChallenge action
   - Test by typing the complete last word without pressing Space/Enter and verify automatic completion
+
+- [x] Improvement 7. Allow natural typing with mistakes and backspace correction
+  - Update `setInputValue` in store to allow any characters to be typed (remove automatic backtracking)
+  - Allow input value to contain incorrect characters
+  - Update validation logic to compare each character in input against target word character-by-character
+  - Set `hasError` to true if ANY character in the input doesn't match the corresponding character in the target word
+  - Update `currentCharIndex` to equal the length of the input (cursor follows input length, not matching length)
+  - Keep error count increment to retrigger shake animation on new mistakes
+  - Update TextDisplay to show red highlighting on incorrect characters (not just current character)
+  - Ensure backspace functionality works naturally (removes last character, updates cursor position)
+  - Prevent Space/Enter from advancing if input contains any errors (hasError is true)
+  - Only allow word advancement when input exactly matches the target word
+  - _Requirements: 5.1, 5.2, 5.3, 9.1, 9.2, 9.3_

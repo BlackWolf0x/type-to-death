@@ -78,9 +78,11 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 
 1. WHEN a player types a character THEN the system SHALL compare it against the expected character at the current cursor position
 2. WHEN the typed character matches the expected character THEN the system SHALL advance the cursor to the next character
-3. WHEN the typed character does not match the expected character THEN the system SHALL keep the cursor on the same character and display error feedback
+3. WHEN the typed character does not match the expected character THEN the system SHALL display error feedback while allowing the character to be typed
 4. WHEN validating characters THEN the system SHALL perform case-sensitive comparison
 5. WHEN validating characters THEN the system SHALL check for exact match including punctuation and special characters
+
+**Note (Improvement 7):** The system allows natural typing where users can make mistakes and use backspace to correct them. Error feedback is provided visually, but input is not blocked or automatically corrected.
 
 ### Requirement 6
 
@@ -126,9 +128,11 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 
 1. WHEN a player types an incorrect character THEN the system SHALL display the input field with a red border to indicate an error
 2. WHEN a player types an incorrect character THEN the system SHALL apply a shake animation to the input field
-3. WHEN a player types an incorrect character THEN the system SHALL keep the cursor on the current character position
-4. WHEN a player corrects the error by typing the correct character THEN the system SHALL remove the error styling and advance the cursor
+3. WHEN a player types an incorrect character THEN the system SHALL allow the character to be typed and display it in the input field
+4. WHEN a player uses backspace THEN the system SHALL remove the last character and update error state accordingly
 5. WHEN the input is correct THEN the system SHALL display the input field with normal styling
+
+**Note (Improvement 7):** Users can type incorrect characters and use backspace to correct them naturally, rather than being blocked from typing mistakes.
 
 ### Requirement 10
 

@@ -10,7 +10,6 @@ export function TypingInput() {
     const hasError = useTypingGameStore((state) => state.hasError);
     const errorCount = useTypingGameStore((state) => state.errorCount);
     const isAllComplete = useTypingGameStore((state) => state.isAllComplete);
-    const currentCharIndex = useTypingGameStore((state) => state.currentCharIndex);
     const currentWordIndex = useTypingGameStore((state) => state.currentWordIndex);
     const words = useTypingGameStore((state) => state.words);
 
@@ -45,31 +44,30 @@ export function TypingInput() {
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         const currentWord = words[currentWordIndex];
-        const isWordFullyTyped = currentCharIndex === currentWord?.length;
+        const isWordFullyTyped = inputValue === currentWord;
         const isLastWord = currentWordIndex === words.length - 1;
 
         // Handle Space key
         if (e.key === ' ') {
-            // Only advance if current word is fully typed
-            if (isWordFullyTyped) {
-                e.preventDefault(); // Prevent space from being added to input
-                handleSpaceOrEnter();
-            } else {
-                // Prevent space from being added if word is not complete
+            // Check if the word is fully typed correctly
+            if (isWordFullyTyped && !hasError) {
+                // Word is complete and correct - advance to next word
                 e.preventDefault();
+                handleSpaceOrEnter();
             }
+            // Otherwise, allow space to be typed as a regular character (don't prevent default)
+            // This allows spaces to be part of the input for validation
         }
 
         // Handle Enter key
         if (e.key === 'Enter') {
-            // Only advance if on last word and word is fully typed
-            if (isLastWord && isWordFullyTyped) {
-                e.preventDefault(); // Prevent default Enter behavior
+            e.preventDefault(); // Always prevent default Enter behavior
+
+            // Only advance if on last word and word is fully typed correctly (no errors)
+            if (isLastWord && isWordFullyTyped && !hasError) {
                 handleSpaceOrEnter();
-            } else {
-                // Prevent Enter if not on last word or word not complete
-                e.preventDefault();
             }
+            // If there are errors or word not complete, do nothing
         }
     };
 
