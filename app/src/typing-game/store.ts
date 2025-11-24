@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { toast } from 'sonner';
 import { typingChallenges } from './data';
 import { parseWords } from './utils/wordParser';
 
@@ -209,12 +210,11 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 }
             }
 
-            // If there's an error and input length is 10 or more, limit to 10 and show alert
-            if (hasAnyError && value.length >= 10) {
-                // Show alert when trying to type more than 10 characters with errors
-                if (value.length > state.inputValue.length) {
-                    alert('Maximum 10 characters allowed when there are errors. Please backspace to correct your mistakes.');
-                }
+            // If there's an error and trying to type more than 10 characters, limit to 10 and show toast
+            if (hasAnyError && value.length > 10) {
+                // Show toast only when trying to exceed the limit (typing the 11th character)
+                toast.error('Maximum 10 characters allowed when there are errors. Please backspace to correct your mistakes.');
+
                 // Limit to 10 characters
                 const limitedValue = value.substring(0, 10);
                 return {
@@ -323,12 +323,16 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             // Check if all challenges are complete
             if (newChallengeIndex >= state.challenges.length) {
                 console.log('All challenges completed!');
+                toast.success('🎉 Congratulations! You\'ve completed all typing challenges!');
                 return {
                     isComplete: true,
                     isChallengeComplete: true,
                     isAllComplete: true,
                 };
             }
+
+            // Show success toast for completing the challenge
+            toast.success(`✓ Challenge ${state.currentChallengeIndex + 1} Complete!`);
 
             // Load next challenge
             const nextChallenge = state.challenges[newChallengeIndex];

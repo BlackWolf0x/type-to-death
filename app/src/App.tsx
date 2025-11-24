@@ -6,6 +6,7 @@ import { MainMenu } from '@/components/main-menu/MainMenu';
 import { BackButton } from '@/components/ui/BackButton';
 import { useAppStore } from '@/stores/appStore';
 import { TypingGame } from './typing-game';
+import { Toaster } from '@/components/ui/sonner';
 
 function App() {
 	const initializeFromLocalStorage = useAppStore((state) => state.initializeFromLocalStorage)
@@ -16,6 +17,7 @@ function App() {
 
 	return (
 		<>
+			<Toaster position="top-center" />
 			<MainMenu />
 			<BackButton />
 			{/* <UnityGame /> */}

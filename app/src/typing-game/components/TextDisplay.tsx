@@ -2,11 +2,10 @@ import { useMemo, useRef, useLayoutEffect, useState } from "react";
 import { useTypingGameStore } from "../store";
 
 export function TextDisplay() {
-    // Subscribe to words array, currentWordIndex, currentCharIndex, isChallengeComplete, isAllComplete, and inputValue from store
+    // Subscribe to words array, currentWordIndex, currentCharIndex, isAllComplete, and inputValue from store
     const words = useTypingGameStore((state) => state.words);
     const currentWordIndex = useTypingGameStore((state) => state.currentWordIndex);
     const currentCharIndex = useTypingGameStore((state) => state.currentCharIndex);
-    const isChallengeComplete = useTypingGameStore((state) => state.isChallengeComplete);
     const isAllComplete = useTypingGameStore((state) => state.isAllComplete);
     const inputValue = useTypingGameStore((state) => state.inputValue);
 
@@ -379,13 +378,6 @@ export function TextDisplay() {
                         }
                     }
                 })}
-
-                {/* Show completion message when challenge is complete */}
-                {isChallengeComplete && !isAllComplete && (
-                    <div className="mt-4 pt-4 border-t-2 border-green-500 text-green-700 font-bold text-center">
-                        ✓ Challenge Complete!
-                    </div>
-                )}
             </div>
         </>
     );

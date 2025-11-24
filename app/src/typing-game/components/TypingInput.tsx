@@ -3,6 +3,7 @@ import { useAutoFocus } from "@/hooks/useAutoFocus";
 import { useTypingGameStore } from "../store";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 export function TypingInput() {
     // Use individual selectors to avoid creating new objects on every render
@@ -71,6 +72,12 @@ export function TypingInput() {
         }
     };
 
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        // Prevent paste to ensure users must type manually
+        e.preventDefault();
+        toast.error('Pasting is not allowed. You must type manually!');
+    };
+
     // Hide input when all challenges are complete
     if (isAllComplete) {
         return null;
@@ -88,6 +95,7 @@ export function TypingInput() {
             value={inputValue}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             className={cn(
                 "pointer-events-auto font-mono focus-visible:border-orange-100",
                 hasError && "border-red-500"

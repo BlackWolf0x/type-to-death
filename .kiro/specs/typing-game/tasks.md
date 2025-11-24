@@ -223,3 +223,25 @@
   - Prevent Space/Enter from advancing if input contains any errors (hasError is true)
   - Only allow word advancement when input exactly matches the target word
   - _Requirements: 5.1, 5.2, 5.3, 9.1, 9.2, 9.3_
+
+- [x] Improvement 8. Fix 10-character error limit alert behavior
+  - Update store's 10-character limit logic to only show alert when trying to exceed 10 characters (typing 11th character)
+  - Change condition from `value.length >= 10` to `value.length > 10` to allow typing up to 10 characters
+  - Remove redundant check for `value.length > state.inputValue.length` before showing alert
+  - Allow users to backspace and retype up to 10 characters without retriggering the alert
+  - Test by typing 10 error characters, backspacing, and retyping - verify alert only shows when attempting 11th character
+  - _Requirements: 9.1, 9.2_
+
+- [x] Improvement 9. Disallow paste in the input field
+  - Add onPaste event handler to TypingInput component
+  - Prevent default paste behavior to ensure users must type manually
+  - Test by attempting to paste text and verify it's blocked
+  - Ensure typing still works normally
+
+- [x] Improvement 10. Replace alerts with Sonner toast notifications
+  - Add Toaster component to the main app layout
+  - Replace alert() for 10-character limit with toast.error()
+  - Add toast.error() when user attempts to paste
+  - Replace challenge completion message with toast.success()
+  - Ensure toasts are positioned appropriately and don't interfere with gameplay
+  - Test all toast notifications appear correctly
