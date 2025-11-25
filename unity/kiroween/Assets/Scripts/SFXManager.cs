@@ -101,7 +101,12 @@ public class SFXManager : MonoBehaviour
         if (loseCompletion < 25f) return 0;
         if (loseCompletion < 50f) return 1;
         if (loseCompletion < 75f) return 2;
-        return 3;
+
+        // return 3;
+        // Workaround as it was hard to find a fitting audio
+        // For the final quarter, instead of using the 4th heartbeat, I'm just increasing the pitch as it sounds and blends better
+        heartbeatSource.pitch = 2;
+        return currentHeartbeatIndex;
     }
     
     void OnLoseCompletionChanged(float percentage)
