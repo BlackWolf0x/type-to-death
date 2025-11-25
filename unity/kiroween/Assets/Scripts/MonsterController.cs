@@ -474,6 +474,9 @@ public class MonsterController : MonoBehaviour
         }
         else if (currentLives == 0)
         {
+            // Play scream sound effect
+            SFXManager.Instance.Play(SFXManager.Instance.Scream);
+            
             // No lives remaining - trigger sprint
             // Monster should already be at goalDistance from previous blink
             isSprinting = true;
