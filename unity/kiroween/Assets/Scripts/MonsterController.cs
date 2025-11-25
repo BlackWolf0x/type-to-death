@@ -167,9 +167,6 @@ public class MonsterController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Validates pose assignments and disables script if critical poses are missing.
-    /// </summary>
     private void ValidatePoses()
     {
         bool hasErrors = false;
@@ -350,11 +347,7 @@ public class MonsterController : MonoBehaviour
         transform.position = newPosition;
     }
     
-    /// <summary>
-    /// Selects a random pose from the randomPoses array.
-    /// Ensures the same pose is not selected twice in a row.
-    /// </summary>
-    /// <returns>Randomly selected AnimationClip, or null if array is empty</returns>
+
     private AnimationClip SelectRandomPose()
     {
         // Validate random poses array
@@ -411,11 +404,7 @@ public class MonsterController : MonoBehaviour
         return selectedPose;
     }
     
-    /// <summary>
-    /// Applies a pose animation to the monster's animator by overriding the "Pose" state's motion.
-    /// Uses AnimatorOverrideController to dynamically swap the animation clip.
-    /// </summary>
-    /// <param name="poseClip">The animation clip to apply as a pose</param>
+
     private void ApplyPose(AnimationClip poseClip)
     {
         // Validate animator and pose clip

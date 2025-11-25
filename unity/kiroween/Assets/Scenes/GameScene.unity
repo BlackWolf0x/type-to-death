@@ -226,7 +226,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lives: 10
+  lives: 8
   startingDistance: 10
   goalDistance: 2
   sprintSpeed: 3
@@ -234,7 +234,6 @@ MonoBehaviour:
   finalPose: {fileID: -203655887218126122, guid: 651bbcf939534174ba41ad0acd3eb52e, type: 3}
   randomPoses:
   - {fileID: -203655887218126122, guid: 44550e81501e6dd45906c547a0ed9a27, type: 3}
-  - {fileID: -203655887218126122, guid: 4440d76b7b89d754898b80ea3ab7ff0f, type: 3}
   - {fileID: -203655887218126122, guid: 58c42056848378847a5afee426f50d83, type: 3}
   - {fileID: -203655887218126122, guid: c1b0e16cc6f281b42a6236eca0720341, type: 3}
 --- !u!1 &330585543
