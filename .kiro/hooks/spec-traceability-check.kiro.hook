@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "On Spec Update - Validate Traceability",
+  "description": "When user saves any spec file (requirements.md, design.md, tasks.md), run a validation check to ensure all requirements have corresponding properties, all properties have corresponding tasks, and no orphaned requirements/properties/tasks exist. This maintains spec consistency and traceability across all three documents.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/{requirements.md",
+      "design.md",
+      "tasks.md}"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the spec files that were just edited and validate traceability:\n\n1. Extract all requirement IDs (AC1, AC2, etc.) from requirements.md\n2. Extract all property IDs (P1, P2, etc.) from design.md\n3. Extract all task references to properties and requirements from tasks.md\n\nThen validate:\n- Every requirement (AC*) has at least one corresponding property (P*) that covers it\n- Every property (P*) has at least one corresponding task that implements it\n- No orphaned requirements (requirements with no properties)\n- No orphaned properties (properties with no tasks)\n- No orphaned tasks (tasks with no property/requirement references)\n\nReport findings:\n- List any missing traceability links\n- List any orphaned elements\n- Provide specific recommendations to fix gaps\n- Confirm if traceability is complete and consistent\n\nFormat as a clear validation report with sections for each check."
+  }
+}
