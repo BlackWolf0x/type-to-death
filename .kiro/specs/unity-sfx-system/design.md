@@ -33,7 +33,7 @@ This creates a centralized, globally accessible sound effect system.
 
 ```csharp
 [Header("Sound Effects")]
-[SerializeField] private AudioClip scream;
+[SerializeField] private AudioClip gameOver;
 ```
 
 ### Runtime State
@@ -48,7 +48,7 @@ private bool isMuted = false;
 
 ```csharp
 public static SFXManager Instance => instance;
-public AudioClip Scream => scream;
+public AudioClip GameOver => gameOver;
 ```
 
 ## Core Algorithms
@@ -94,8 +94,8 @@ Unmute():
 
 ```
 On Start:
-1. If scream == null:
-   - Log warning: "Scream AudioClip not assigned"
+1. If gameOver == null:
+   - Log warning: "GameOver AudioClip not assigned"
 ```
 
 ## Correctness Properties
@@ -112,7 +112,7 @@ On Start:
 
 ### P3: AudioClip Accessibility
 **Property:** For any assigned AudioClip, it can be retrieved via public property
-**Verification:** SFXManager.Instance.Scream returns the assigned AudioClip
+**Verification:** SFXManager.Instance.GameOver returns the assigned AudioClip
 **Covers:** AC2.2
 
 ### P4: Playback Correctness
@@ -145,32 +145,36 @@ On Start:
 **Verification:** TryGetComponent or AddComponent ensures AudioSource
 **Covers:** AC6.1, AC6.2, AC6.3
 
-### P10: Scream Integration
-**Property:** When monster starts sprinting, scream plays exactly once
-**Verification:** MonsterController calls Play(Scream) when isSprinting becomes true
+### P10: Game Over Sound Integration
+**Property:** When black screen activates, game over sound plays exactly once
+**Verification:** GameManager calls Play(GameOver) when black screen activates
 **Covers:** AC5.1, AC5.2, AC5.3, AC5.4
 
-## Integration with MonsterController
+## Integration with GameManager
 
 ### Integration Point
 
-In `MonsterController.OnBlinkDetected()`, when `currentLives == 0`:
+In `GameManager.GameOverSequence()` coroutine, after activating black screen:
 
 ```csharp
-if (currentLives == 0)
+IEnumerator GameOverSequence()
 {
-    isSprinting = true;
+    yield return new WaitForSeconds(gameOverDelay);
     
-    // Play scream sound effect
-    SFXManager.Instance.Play(SFXManager.Instance.Scream);
+    blackScreenPanel.SetActive(true);
     
-    // ... rest of sprint logic ...
+    // Play game over sound effect
+    SFXManager.Instance.Play(SFXManager.Instance.GameOver);
+    
+    monsterObject.SetActive(false);
+    
+    Debug.Log("GameManager: Game Over");
 }
 ```
 
 **Benefits:**
 - Simple one-line integration
-- No AudioSource needed in MonsterController
+- No AudioSource needed in GameManager
 - No Inspector references required
 - Respects mute state automatically
 
@@ -258,7 +262,7 @@ public void Unmute()
 **Handling:** Singleton pattern destroys duplicate, keeps first instance
 
 ### E2: Missing AudioClip Assignment
-**Scenario:** Scream AudioClip not assigned in Inspector
+**Scenario:** GameOver AudioClip not assigned in Inspector
 **Handling:** Log warning at Start, Play() handles null gracefully
 
 ### E3: Play Called Before Initialization
@@ -312,14 +316,16 @@ public void Unmute()
 
 ## Usage Examples
 
-### Example 1: Play Scream from MonsterController
+### Example 1: Play GameOver from GameManager
 
 ```csharp
-// In MonsterController.OnBlinkDetected()
-if (currentLives == 0)
+// In GameManager.GameOverSequence()
+IEnumerator GameOverSequence()
 {
-    isSprinting = true;
-    SFXManager.Instance.Play(SFXManager.Instance.Scream);
+    yield return new WaitForSeconds(gameOverDelay);
+    blackScreenPanel.SetActive(true);
+    SFXManager.Instance.Play(SFXManager.Instance.GameOver);
+    monsterObject.SetActive(false);
 }
 ```
 
@@ -350,7 +356,7 @@ public class AnyScript : MonoBehaviour
     void SomeMethod()
     {
         // Access singleton, get AudioClip, play
-        SFXManager.Instance.Play(SFXManager.Instance.Scream);
+        SFXManager.Instance.Play(SFXManager.Instance.GameOver);
     }
 }
 ```

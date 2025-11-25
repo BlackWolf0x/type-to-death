@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lives: 8
+  lives: 5
   startingDistance: 10
   goalDistance: 2
   sprintSpeed: 3
@@ -729,7 +729,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blackScreenPanel: {fileID: 141275569}
   monsterObject: {fileID: 183105040}
-  gameOverDelay: 0.5
+  gameOverDelay: 0.4
 --- !u!4 &881647354
 Transform:
   m_ObjectHideFlags: 0
@@ -774,7 +774,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b1bfefae049d8644ad600d9eb61fddc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scream: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
+  gameOver: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
 --- !u!4 &1197071058
 Transform:
   m_ObjectHideFlags: 0
@@ -1056,8 +1056,8 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1974816740}
   - {fileID: 85285372}
+  - {fileID: 881647354}
   - {fileID: 1581775244}
   - {fileID: 1197071058}
   - {fileID: 1333200235}
   - {fileID: 325148914}
-  - {fileID: 881647354}

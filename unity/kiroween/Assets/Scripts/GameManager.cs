@@ -70,6 +70,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(gameOverDelay);
         
         blackScreenPanel.SetActive(true);
+        SFXManager.Instance.Play(SFXManager.Instance.GameOver);
         monsterObject.SetActive(false);
         
         Debug.Log("GameManager: Game Over");

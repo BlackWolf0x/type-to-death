@@ -6,7 +6,7 @@ The SFX System provides centralized management of sound effects in the game. It 
 
 ## Context
 
-The game requires sound effects to enhance player experience and provide audio feedback for game events. The monster's scream when sprinting is a critical audio cue that signals imminent danger. A centralized SFX manager ensures consistent audio playback and easy access from any script.
+The game requires sound effects to enhance player experience and provide audio feedback for game events. The game over sound when the black screen appears provides audio feedback that the game has ended. A centralized SFX manager ensures consistent audio playback and easy access from any script.
 
 ## Glossary
 
@@ -34,8 +34,8 @@ The game requires sound effects to enhance player experience and provide audio f
 
 #### Acceptance Criteria
 
-1. THE SFXManager SHALL provide a serialized field for the Scream AudioClip
-2. THE SFXManager SHALL expose a public property to retrieve the Scream AudioClip
+1. THE SFXManager SHALL provide a serialized field for the GameOver AudioClip
+2. THE SFXManager SHALL expose a public property to retrieve the GameOver AudioClip
 3. THE system SHALL validate that AudioClips are assigned at startup
 4. IF an AudioClip is missing, THEN THE system SHALL log a warning
 
@@ -63,16 +63,16 @@ The game requires sound effects to enhance player experience and provide audio f
 4. WHEN Unmute() is called, THE system SHALL allow sound effects to play
 5. THE mute state SHALL default to unmuted (false)
 
-### Requirement 5: Monster Scream Integration
+### Requirement 5: Game Over Sound Integration
 
-**User Story:** As a player, I want to hear a scream when the monster starts sprinting, so that I know danger is imminent.
+**User Story:** As a player, I want to hear a sound when the game ends, so that I have audio feedback for game over.
 
 #### Acceptance Criteria
 
-1. WHEN the monster's isSprinting becomes true, THE system SHALL play the Scream sound effect
-2. THE scream SHALL be triggered from MonsterController
-3. THE scream SHALL use the SFXManager.Instance.Play() API
-4. THE scream SHALL only play once per sprint (not repeatedly)
+1. WHEN the black screen activates, THE system SHALL play the GameOver sound effect
+2. THE sound SHALL be triggered from GameManager
+3. THE sound SHALL use the SFXManager.Instance.Play() API
+4. THE sound SHALL play once per game over
 
 ### Requirement 6: Audio Component Management
 
@@ -118,13 +118,13 @@ The game requires sound effects to enhance player experience and provide audio f
 ## Dependencies
 
 - Unity 6.1 audio system
-- MonsterController script (for scream integration)
-- AudioClip assets (Scream.wav or similar)
+- GameManager script (for game over sound integration)
+- AudioClip assets (GameOver.wav or similar)
 
 ## Success Metrics
 
 - SFX manager accessible from any script via Instance
-- Scream plays when monster starts sprinting
+- GameOver sound plays when black screen appears
 - Mute/unmute functions work correctly
 - No audio-related errors in Console
 - Zero per-frame overhead when no sounds playing

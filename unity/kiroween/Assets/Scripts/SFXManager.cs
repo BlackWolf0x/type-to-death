@@ -5,13 +5,13 @@ public class SFXManager : MonoBehaviour
     private static SFXManager instance;
     
     [Header("Sound Effects")]
-    [SerializeField] private AudioClip scream;
+    [SerializeField] private AudioClip gameOver;
     
     private AudioSource audioSource;
     private bool isMuted = false;
     
     public static SFXManager Instance => instance;
-    public AudioClip Scream => scream;
+    public AudioClip GameOver => gameOver;
     
     void Awake()
     {
@@ -38,9 +38,9 @@ public class SFXManager : MonoBehaviour
     
     void Start()
     {
-        if (scream == null)
+        if (gameOver == null)
         {
-            Debug.LogWarning("SFXManager: Scream AudioClip not assigned");
+            Debug.LogWarning("SFXManager: GameOver AudioClip not assigned");
         }
     }
     

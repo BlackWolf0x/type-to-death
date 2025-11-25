@@ -7,8 +7,8 @@
   - Add singleton instance field and property
   - Add AudioSource component reference
   - Add isMuted boolean field
-  - Add serialized field for Scream AudioClip
-  - Add public property for Scream AudioClip
+  - Add serialized field for GameOver AudioClip
+  - Add public property for GameOver AudioClip
   - _Properties: P1, P3, P8_
   - _Requirements: AC1.1, AC2.1, AC2.2, AC4.5_
 
@@ -32,7 +32,7 @@
 
 - [x] 4. Implement AudioClip Validation
   - Implement Start() method
-  - Check if scream AudioClip is null
+  - Check if gameOver AudioClip is null
   - If null, log warning message
   - Continue execution (non-critical)
   - _Properties: P3_
@@ -54,13 +54,12 @@
   - _Properties: P7_
   - _Requirements: AC4.1, AC4.2, AC4.3, AC4.4_
 
-- [x] 7. Integrate with MonsterController
-  - Open MonsterController.cs
-  - Find OnBlinkDetected() method
-  - Locate where currentLives == 0 and isSprinting = true
-  - Add line: SFXManager.Instance.Play(SFXManager.Instance.Scream);
-  - Place after isSprinting = true
-  - Ensure it only plays once per sprint
+- [x] 7. Integrate with GameManager
+  - Open GameManager.cs
+  - Find GameOverSequence() coroutine
+  - After blackScreenPanel.SetActive(true)
+  - Add line: SFXManager.Instance.Play(SFXManager.Instance.GameOver);
+  - Place before monsterObject.SetActive(false)
   - _Properties: P10_
   - _Requirements: AC5.1, AC5.2, AC5.3, AC5.4_
 
@@ -71,7 +70,7 @@
   - Test Play() with null AudioClip
   - Test Mute() prevents playback
   - Test Unmute() allows playback
-  - Test scream plays on monster sprint
+  - Test game over sound plays when black screen appears
   - Test DontDestroyOnLoad persistence
   - _Properties: All_
   - _Requirements: All_
@@ -84,7 +83,7 @@
 - **No XML Summaries**: Skip XML documentation comments for brevity
 - **Simple API**: SFXManager.Instance.Play(SFXManager.Instance.Scream)
 - **Mute State**: Simple boolean flag, no complex state management
-- **Integration**: One line added to MonsterController
+- **Integration**: One line added to GameManager
 
 ## Unity Setup Tasks (Manual)
 
@@ -92,19 +91,19 @@
 1. Create empty GameObject in scene
 2. Name it "SFXManager"
 3. Attach SFXManager script
-4. Assign Scream AudioClip in Inspector
+4. Assign GameOver AudioClip in Inspector
 
-### Setup Task B: Import Scream Audio
-1. Import scream audio file (e.g., Scream.wav)
+### Setup Task B: Import GameOver Audio
+1. Import game over audio file (e.g., GameOver.wav)
 2. Place in Assets/Audio/ folder
 3. Configure as AudioClip in Inspector
-4. Assign to SFXManager's Scream field
+4. Assign to SFXManager's GameOver field
 
 ### Setup Task C: Test in Play Mode
 1. Press Play in Unity Editor
 2. Open Console window
-3. Press Spacebar to trigger blinks until sprint
-4. Verify scream plays when monster starts sprinting
+3. Trigger game over (blinks until 100% lose completion)
+4. Verify game over sound plays when black screen appears
 5. Test mute/unmute (via Inspector or test script)
 
 ### Setup Task D: Test Singleton Persistence
