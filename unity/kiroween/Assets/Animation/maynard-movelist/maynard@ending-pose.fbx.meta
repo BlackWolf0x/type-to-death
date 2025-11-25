@@ -1,59 +1,9 @@
 fileFormatVersion: 2
-guid: 470195bec24c2b949ba532d254d757e3
+guid: 651bbcf939534174ba41ad0acd3eb52e
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Ch30_Body
-    second: {fileID: 2100000, guid: f9ddc01e4af124a499deade79cd6e52b, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Ch30_Body1
-    second: {fileID: 2100000, guid: 4ddfd6ea3dda2d0408d6ef56694319c7, type: 2}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1001_Diffuse
-    second: {fileID: 2800000, guid: b61a4bad58c5a454cba2c85cbcc1d439, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1001_Glossiness
-    second: {fileID: 2800000, guid: 00e7e51cb04d1894f834a3178df7ae18, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1001_Normal
-    second: {fileID: 2800000, guid: ca98cf3190816134481412cb57c07938, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1001_Specular
-    second: {fileID: 2800000, guid: 82f0c123ad3cb3c40b0db471a08577f7, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1002_Diffuse
-    second: {fileID: 2800000, guid: 996cff99729648c49ae122f9dc7f016e, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1002_Glossiness
-    second: {fileID: 2800000, guid: 882136ed74999e443919004e6e889620, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1002_Normal
-    second: {fileID: 2800000, guid: 61d28057ec8a71b42b7a780ba53f2742, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch30_1002_Specular
-    second: {fileID: 2800000, guid: 2c3667489f2135741b2c5d49b21a6d14, type: 3}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -81,11 +31,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: walk
+      name: ending-pose
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 29
+      lastFrame: 1
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -923,11 +873,11 @@ ModelImporter:
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1
-  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  lastHumanDescriptionAvatarSource: {fileID: 9000000, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 3
   humanoidOversampling: 1
-  avatarSetup: 1
+  avatarSetup: 2
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0

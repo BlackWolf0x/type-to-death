@@ -137,7 +137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
       propertyPath: m_LocalRotation.w
@@ -184,30 +184,13 @@ PrefabInstance:
       addedObject: {fileID: 183105044}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 183105043}
+      addedObject: {fileID: 183105045}
   m_SourcePrefab: {fileID: 100100000, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
 --- !u!1 &183105040 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 470195bec24c2b949ba532d254d757e3, type: 3}
   m_PrefabInstance: {fileID: 85285372}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &183105043
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 183105040}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 153afe934abfcad4bb9cd6a586d60050, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  startingDistance: 10
-  walkSpeed: 1
-  sprintSpeed: 3
-  goalDistance: 2
-  animationSpeed: 1
 --- !u!136 &183105044
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -231,6 +214,28 @@ CapsuleCollider:
   m_Height: 1.8
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &183105045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 183105040}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lives: 8
+  startingDistance: 10
+  goalDistance: 2
+  sprintSpeed: 3
+  startingPose: {fileID: -203655887218126122, guid: 781164720e958324fa4c89941374175b, type: 3}
+  finalPose: {fileID: -203655887218126122, guid: 651bbcf939534174ba41ad0acd3eb52e, type: 3}
+  randomPoses:
+  - {fileID: -203655887218126122, guid: 44550e81501e6dd45906c547a0ed9a27, type: 3}
+  - {fileID: -203655887218126122, guid: 58c42056848378847a5afee426f50d83, type: 3}
+  - {fileID: -203655887218126122, guid: c1b0e16cc6f281b42a6236eca0720341, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
