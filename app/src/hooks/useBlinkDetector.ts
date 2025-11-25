@@ -368,7 +368,7 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
         stopTracking,
         resetCounter,
         isInitialized,
-        error,
+        error: webcam.error || error, // Use webcam error first, fallback to local error
 
         // Calibration
         isCalibrated,

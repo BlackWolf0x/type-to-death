@@ -120,7 +120,6 @@
   - _Properties: None (interface)_
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 7.4, 7.5_
 
-
 - [x] 13. Create BlinkCalibrationModal demo component
   - Rename EyeTrackingModal.tsx to BlinkCalibrationModal.tsx
   - Integrate useBlinkDetector hook
@@ -144,7 +143,6 @@
   - _Properties: None (demo/UI component)_
   - _Requirements: All (integration and demonstration)_
 
-
 - [x] 14. Refactor BlinkCalibrationModal into modular component structure
   - Create new directory: app/src/components/modal-blink/
   - Create index.tsx as main export (BlinkCalibrationModal wrapper)
@@ -156,7 +154,6 @@
   - Delete old app/src/components/modals/BlinkCalibrationModal.tsx
   - _Properties: None (refactoring task)_
   - _Requirements: Code organization and maintainability_
-
 
 - [x] 15. Enhance BlinkCalibrationModal with canvas overlay and improved UI
   - Add canvas overlay on video for drawing eye landmarks

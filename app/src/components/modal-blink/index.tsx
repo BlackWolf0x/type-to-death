@@ -19,7 +19,7 @@ export function BlinkCalibrationModal() {
                     Blink Calibration
                 </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[90vw] max-h-[90vh] overflow-y-auto z-50">
+            <DialogContent className="sm:max-w-7xl max-h-[90vh] overflow-y-auto z-50">
                 <DialogHeader>
                     <DialogTitle>Blink Detection Calibration</DialogTitle>
                     <DialogDescription>
@@ -28,7 +28,8 @@ export function BlinkCalibrationModal() {
                 </DialogHeader>
 
                 {/* Only render content (and initialize hook) when modal is open */}
-                {isOpen && <BlinkCalibrationContent />}
+                {/* {isOpen && <BlinkCalibrationContent />} */}
+                <BlinkCalibrationContent />
             </DialogContent>
         </Dialog>
     );

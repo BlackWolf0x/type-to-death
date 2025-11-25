@@ -4,6 +4,7 @@ import { IntroModal } from "@/components/modals/IntroModal";
 import { BlinkCalibrationModal } from "@/components/modal-blink";
 import { LeaderboardModal } from "@/components/modals/LeaderboardModal";
 import { Rain } from "@/components/ui/Rain";
+import { BlinkCalibration } from "@/features/blink-calibration";
 
 export function MainMenu() {
     const { showMainMenu, skipIntro, hideMainMenu, setSkipIntro } = useAppStore();
@@ -76,6 +77,7 @@ export function MainMenu() {
                     </button>
 
                     <BlinkCalibrationModal />
+                    <BlinkCalibration />
                     <LeaderboardModal />
 
                     <label className="flex items-center gap-2 text-white cursor-pointer drop-shadow-lg">
