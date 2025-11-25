@@ -121,7 +121,7 @@ import { UnityGame } from "@/components/unity/UnityGame";
 
 // Modal components
 import { IntroModal } from "@/components/modals/IntroModal";
-import { EyeTrackingModal } from "@/components/modals/EyeTrackingModal";
+import { BlinkCalibrationModal } from "@/components/modal-blink";
 ```
 
 ### Store Imports

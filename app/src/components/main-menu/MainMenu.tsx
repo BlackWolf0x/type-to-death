@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAppStore } from "@/stores/appStore";
 import { IntroModal } from "@/components/modals/IntroModal";
-import { EyeTrackingModal } from "@/components/modals/EyeTrackingModal";
+import { BlinkCalibrationModal } from "@/components/modal-blink";
 import { LeaderboardModal } from "@/components/modals/LeaderboardModal";
 import { Rain } from "@/components/ui/Rain";
 
@@ -75,7 +75,7 @@ export function MainMenu() {
                         Start Game
                     </button>
 
-                    <EyeTrackingModal />
+                    <BlinkCalibrationModal />
                     <LeaderboardModal />
 
                     <label className="flex items-center gap-2 text-white cursor-pointer drop-shadow-lg">

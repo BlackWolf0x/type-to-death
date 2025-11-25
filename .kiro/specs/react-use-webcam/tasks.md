@@ -95,9 +95,6 @@
 
 
 - [x] 14. Create Webcam component and integrate with EyeTrackingModal
-
-
-
   - Create Webcam.tsx component that uses useWebcam hook
   - Display video feed with webcamRef
   - Show device selection dropdown
