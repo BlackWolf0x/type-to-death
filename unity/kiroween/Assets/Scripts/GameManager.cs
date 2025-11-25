@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour
         
         blackScreenPanel.SetActive(true);
         SFXManager.Instance.Play(SFXManager.Instance.GameOver);
+        SFXManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
         
         Debug.Log("GameManager: Game Over");

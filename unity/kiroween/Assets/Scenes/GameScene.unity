@@ -301,7 +301,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lives: 5
+  lives: 8
   startingDistance: 10
   goalDistance: 2
   sprintSpeed: 3
@@ -451,7 +451,7 @@ Camera:
     height: 1
   near clip plane: 0.01
   far clip plane: 1000
-  field of view: 60
+  field of view: 45
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -478,7 +478,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalPosition: {x: 0, y: 0.6, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -729,7 +729,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blackScreenPanel: {fileID: 141275569}
   monsterObject: {fileID: 183105040}
-  gameOverDelay: 0.4
+  gameOverDelay: 0.35
 --- !u!4 &881647354
 Transform:
   m_ObjectHideFlags: 0
@@ -774,7 +774,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b1bfefae049d8644ad600d9eb61fddc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameOver: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
+  gameOver:
+    clip: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
+    volume: 0.7
+  heartbeatIntensities:
+  - {fileID: 8300000, guid: f2959c35379cc5c4f9758b2efe264dee, type: 3}
+  - {fileID: 8300000, guid: e9fa31c5f052faf46bef9e18478af768, type: 3}
+  - {fileID: 8300000, guid: 024f4f5b5c2482e45a9d654bc9df5a5a, type: 3}
+  - {fileID: 8300000, guid: 0b4bfacbb8712e140935c4570d298791, type: 3}
 --- !u!4 &1197071058
 Transform:
   m_ObjectHideFlags: 0
