@@ -70,6 +70,7 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(gameOverDelay);
         
         blackScreenPanel.SetActive(true);
+        Camera.main.GetComponent<CameraShake>().StopShake();
         SFXManager.Instance.Play(SFXManager.Instance.GameOver);
         SFXManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
