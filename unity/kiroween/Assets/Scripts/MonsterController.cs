@@ -7,6 +7,8 @@ public class MonsterController : MonoBehaviour
     [Header("Monster Configuration")]
     [SerializeField] private int lives = 5;
     [Tooltip("Initial distance from camera where monster spawns")]
+    
+    public int Lives {get {return lives;}}
     [SerializeField] private float startingDistance = 10f;
     [Tooltip("Distance from camera where sprint attack begins")]
     [SerializeField] private float goalDistance = 2f;
@@ -23,7 +25,9 @@ public class MonsterController : MonoBehaviour
 
     // ===== Private Runtime State Variables =====
     private int currentLives;
-    private bool isSprinting = false;
+    
+    public int CurrentLives {get {return currentLives;}}
+    [SerializeField] private bool isSprinting = false;
     private float teleportDistance;
     private bool gameOver = false;
     private AnimationClip lastRandomPose = null;
@@ -309,7 +313,6 @@ public class MonsterController : MonoBehaviour
         }
 
         gameOver = true;
-        isSprinting = false; // Stop movement
 
         Debug.Log("MonsterController: GAME OVER! Monster reached the camera.");
     }
@@ -441,6 +444,9 @@ public class MonsterController : MonoBehaviour
         // Decrement lives
         currentLives--;
         Debug.Log($"MonsterController: Blink detected! Lives remaining: {currentLives}");
+        
+        // Notify GameObserver via static action
+        GameObserver.BlinkTracker?.Invoke(currentLives);
 
         // Branch based on remaining lives
         if (currentLives > 1)
