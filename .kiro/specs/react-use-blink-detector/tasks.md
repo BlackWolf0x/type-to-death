@@ -167,3 +167,42 @@
   - Improve overall styling to match reference example
   - _Properties: None (UI enhancement)_
   - _Requirements: Better user experience and visual feedback_
+
+- [x] 16. Refactor blink calibration into modular feature structure
+  - Create new directory: app/src/features/blink-calibration/
+  - Create index.tsx as main BlinkCalibration component with Dialog wrapper
+  - Create store.ts with Zustand store for setup step management
+  - Create request-permission.tsx component for webcam permission flow
+  - Create request-error.tsx component for error handling and retry
+  - Implement setup step state machine: 'requestPermission' → 'calibrating' or 'error'
+  - Add auto-start webcam when MediaPipe initializes
+  - Add auto-transition to calibration when webcam starts streaming
+  - Add error detection and transition to error step
+  - Add retry functionality with reset to requestPermission step
+  - Add sound effect on modal open (calibration.mp3)
+  - Add dynamic dialog width based on setup step (sm:max-w-xl for permission/error, sm:max-w-7xl for calibrating)
+  - Add reset on modal close to return to initial state
+  - Update dialog title and description based on setup step
+  - Add loading spinner and "Awaiting Webcam Permission" button
+  - Add error display with helpful instructions for camera permission issues
+  - Add eyes.gif visual for permission request step
+  - _Properties: None (refactoring and UX improvement)_
+  - _Requirements: Better user experience, error handling, and code organization_
+
+- [x] 17. Implement structured error codes for blink detector
+  - Create BlinkDetectorErrorCode enum with 11 distinct error codes
+  - Create BlinkDetectorError interface with code, message, and originalError
+  - Update useBlinkDetector to use structured error objects instead of strings
+  - Add error code detection for MediaPipe initialization failures (WASM, model, general)
+  - Map webcam errors to specific blink detector error codes
+  - Add error codes for calibration failures (no samples collected)
+  - Update BlinkCalibrationRequestError component to use error codes with switch statement
+  - Add specific error messages and instructions for each error code
+  - Add helpful troubleshooting steps for camera permission, not found, HTTPS, API support, constraints
+  - Add MediaPipe initialization error handling with network/browser guidance
+  - Create comprehensive error code documentation in docs-ai/blink-detector-error-codes.md
+  - Document all 11 error codes with causes, messages, and recommended actions
+  - Add error handling best practices and testing strategies to documentation
+  - Include quick reference table and browser-specific instructions
+  - _Properties: None (error handling improvement)_
+  - _Requirements: Better error handling, user guidance, and developer experience_

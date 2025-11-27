@@ -8,6 +8,36 @@ import { useWebcam } from './useWebcam';
 // EAR = (||p2-p6|| + ||p3-p5||) / (2 * ||p1-p4||)
 // Where p1-p6 are eye landmark points
 
+// Error codes for blink detector
+export const BlinkDetectorErrorCode = {
+    // MediaPipe initialization errors
+    MEDIAPIPE_INIT_FAILED: 'MEDIAPIPE_INIT_FAILED',
+    MEDIAPIPE_WASM_LOAD_FAILED: 'MEDIAPIPE_WASM_LOAD_FAILED',
+    MEDIAPIPE_MODEL_LOAD_FAILED: 'MEDIAPIPE_MODEL_LOAD_FAILED',
+
+    // Webcam errors (passed through from useWebcam)
+    CAMERA_PERMISSION_DENIED: 'CAMERA_PERMISSION_DENIED',
+    CAMERA_NOT_FOUND: 'CAMERA_NOT_FOUND',
+    CAMERA_CONSTRAINTS_NOT_SUPPORTED: 'CAMERA_CONSTRAINTS_NOT_SUPPORTED',
+    CAMERA_ACCESS_FAILED: 'CAMERA_ACCESS_FAILED',
+    CAMERA_API_NOT_SUPPORTED: 'CAMERA_API_NOT_SUPPORTED',
+    CAMERA_REQUIRES_HTTPS: 'CAMERA_REQUIRES_HTTPS',
+
+    // Detection errors
+    DETECTION_FAILED: 'DETECTION_FAILED',
+
+    // Calibration errors
+    CALIBRATION_NO_SAMPLES: 'CALIBRATION_NO_SAMPLES',
+} as const;
+
+export type BlinkDetectorErrorCode = typeof BlinkDetectorErrorCode[keyof typeof BlinkDetectorErrorCode];
+
+export interface BlinkDetectorError {
+    code: string;
+    message: string;
+    originalError?: Error;
+}
+
 export interface BlinkData {
     leftEAR: number;
     rightEAR: number;
@@ -20,7 +50,7 @@ export interface UseBlinkDetectorReturn extends BlinkData {
     startTracking: () => Promise<void>;
     stopTracking: () => void;
     isInitialized: boolean;
-    error: string | null;
+    error: BlinkDetectorError | null;
     videoRef: React.RefObject<HTMLVideoElement | null>;
     isStreaming: boolean;
     resetCounter: () => void;
@@ -73,7 +103,7 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
 
     const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<BlinkDetectorError | null>(null);
 
     // Blink detection state
     const [leftEAR, setLeftEAR] = useState(0);
@@ -128,7 +158,21 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
             } catch (err) {
                 console.error('Failed to initialize blink detector:', err);
                 if (mounted) {
-                    setError(err instanceof Error ? err.message : 'Failed to initialize');
+                    const errorMessage = err instanceof Error ? err.message : 'Failed to initialize';
+                    let errorCode: string = BlinkDetectorErrorCode.MEDIAPIPE_INIT_FAILED;
+
+                    // Detect specific error types
+                    if (errorMessage.toLowerCase().includes('wasm')) {
+                        errorCode = BlinkDetectorErrorCode.MEDIAPIPE_WASM_LOAD_FAILED;
+                    } else if (errorMessage.toLowerCase().includes('model')) {
+                        errorCode = BlinkDetectorErrorCode.MEDIAPIPE_MODEL_LOAD_FAILED;
+                    }
+
+                    setError({
+                        code: errorCode,
+                        message: errorMessage,
+                        originalError: err instanceof Error ? err : undefined,
+                    });
                 }
             }
         }
@@ -281,7 +325,37 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
         try {
             await webcam.start();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to start tracking');
+            // Map webcam errors to blink detector error codes
+            const webcamError = webcam.error;
+            let errorCode: string = BlinkDetectorErrorCode.CAMERA_ACCESS_FAILED;
+            let errorMessage = 'Failed to start tracking';
+
+            if (webcamError) {
+                if (webcamError.includes('permission') || webcamError.includes('denied')) {
+                    errorCode = BlinkDetectorErrorCode.CAMERA_PERMISSION_DENIED;
+                    errorMessage = webcamError;
+                } else if (webcamError.includes('not found') || webcamError.includes('No camera')) {
+                    errorCode = BlinkDetectorErrorCode.CAMERA_NOT_FOUND;
+                    errorMessage = webcamError;
+                } else if (webcamError.includes('constraints') || webcamError.includes('OverconstrainedError')) {
+                    errorCode = BlinkDetectorErrorCode.CAMERA_CONSTRAINTS_NOT_SUPPORTED;
+                    errorMessage = webcamError;
+                } else if (webcamError.includes('not supported')) {
+                    errorCode = BlinkDetectorErrorCode.CAMERA_API_NOT_SUPPORTED;
+                    errorMessage = webcamError;
+                } else if (webcamError.includes('HTTPS') || webcamError.includes('localhost')) {
+                    errorCode = BlinkDetectorErrorCode.CAMERA_REQUIRES_HTTPS;
+                    errorMessage = webcamError;
+                } else {
+                    errorMessage = webcamError;
+                }
+            }
+
+            setError({
+                code: errorCode,
+                message: errorMessage,
+                originalError: err instanceof Error ? err : undefined,
+            });
             throw err;
         }
     };
@@ -300,6 +374,10 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
 
         if (calibrationSamplesRef.current.length === 0) {
             console.warn('No samples collected for eyes open!');
+            setError({
+                code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
+                message: 'No calibration samples collected for eyes open state',
+            });
             return;
         }
 
@@ -318,7 +396,13 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
     };
 
     const saveCalibrateClosed = () => {
-        if (calibrationSamplesRef.current.length === 0) return;
+        if (calibrationSamplesRef.current.length === 0) {
+            setError({
+                code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
+                message: 'No calibration samples collected for eyes closed state',
+            });
+            return;
+        }
 
         // Average the collected samples
         const avgClosed = calibrationSamplesRef.current.reduce((a, b) => a + b, 0) / calibrationSamplesRef.current.length;
@@ -368,7 +452,7 @@ export function useBlinkDetector(): UseBlinkDetectorReturn {
         stopTracking,
         resetCounter,
         isInitialized,
-        error: webcam.error || error, // Use webcam error first, fallback to local error
+        error,
 
         // Calibration
         isCalibrated,
