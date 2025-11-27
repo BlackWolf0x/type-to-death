@@ -8,26 +8,20 @@
   - _Properties: None (setup task)_
   - _Requirements: 1.1_
 
-- [x] 2. Create Play Page
-  - Created `app-next/app/play/page.tsx`
-  - Renders UnityGame component
-  - Serves as game entry point
-  - _Properties: None (routing)_
-  - _Requirements: 1.1_
-
-- [x] 3. Create UnityGame Component
-  - Created `app-next/components/unity.tsx`
-  - Marked as client component with 'use client'
+- [x] 2. Create Play Page with Unity Integration
+  - Created `app-next/app/play/page.tsx` as client component
+  - Moved Unity integration directly into page for easy access to Unity context
   - Initialized useUnityContext with build URLs
   - Configured Unity build paths (/game/build.*)
   - Added Unity canvas with fullscreen styling
   - Added loading screen with progress indicator
   - Implemented visibility toggle based on isLoaded
+  - Deleted separate `app-next/components/unity.tsx` component
   - _Properties: P1_
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [x] 4. Integrate Webcam and Blink Detection
-  - Imported useWebcam and useBlinkDetector hooks
+- [x] 3. Integrate Webcam and Blink Detection
+  - Imported useWebcam and useBlinkDetector hooks into play page
   - Added useEffect to auto-start webcam on mount
   - Added useEffect to auto-start detection when ready
   - Added hidden video element with setVideoRef callback
@@ -35,7 +29,7 @@
   - _Properties: P3, P5_
   - _Requirements: 2.1, 2.2, 2.5, 5.1, 5.2, 5.3_
 
-- [x] 5. Implement Blink Event Communication
+- [x] 4. Implement Blink Event Communication
   - Added useEffect to watch blinkData.isBlinking
   - Implemented sendMessage call to Unity on blink
   - Configured message target: "Monster", "OnBlinkDetected"
@@ -43,7 +37,7 @@
   - _Properties: P2_
   - _Requirements: 2.3, 2.4_
 
-- [x] 6. Add Visual Feedback
+- [x] 5. Add Visual Feedback
   - Created blink status indicator (bottom-right)
   - Added Eye icon (green) for eyes open state
   - Added EyeOff icon (yellow) for blinking state
@@ -53,7 +47,7 @@
   - _Properties: P4_
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [x] 7. Add Debug Controls
+- [x] 6. Add Debug Controls
   - Created debug button container (top-left)
   - Added "Start" button with handleStartGame function
   - Added "Manual Blink" button with handleBlink function
@@ -86,6 +80,6 @@ Unity C# scripts must implement:
 
 ## Estimated Effort
 
-- Total Tasks: 7
-- Completed: 7
+- Total Tasks: 6
+- Completed: 6
 - Status: ✅ Complete
