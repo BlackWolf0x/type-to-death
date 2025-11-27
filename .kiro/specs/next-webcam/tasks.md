@@ -105,8 +105,44 @@
 - Returning users skip directly to ready state if calibration exists
 - Eye landmarks are drawn on a canvas overlay for real-time visual feedback
 
+- [x] 10. Create GameWebcam component for Play Page
+  - Created `app-next/components/game/GameWebcam.tsx`
+  - Checks for stored calibration data in localStorage
+  - Checks camera permission via Permissions API (without prompting)
+  - Redirects to /calibration if either check fails
+  - Starts webcam only after all checks pass
+  - Signals parent via `onReady()` callback when ready
+  - Forwards blink events via `onBlink()` callback
+  - Displays blink counter indicator during gameplay
+  - Handles webcam errors by redirecting to calibration
+  - _Properties: P9, P10, P11, P12_
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.8_
+
+- [x] 11. Update Play Page to use GameWebcam component
+  - Modified `app-next/app/play/page.tsx`
+  - Added `isReady` state to track when checks pass
+  - Unity only loads after `onReady()` callback fires
+  - Displays "Checking requirements..." loading state before ready
+  - Displays Unity loading progress after ready
+  - Forwards blink events from GameWebcam to Unity via sendMessage
+  - Prevents Unity WebGL context errors during redirect
+  - _Properties: P11_
+  - _Requirements: 9.5, 9.7_
+
+## Implementation Notes
+
+- The calibration page combines webcam permission and blink calibration into a single flow
+- Manual 2-step calibration: user records eyes-open EAR, then eyes-closed EAR
+- Threshold calculation: eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6
+- All calibration data persists to localStorage for returning users
+- Returning users skip directly to ready state if calibration exists
+- Eye landmarks are drawn on a canvas overlay for real-time visual feedback
+- **Play page automatically verifies calibration and permission before loading Unity**
+- **GameWebcam component handles all webcam checks and redirects**
+- **Unity loading is delayed until all checks pass to prevent WebGL context errors**
+
 ## Estimated Effort
 
-- Total Tasks: 9
-- Completed: 9
+- Total Tasks: 11
+- Completed: 11
 - Status: ✅ Complete

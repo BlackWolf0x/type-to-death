@@ -7,9 +7,11 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 **Main Components:**
 
 1. **Calibration Page (`/calibration`)** - Handles webcam permission, blink calibration, and game readiness
-2. **useWebcam Hook** - Manages webcam state and controls
-3. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
-4. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
+2. **Play Page (`/play`)** - Game page with automatic webcam/calibration verification
+3. **GameWebcam Component** - Handles webcam checks, redirects, and blink event forwarding
+4. **useWebcam Hook** - Manages webcam state and controls
+5. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
+6. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
 
 ## Component Structure
 
@@ -59,7 +61,63 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 - Track loading and streaming states
 - Support device switching
 
-### 3. useBlinkDetector Hook
+### 3. Play Page Component
+
+**File:** `app-next/app/play/page.tsx`
+
+**Responsibilities:**
+- Load Unity WebGL game
+- Integrate GameWebcam component for blink detection
+- Display loading states (checking requirements, loading Unity)
+- Forward blink events to Unity via sendMessage
+- Provide debug UI for manual testing
+
+**State Management:**
+- `isReady` - Tracks if webcam/calibration checks passed
+- Uses `useUnityContext` for Unity integration
+- Receives `onReady` callback from GameWebcam before loading Unity
+
+**Dependencies:**
+- `GameWebcam` component
+- `react-unity-webgl` for Unity integration
+- shadcn/ui `Button` component
+- Lucide `Loader2` icon
+
+### 4. GameWebcam Component
+
+**File:** `app-next/components/game/GameWebcam.tsx`
+
+**Responsibilities:**
+- Check for stored calibration data in localStorage
+- Check camera permission without prompting (via Permissions API)
+- Redirect to `/calibration` if checks fail
+- Start webcam only after all checks pass
+- Signal parent component when ready via `onReady` callback
+- Forward blink events to parent via `onBlink` callback
+- Display blink counter indicator during gameplay
+- Handle webcam errors by redirecting to calibration
+
+**Props:**
+```typescript
+interface GameWebcamProps {
+    onBlink: () => void;    // Called when blink detected
+    onReady: () => void;    // Called when checks pass and webcam starts
+}
+```
+
+**State Management:**
+- Uses `useWebcam` hook for webcam control
+- Uses `useBlinkDetector` hook for blink detection
+- Uses `useRouter` for navigation/redirects
+- Refs to prevent duplicate redirects and ready signals
+
+**Dependencies:**
+- `useWebcam` hook
+- `useBlinkDetector` hook
+- Next.js `useRouter`
+- Lucide icons: `Eye`, `EyeOff`
+
+### 5. useBlinkDetector Hook
 
 **File:** `app-next/hooks/useBlinkDetector.ts`
 
@@ -295,6 +353,30 @@ const getErrorUI = (error: WebcamError) => {
 *For any* EAR value below the calibrated threshold, the system should detect a blink and increment the blink counter (once per blink transition).
 
 **Validates: Requirements 7.3, 7.4**
+
+### Property 9: Play Page Redirect on Missing Calibration
+
+*For any* navigation to /play when localStorage does not contain calibration data, the system should redirect to /calibration without starting the webcam.
+
+**Validates: Requirements 9.1, 9.2**
+
+### Property 10: Play Page Redirect on Missing Permission
+
+*For any* navigation to /play when camera permission is not granted, the system should redirect to /calibration without prompting for permission.
+
+**Validates: Requirements 9.3, 9.4**
+
+### Property 11: Play Page Unity Loading Delay
+
+*For any* navigation to /play, Unity should not initialize until after webcam and calibration checks pass successfully.
+
+**Validates: Requirements 9.5, 9.7**
+
+### Property 12: Play Page Webcam Error Handling
+
+*For any* webcam error that occurs after checks pass, the Play Page should redirect to /calibration.
+
+**Validates: Requirements 9.6**
 
 
 

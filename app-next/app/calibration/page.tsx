@@ -199,7 +199,7 @@ export default function CalibrationPage() {
     };
 
     const handleStartGame = () => {
-        router.push('/play');
+        router.push('/play?from=calibration');
     };
 
     const handleRecalibrate = () => {

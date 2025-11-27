@@ -83,6 +83,9 @@ The webcam and blink detection are critical components for the Type to Death gam
 
 1. WHEN the webcam permission is granted and streaming THEN the Calibration Page SHALL automatically advance to calibration
 2. WHEN calibration is complete THEN the Calibration Page SHALL display a "Start Game" button
+3. WHEN a user navigates to /play without calibration data THEN the system SHALL redirect to /calibration
+4. WHEN a user navigates to /play without camera permission THEN the system SHALL redirect to /calibration
+5. WHEN a user navigates to /play with valid calibration and permission THEN the system SHALL start the webcam and load the game
 
 ### Requirement 6: Blink Detection Calibration
 
@@ -118,6 +121,21 @@ The webcam and blink detection are critical components for the Type to Death gam
 2. WHEN a blink is detected THEN the eye overlays SHALL change color (green to red)
 3. WHEN blink detection is active THEN the Calibration Page SHALL display a blink counter
 4. WHEN the user blinks THEN the blink counter SHALL increment
+
+### Requirement 9: Play Page Webcam Integration
+
+**User Story:** As a player, I want the game to automatically check my webcam and calibration before loading, so that I don't encounter errors during gameplay.
+
+#### Acceptance Criteria
+
+1. WHEN the Play Page loads THEN the system SHALL check for stored calibration data in localStorage
+2. WHEN calibration data is missing THEN the Play Page SHALL redirect to /calibration without prompting for camera access
+3. WHEN calibration data exists THEN the system SHALL check camera permission without prompting
+4. WHEN camera permission is not granted THEN the Play Page SHALL redirect to /calibration
+5. WHEN both calibration and permission are valid THEN the Play Page SHALL start the webcam and load Unity
+6. WHEN the webcam fails to start THEN the Play Page SHALL redirect to /calibration
+7. WHEN Unity is loading THEN the Play Page SHALL display a loading indicator
+8. WHEN all checks pass THEN the Play Page SHALL display blink detection feedback during gameplay
 
 ## Non-Functional Requirements
 

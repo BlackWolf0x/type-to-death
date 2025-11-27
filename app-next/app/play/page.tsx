@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect } from "react";
+import { useCallback, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
-import { useWebcam } from "@/hooks/useWebcam";
-import { useBlinkDetector } from "@/hooks/useBlinkDetector";
+import { GameWebcam } from "@/components/game/GameWebcam";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function PlayPage() {
+    const [isReady, setIsReady] = useState(false);
+
     const { unityProvider, loadingProgression, isLoaded, sendMessage } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
         dataUrl: "/game/build.data",
@@ -15,71 +16,62 @@ export default function PlayPage() {
         codeUrl: "/game/build.wasm",
     });
 
-    // Webcam and blink detection
-    const webcam = useWebcam();
-    const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+    const handleBlink = useCallback(() => {
+        sendMessage("Monster", "OnBlinkDetected");
+    }, [sendMessage]);
 
-    // Start webcam on mount
-    useEffect(() => {
-        webcam.start();
+    const handleReady = useCallback(() => {
+        setIsReady(true);
     }, []);
-
-    // Send blink events to Unity
-    useEffect(() => {
-        if (blink.isBlinking) {
-            sendMessage("Monster", "OnBlinkDetected");
-        }
-    }, [blink.isBlinking, sendMessage]);
 
     function handleStartGame() {
         sendMessage("MainMenuManager", "GoToGameScene");
     }
 
-    function handleBlink() {
+    function handleManualBlink() {
         sendMessage("Monster", "OnBlinkDetected");
     }
 
     return (
         <>
-            {/* Hidden webcam video for blink detection */}
-            <video
-                ref={webcam.setVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="hidden"
-            />
+            {/* GameWebcam handles calibration/permission checks and signals when ready */}
+            <GameWebcam onBlink={handleBlink} onReady={handleReady} />
 
-            {!isLoaded && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl z-20">
-                    Loading... {Math.round(loadingProgression * 100)}%
+            {/* Show checking state before ready */}
+            {!isReady && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black text-white z-20">
+                    <div className="flex items-center gap-3">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                        <span>Checking requirements...</span>
+                    </div>
                 </div>
             )}
-            <Unity
-                unityProvider={unityProvider}
-                style={{ visibility: isLoaded ? "visible" : "hidden" }}
-                className="fixed inset-0 w-screen h-screen z-0 pointer-events-none!"
-            />
 
-            {/* Debug UI */}
-            <div className="fixed top-4 left-4 z-10 space-x-2">
-                <Button onClick={handleStartGame}>
-                    Start
-                </Button>
-                <Button onClick={handleBlink}>
-                    Manual Blink
-                </Button>
-            </div>
+            {/* Only render Unity after ready */}
+            {isReady && (
+                <>
+                    {!isLoaded && (
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl z-20">
+                            Loading... {Math.round(loadingProgression * 100)}%
+                        </div>
+                    )}
+                    <Unity
+                        unityProvider={unityProvider}
+                        style={{ visibility: isLoaded ? "visible" : "hidden" }}
+                        className="fixed inset-0 w-screen h-screen z-0 pointer-events-none!"
+                    />
 
-            {/* Blink status indicator */}
-            <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                {blink.isBlinking ? (
-                    <EyeOff className="h-5 w-5 text-yellow-400" />
-                ) : (
-                    <Eye className="h-5 w-5 text-green-400" />
-                )}
-                <span>Blinks: {blink.blinkCount}</span>
-            </div>
+                    {/* Debug UI */}
+                    <div className="fixed top-4 left-4 z-10 space-x-2">
+                        <Button onClick={handleStartGame}>
+                            Start
+                        </Button>
+                        <Button onClick={handleManualBlink}>
+                            Manual Blink
+                        </Button>
+                    </div>
+                </>
+            )}
         </>
     );
 }
