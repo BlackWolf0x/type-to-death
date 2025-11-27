@@ -77,16 +77,27 @@
   - _Properties: P7, P8_
   - _Requirements: 7.3, 7.4_
 
+- [x] 8. Add localStorage persistence for calibration data
+  - Added `loadCalibration()` to restore saved data on hook initialization
+  - Added `saveCalibration()` called when calibration completes (in `saveCalibrateClosed`)
+  - Added `clearCalibration()` called when user resets calibration
+  - Hook initializes `isCalibrated`, `eyesOpenEAR`, `eyesClosedEAR`, and `earThreshold` from localStorage
+  - Calibration page auto-skips to ready state if stored calibration exists
+  - Storage key: `'blink-calibration'`
+  - _Properties: P7_
+  - _Requirements: 8.1, 8.2, 8.3, 8.4_
+
 ## Implementation Notes
 
 - The calibration page combines webcam permission and blink calibration into a single flow
-- Auto-calibration replaces manual "eyes open" / "eyes closed" steps for better UX
-- Threshold calculation uses 97% of max EAR for low-variance calibrations to catch quick blinks
+- Manual 2-step calibration: user records eyes-open EAR, then eyes-closed EAR
+- Threshold calculation: eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6
 - All calibration data persists to localStorage for returning users
+- Returning users skip directly to ready state if calibration exists
 - Eye landmarks are drawn on a canvas overlay for real-time visual feedback
 
 ## Estimated Effort
 
-- Total Tasks: 7
-- Completed: 7
+- Total Tasks: 8
+- Completed: 8
 - Status: ✅ Complete

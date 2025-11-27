@@ -67,8 +67,8 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 - Initialize MediaPipe FaceLandmarker for face detection
 - Calculate Eye Aspect Ratio (EAR) from face landmarks
 - Detect blinks based on EAR threshold
-- Handle auto-calibration with sample collection
-- Persist calibration data to localStorage
+- Handle manual 2-step calibration with sample collection
+- Persist calibration data to localStorage (save on complete, load on init, clear on reset)
 - Expose face landmarks for eye drawing
 - Track blink count and detection state
 
@@ -286,9 +286,9 @@ const getErrorUI = (error: WebcamError) => {
 
 ### Property 7: Calibration Persistence
 
-*For any* completed calibration, the system should persist the calibration data (eyesOpenEAR, eyesClosedEAR, threshold) to localStorage. *For any* page load, the system should restore saved calibration if available.
+*For any* completed calibration, the system should persist the calibration data (eyesOpenEAR, eyesClosedEAR, threshold) to localStorage. *For any* page load, the system should restore saved calibration if available. *For any* reset action, the system should clear localStorage.
 
-**Validates: Requirements 6.4, 6.5**
+**Validates: Requirements 6.5, 8.1, 8.2, 8.3, 8.4**
 
 ### Property 8: Blink Detection Accuracy
 

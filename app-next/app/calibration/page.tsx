@@ -34,6 +34,16 @@ import {
 
 type PageState = 'webcam' | 'calibration' | 'ready';
 
+// Check if calibration exists in localStorage
+function hasStoredCalibration(): boolean {
+    if (typeof window === 'undefined') return false;
+    try {
+        return localStorage.getItem('blink-calibration') !== null;
+    } catch {
+        return false;
+    }
+}
+
 // ============================================================================
 // Error UI Helpers
 // ============================================================================
@@ -128,9 +138,14 @@ export default function CalibrationPage() {
     // Auto-advance to calibration when webcam starts
     useEffect(() => {
         if (webcam.isStreaming && pageState === 'webcam') {
-            setPageState('calibration');
+            // Skip to ready if already calibrated (from localStorage)
+            if (hasStoredCalibration() && blink.isCalibrated) {
+                setPageState('ready');
+            } else {
+                setPageState('calibration');
+            }
         }
-    }, [webcam.isStreaming, pageState]);
+    }, [webcam.isStreaming, pageState, blink.isCalibrated]);
 
     // Auto-advance to ready when calibration completes
     useEffect(() => {

@@ -20,9 +20,10 @@ The webcam and blink detection are critical components for the Type to Death gam
 - **Video Stream**: The MediaStream object containing video data from the webcam
 - **Device Enumeration**: The process of listing available video input devices
 - **EAR (Eye Aspect Ratio)**: A metric calculated from eye landmarks to detect blinks
-- **Auto-Calibration**: Automatic process to determine blink detection threshold
+- **Manual Calibration**: Two-step process where user records eyes-open and eyes-closed EAR values
 - **Calibration Page**: The `/calibration` route where users grant webcam access and calibrate blink detection
 - **Play Page**: The `/play` route where the game is actively played
+- **localStorage**: Browser storage API used to persist calibration data between sessions
 
 ## Requirements
 
@@ -93,8 +94,19 @@ The webcam and blink detection are critical components for the Type to Death gam
 2. WHEN the user clicks "Save" for eyes-open THEN the system SHALL store the average EAR value
 3. WHEN the user starts eyes-closed calibration THEN the system SHALL collect EAR samples while recording
 4. WHEN the user clicks "Save" for eyes-closed THEN the system SHALL calculate threshold as (eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6)
-5. WHEN both calibration steps complete THEN the system SHALL mark calibration as complete
+5. WHEN both calibration steps complete THEN the system SHALL mark calibration as complete AND save calibration data to localStorage
 6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Start Over" button
+
+### Requirement 8: Calibration Persistence
+
+**User Story:** As a returning user, I want my calibration data to be saved, so that I don't have to recalibrate every time I play.
+
+#### Acceptance Criteria
+
+1. WHEN calibration completes THEN the system SHALL save eyesOpenEAR, eyesClosedEAR, and threshold to localStorage
+2. WHEN the page loads THEN the system SHALL restore calibration data from localStorage if available
+3. WHEN calibration data exists in localStorage THEN the Calibration Page SHALL skip directly to the ready state
+4. WHEN the user clicks "Start Over" THEN the system SHALL clear calibration data from localStorage
 
 ### Requirement 7: Real-time Blink Feedback
 
@@ -161,4 +173,4 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 - Webcam stream optimization or compression
 - Analytics or telemetry for webcam usage
 - Offline mode or fallback without webcam
-- Manual calibration (eyes open/closed steps) - replaced by auto-calibration
+- Cloud-based calibration sync across devices

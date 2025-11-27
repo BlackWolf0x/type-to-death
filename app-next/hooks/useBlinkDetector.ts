@@ -75,6 +75,46 @@ export interface UseBlinkDetectorReturn {
 
 const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
 const MEDIAPIPE_MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+const CALIBRATION_STORAGE_KEY = 'blink-calibration';
+
+// ============================================================================
+// LocalStorage Helpers
+// ============================================================================
+
+interface StoredCalibration {
+    eyesOpenEAR: number;
+    eyesClosedEAR: number;
+    threshold: number;
+}
+
+function loadCalibration(): StoredCalibration | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const stored = localStorage.getItem(CALIBRATION_STORAGE_KEY);
+        if (!stored) return null;
+        return JSON.parse(stored) as StoredCalibration;
+    } catch {
+        return null;
+    }
+}
+
+function saveCalibration(data: StoredCalibration): void {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(CALIBRATION_STORAGE_KEY, JSON.stringify(data));
+    } catch (err) {
+        console.error('Failed to save calibration:', err);
+    }
+}
+
+function clearCalibration(): void {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.removeItem(CALIBRATION_STORAGE_KEY);
+    } catch (err) {
+        console.error('Failed to clear calibration:', err);
+    }
+}
 
 // MediaPipe Face Mesh landmark indices for eyes
 const LEFT_EYE_INDICES = {
@@ -151,12 +191,24 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
     const [faceDetected, setFaceDetected] = useState(false);
     const [faceLandmarks, setFaceLandmarks] = useState<FaceLandmark[] | null>(null);
 
-    // Calibration state
-    const [isCalibrated, setIsCalibrated] = useState(false);
+    // Calibration state - initialize from localStorage
+    const [isCalibrated, setIsCalibrated] = useState(() => {
+        const stored = loadCalibration();
+        return stored !== null;
+    });
     const [calibrationState, setCalibrationState] = useState<'none' | 'open' | 'closed'>('none');
-    const [eyesOpenEAR, setEyesOpenEAR] = useState<number | null>(null);
-    const [eyesClosedEAR, setEyesClosedEAR] = useState<number | null>(null);
-    const [earThreshold, setEarThreshold] = useState(0.18);
+    const [eyesOpenEAR, setEyesOpenEAR] = useState<number | null>(() => {
+        const stored = loadCalibration();
+        return stored?.eyesOpenEAR ?? null;
+    });
+    const [eyesClosedEAR, setEyesClosedEAR] = useState<number | null>(() => {
+        const stored = loadCalibration();
+        return stored?.eyesClosedEAR ?? null;
+    });
+    const [earThreshold, setEarThreshold] = useState(() => {
+        const stored = loadCalibration();
+        return stored?.threshold ?? 0.18;
+    });
 
     // Refs
     const detectionRunningRef = useRef(false);
@@ -381,6 +433,13 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
             setEarThreshold(threshold);
             setIsCalibrated(true);
 
+            // Save to localStorage
+            saveCalibration({
+                eyesOpenEAR,
+                eyesClosedEAR: avgClosed,
+                threshold,
+            });
+
             console.log(`Calibration complete! Open: ${eyesOpenEAR.toFixed(3)}, Closed: ${avgClosed.toFixed(3)}, Threshold: ${threshold.toFixed(3)}`);
         }
     }, [eyesOpenEAR]);
@@ -395,6 +454,9 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
         consecutiveFramesRef.current = 0;
         wasBlinkingRef.current = false;
         setBlinkCount(0);
+
+        // Clear from localStorage
+        clearCalibration();
     }, []);
 
     const resetBlinkCount = useCallback(() => {
