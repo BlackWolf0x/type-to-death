@@ -89,12 +89,12 @@ The webcam and blink detection are critical components for the Type to Death gam
 
 #### Acceptance Criteria
 
-1. WHEN the user starts calibration THEN the system SHALL collect EAR samples for 10 seconds
-2. WHEN calibration is in progress THEN the Calibration Page SHALL display a progress indicator
-3. WHEN calibration completes THEN the system SHALL calculate a personalized blink threshold
-4. WHEN calibration completes THEN the system SHALL persist the calibration to localStorage
-5. WHEN the user returns to the Calibration Page THEN the system SHALL load saved calibration if available
-6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Recalibrate" button
+1. WHEN the user starts eyes-open calibration THEN the system SHALL collect EAR samples while recording
+2. WHEN the user clicks "Save" for eyes-open THEN the system SHALL store the average EAR value
+3. WHEN the user starts eyes-closed calibration THEN the system SHALL collect EAR samples while recording
+4. WHEN the user clicks "Save" for eyes-closed THEN the system SHALL calculate threshold as (eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6)
+5. WHEN both calibration steps complete THEN the system SHALL mark calibration as complete
+6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Start Over" button
 
 ### Requirement 7: Real-time Blink Feedback
 

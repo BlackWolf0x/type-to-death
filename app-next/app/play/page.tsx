@@ -24,19 +24,12 @@ export default function PlayPage() {
         webcam.start();
     }, []);
 
-    // Start detection when ready
-    useEffect(() => {
-        if (webcam.isStreaming && blink.isInitialized && !blink.isDetecting) {
-            blink.startDetection();
-        }
-    }, [webcam.isStreaming, blink.isInitialized, blink.isDetecting, blink.startDetection]);
-
     // Send blink events to Unity
     useEffect(() => {
-        if (blink.blinkData.isBlinking) {
+        if (blink.isBlinking) {
             sendMessage("Monster", "OnBlinkDetected");
         }
-    }, [blink.blinkData.isBlinking, sendMessage]);
+    }, [blink.isBlinking, sendMessage]);
 
     function handleStartGame() {
         sendMessage("MainMenuManager", "GoToGameScene");
@@ -80,12 +73,12 @@ export default function PlayPage() {
 
             {/* Blink status indicator */}
             <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                {blink.blinkData.isBlinking ? (
+                {blink.isBlinking ? (
                     <EyeOff className="h-5 w-5 text-yellow-400" />
                 ) : (
                     <Eye className="h-5 w-5 text-green-400" />
                 )}
-                <span>Blinks: {blink.blinkData.blinkCount}</span>
+                <span>Blinks: {blink.blinkCount}</span>
             </div>
         </>
     );

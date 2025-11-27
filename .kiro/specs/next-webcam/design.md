@@ -278,9 +278,9 @@ const getErrorUI = (error: WebcamError) => {
 
 **Validates: Requirements 5.1, 5.2**
 
-### Property 6: Auto-Calibration Sample Collection
+### Property 6: Manual Calibration Flow
 
-*For any* auto-calibration session, the system should collect EAR samples for 10 seconds and calculate a threshold based on the variance between max and min EAR values.
+*For any* calibration session, the user must complete two steps: (1) record eyes-open EAR, (2) record eyes-closed EAR. The threshold is calculated as eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6.
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 

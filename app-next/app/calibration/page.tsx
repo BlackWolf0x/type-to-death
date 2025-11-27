@@ -119,18 +119,11 @@ export default function CalibrationPage() {
     const [pageState, setPageState] = useState<PageState>('webcam');
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    // Webcam hook - single instance for entire page
+    // Webcam hook
     const webcam = useWebcam();
 
-    // Blink detector - uses webcam's videoRef
+    // Blink detector
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
-
-    // Start detection when webcam is streaming and blink detector is ready
-    useEffect(() => {
-        if (webcam.isStreaming && blink.isInitialized && !blink.isDetecting) {
-            blink.startDetection();
-        }
-    }, [webcam.isStreaming, blink.isInitialized, blink.isDetecting, blink.startDetection]);
 
     // Auto-advance to calibration when webcam starts
     useEffect(() => {
@@ -141,10 +134,10 @@ export default function CalibrationPage() {
 
     // Auto-advance to ready when calibration completes
     useEffect(() => {
-        if (blink.calibration.isCalibrated && pageState === 'calibration') {
+        if (blink.isCalibrated && pageState === 'calibration') {
             setPageState('ready');
         }
-    }, [blink.calibration.isCalibrated, pageState]);
+    }, [blink.isCalibrated, pageState]);
 
     // Draw eye landmarks on canvas
     useEffect(() => {
@@ -155,13 +148,11 @@ export default function CalibrationPage() {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Set canvas size to match video
         const w = video.videoWidth || 640;
         const h = video.videoHeight || 480;
         canvas.width = w;
         canvas.height = h;
 
-        // Clear canvas
         ctx.clearRect(0, 0, w, h);
 
         const landmarks = blink.faceLandmarks;
@@ -182,11 +173,10 @@ export default function CalibrationPage() {
             ctx.stroke();
         };
 
-        // Color based on blink state
-        const eyeColor = blink.blinkData.isBlinking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
+        const eyeColor = blink.isBlinking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
         drawEyeOutline(LEFT_EYE_INDICES, eyeColor);
         drawEyeOutline(RIGHT_EYE_INDICES, eyeColor);
-    }, [blink.faceLandmarks, webcam.isStreaming, webcam.videoRef, blink.blinkData.isBlinking]);
+    }, [blink.faceLandmarks, webcam.isStreaming, webcam.videoRef, blink.isBlinking]);
 
     const handleRequestCamera = async () => {
         webcam.clearError();
@@ -208,9 +198,7 @@ export default function CalibrationPage() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 font-sans dark:bg-black">
             <Card className="w-full max-w-2xl">
-                {/* ============================================================ */}
                 {/* WEBCAM PERMISSION STATE */}
-                {/* ============================================================ */}
                 {pageState === 'webcam' && (
                     <>
                         <CardHeader className="text-center">
@@ -225,7 +213,6 @@ export default function CalibrationPage() {
                         </CardHeader>
 
                         <CardContent className="space-y-6">
-                            {/* Error */}
                             {webcam.error && webcamErrorUI && (
                                 <Alert variant="destructive">
                                     <AlertCircle className="h-4 w-4" />
@@ -234,17 +221,13 @@ export default function CalibrationPage() {
                                 </Alert>
                             )}
 
-                            {/* Loading */}
                             {webcam.isLoading && (
                                 <div className="flex flex-col items-center gap-3 py-12">
                                     <Loader2 className="h-10 w-10 animate-spin text-zinc-500" />
-                                    <p className="text-zinc-600 dark:text-zinc-400">
-                                        Starting camera...
-                                    </p>
+                                    <p className="text-zinc-600 dark:text-zinc-400">Starting camera...</p>
                                 </div>
                             )}
 
-                            {/* Request Button */}
                             {!webcam.isStreaming && !webcam.isLoading && (
                                 <div className="flex flex-col items-center gap-6 py-8">
                                     <div className="flex h-32 w-32 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
@@ -265,9 +248,7 @@ export default function CalibrationPage() {
                     </>
                 )}
 
-                {/* ============================================================ */}
                 {/* CALIBRATION STATE */}
-                {/* ============================================================ */}
                 {pageState === 'calibration' && (
                     <>
                         <CardHeader className="text-center">
@@ -276,12 +257,11 @@ export default function CalibrationPage() {
                                 Blink Calibration
                             </CardTitle>
                             <CardDescription className="text-base">
-                                Calibrate blink detection for your eyes. Takes a few seconds.
+                                Calibrate blink detection for your eyes in two steps.
                             </CardDescription>
                         </CardHeader>
 
                         <CardContent className="space-y-6">
-                            {/* Blink Error */}
                             {blink.error && blinkErrorUI && (
                                 <Alert variant="destructive">
                                     <AlertCircle className="h-4 w-4" />
@@ -290,20 +270,16 @@ export default function CalibrationPage() {
                                 </Alert>
                             )}
 
-                            {/* Loading blink detector */}
                             {!blink.isInitialized && (
                                 <div className="flex flex-col items-center gap-3 py-8">
                                     <Loader2 className="h-10 w-10 animate-spin text-zinc-500" />
-                                    <p className="text-zinc-600 dark:text-zinc-400">
-                                        Loading blink detection...
-                                    </p>
+                                    <p className="text-zinc-600 dark:text-zinc-400">Loading blink detection...</p>
                                 </div>
                             )}
 
-                            {/* Video + Calibration UI */}
                             {blink.isInitialized && (
                                 <>
-                                    {/* Video Preview with Canvas Overlay */}
+                                    {/* Video Preview */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                         <video
                                             ref={webcam.setVideoRef}
@@ -316,79 +292,115 @@ export default function CalibrationPage() {
                                             ref={canvasRef}
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
-                                        {/* Face indicator */}
                                         <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
-                                            <span className={`h-2 w-2 rounded-full ${blink.blinkData.faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
-                                            {blink.blinkData.faceDetected ? 'Face detected' : 'No face'}
+                                            <span className={`h-2 w-2 rounded-full ${blink.faceDetected ? 'bg-green-500' : 'bg-red-500'}`} />
+                                            {blink.faceDetected ? 'Face detected' : 'No face'}
                                         </div>
-                                        {/* EAR value */}
                                         <div className="absolute right-3 top-3 rounded-full bg-black/60 px-3 py-1 text-sm text-white">
-                                            EAR: {blink.blinkData.averageEAR.toFixed(3)}
+                                            EAR: {blink.averageEAR.toFixed(3)}
                                         </div>
-                                        {/* Auto-calibration progress indicator */}
-                                        {blink.calibration.phase === 'auto' && (
-                                            <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-4">
-                                                <div className="text-center text-white">
-                                                    <div className="text-lg font-bold">
-                                                        Blink naturally a few times
-                                                    </div>
-                                                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/30">
-                                                        <div
-                                                            className="h-full bg-green-500 transition-all duration-300"
-                                                            style={{ width: `${blink.calibration.autoProgress}%` }}
-                                                        />
-                                                    </div>
-                                                    <div className="mt-1 text-sm opacity-80">
-                                                        {Math.round(blink.calibration.autoProgress)}% complete
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
 
-                                    {/* Auto-calibration UI */}
-                                    {blink.calibration.phase === 'idle' && !blink.calibration.isCalibrated && (
-                                        <div className="rounded-lg border border-zinc-200 p-6 text-center dark:border-zinc-800">
-                                            <Eye className="mx-auto h-12 w-12 text-zinc-400" />
-                                            <h3 className="mt-4 text-lg font-medium">Auto Calibration</h3>
-                                            <p className="mt-2 text-sm text-zinc-500">
-                                                Look at the camera and blink naturally for 10 seconds.
-                                                We&apos;ll automatically detect your blink pattern.
-                                            </p>
-                                            <Button
-                                                onClick={blink.startAutoCalibration}
-                                                size="lg"
-                                                className="mt-4 gap-2"
-                                                disabled={!blink.blinkData.faceDetected}
-                                            >
-                                                <Play className="h-4 w-4" />
-                                                Start Calibration
-                                            </Button>
-                                            {!blink.blinkData.faceDetected && (
-                                                <p className="mt-2 text-sm text-amber-600">
-                                                    Position your face in the camera view
-                                                </p>
+                                    {/* Calibration Steps */}
+                                    <div className="space-y-4">
+                                        {/* Step 1: Eyes Open */}
+                                        <div className={`rounded-lg border p-4 ${blink.eyesOpenEAR ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-zinc-200 dark:border-zinc-800'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    {blink.eyesOpenEAR ? (
+                                                        <CheckCircle2 className="h-6 w-6 text-green-600" />
+                                                    ) : (
+                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold dark:bg-zinc-700">1</div>
+                                                    )}
+                                                    <div>
+                                                        <div className="font-medium">Eyes Open</div>
+                                                        <div className="text-sm text-zinc-500">
+                                                            {blink.eyesOpenEAR
+                                                                ? `Recorded: ${blink.eyesOpenEAR.toFixed(3)}`
+                                                                : 'Keep your eyes open naturally'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {!blink.eyesOpenEAR && (
+                                                    <div className="flex gap-2">
+                                                        {blink.calibrationState === 'open' ? (
+                                                            <Button onClick={blink.saveCalibrateOpen} variant="default">
+                                                                Save
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                onClick={blink.startCalibrateOpen}
+                                                                variant="outline"
+                                                                disabled={!blink.faceDetected}
+                                                            >
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                Record
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {blink.calibrationState === 'open' && (
+                                                <div className="mt-2 text-sm text-amber-600">
+                                                    Recording... Keep your eyes open and click Save
+                                                </div>
                                             )}
                                         </div>
-                                    )}
 
-                                    {/* Calibrating state */}
-                                    {blink.calibration.phase === 'auto' && (
-                                        <Alert>
-                                            <Eye className="h-4 w-4" />
-                                            <AlertTitle>Calibrating...</AlertTitle>
-                                            <AlertDescription>
-                                                Keep looking at the camera and blink naturally.
-                                                {blink.calibration.samplesCollected} samples collected.
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
+                                        {/* Step 2: Eyes Closed */}
+                                        <div className={`rounded-lg border p-4 ${blink.eyesClosedEAR ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-zinc-200 dark:border-zinc-800'}`}>
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    {blink.eyesClosedEAR ? (
+                                                        <CheckCircle2 className="h-6 w-6 text-green-600" />
+                                                    ) : (
+                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold dark:bg-zinc-700">2</div>
+                                                    )}
+                                                    <div>
+                                                        <div className="font-medium">Eyes Closed</div>
+                                                        <div className="text-sm text-zinc-500">
+                                                            {blink.eyesClosedEAR
+                                                                ? `Recorded: ${blink.eyesClosedEAR.toFixed(3)}`
+                                                                : 'Close your eyes gently'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {blink.eyesOpenEAR && !blink.eyesClosedEAR && (
+                                                    <div className="flex gap-2">
+                                                        {blink.calibrationState === 'closed' ? (
+                                                            <Button onClick={blink.saveCalibrateClosed} variant="default">
+                                                                Save
+                                                            </Button>
+                                                        ) : (
+                                                            <Button
+                                                                onClick={blink.startCalibrateClosed}
+                                                                variant="outline"
+                                                                disabled={!blink.faceDetected}
+                                                            >
+                                                                <EyeOff className="mr-2 h-4 w-4" />
+                                                                Record
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {blink.calibrationState === 'closed' && (
+                                                <div className="mt-2 text-sm text-amber-600">
+                                                    Recording... Close your eyes and click Save
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
 
                                     {/* Reset button */}
-                                    {(blink.calibration.phase === 'auto' || blink.error) && (
-                                        <Button onClick={() => { blink.clearError(); blink.resetCalibration(); }} variant="outline" className="gap-2">
+                                    {(blink.eyesOpenEAR || blink.error) && (
+                                        <Button
+                                            onClick={() => { blink.clearError(); blink.resetCalibration(); }}
+                                            variant="outline"
+                                            className="gap-2"
+                                        >
                                             <RefreshCw className="h-4 w-4" />
-                                            Cancel
+                                            Start Over
                                         </Button>
                                     )}
                                 </>
@@ -397,9 +409,7 @@ export default function CalibrationPage() {
                     </>
                 )}
 
-                {/* ============================================================ */}
                 {/* READY STATE */}
-                {/* ============================================================ */}
                 {pageState === 'ready' && (
                     <>
                         <CardHeader className="text-center">
@@ -413,7 +423,6 @@ export default function CalibrationPage() {
                         </CardHeader>
 
                         <CardContent className="space-y-6">
-                            {/* Video Preview with Canvas Overlay */}
                             <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                 <video
                                     ref={webcam.setVideoRef}
@@ -426,34 +435,31 @@ export default function CalibrationPage() {
                                     ref={canvasRef}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
-                                {/* Blink indicator */}
                                 <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-sm text-white">
-                                    {blink.blinkData.isBlinking ? (
+                                    {blink.isBlinking ? (
                                         <EyeOff className="h-4 w-4 text-yellow-400" />
                                     ) : (
                                         <Eye className="h-4 w-4 text-green-400" />
                                     )}
-                                    Blinks: {blink.blinkData.blinkCount}
+                                    Blinks: {blink.blinkCount}
                                 </div>
                             </div>
 
-                            {/* Calibration Stats */}
                             <div className="grid grid-cols-3 gap-4 text-center text-sm">
                                 <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
                                     <div className="font-medium text-zinc-500">Eyes Open</div>
-                                    <div className="text-lg font-bold">{blink.calibration.eyesOpenEAR?.toFixed(3)}</div>
+                                    <div className="text-lg font-bold">{blink.eyesOpenEAR?.toFixed(3)}</div>
                                 </div>
                                 <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
                                     <div className="font-medium text-zinc-500">Eyes Closed</div>
-                                    <div className="text-lg font-bold">{blink.calibration.eyesClosedEAR?.toFixed(3)}</div>
+                                    <div className="text-lg font-bold">{blink.eyesClosedEAR?.toFixed(3)}</div>
                                 </div>
                                 <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
                                     <div className="font-medium text-zinc-500">Threshold</div>
-                                    <div className="text-lg font-bold">{blink.calibration.threshold.toFixed(3)}</div>
+                                    <div className="text-lg font-bold">{blink.earThreshold.toFixed(3)}</div>
                                 </div>
                             </div>
 
-                            {/* Actions */}
                             <div className="flex gap-3">
                                 <Button onClick={handleRecalibrate} variant="outline" className="gap-2">
                                     <RefreshCw className="h-4 w-4" />
