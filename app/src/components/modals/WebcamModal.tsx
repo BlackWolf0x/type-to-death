@@ -6,8 +6,9 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { Webcam } from "@/components/Webcam";
 
-export function EyeTrackingModal() {
+export function WebcamModal() {
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -15,13 +16,17 @@ export function EyeTrackingModal() {
                     Eye Tracking Calibration
                 </button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[100vw-10px] h-[calc(100vh-40px)] z-50">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto z-50">
                 <DialogHeader>
                     <DialogTitle>Eye Tracking Calibration</DialogTitle>
                     <DialogDescription>
-                        Eye tracking calibration coming soon
+                        Set up your webcam for eye tracking and blink detection
                     </DialogDescription>
                 </DialogHeader>
+
+                <div className="mt-4">
+                    <Webcam />
+                </div>
             </DialogContent>
         </Dialog>
     );
