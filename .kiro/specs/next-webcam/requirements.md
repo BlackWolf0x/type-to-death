@@ -1,23 +1,27 @@
-# Next.js Webcam Integration - Requirements
+# Next.js Webcam & Blink Detection Integration - Requirements
 
 ## Introduction
 
-This spec defines the requirements for integrating webcam functionality into the Next.js application using the useWebcam hook. The integration will provide visual feedback for permission requests, error states, and successful webcam streaming across the application's pages.
+This spec defines the requirements for integrating webcam functionality and blink detection into the Next.js application. The integration provides visual feedback for permission requests, error states, webcam streaming, and blink calibration across the application's pages.
 
 ## Context
 
-The project has a custom `useWebcam` hook already implemented in `app-next/hooks/useWebcam.ts` that handles webcam access, permissions, device enumeration, and error handling. This spec focuses on integrating this hook into the Next.js pages to provide a complete user experience for webcam setup and usage.
+The project has custom hooks implemented:
+- `useWebcam` hook in `app-next/hooks/useWebcam.ts` - handles webcam access, permissions, device enumeration, and error handling
+- `useBlinkDetector` hook in `app-next/hooks/useBlinkDetector.ts` - handles MediaPipe face detection, EAR calculation, and blink detection with auto-calibration
 
-The webcam is a critical component for the Type to Death game, as it enables blink detection through Google MediaPipe. Users must grant camera permissions and successfully initialize the webcam before they can play the game.
+The webcam and blink detection are critical components for the Type to Death game. Users must grant camera permissions, calibrate blink detection, and successfully initialize both systems before they can play the game.
 
 ## Glossary
 
 - **Webcam Hook**: The `useWebcam` custom React hook that manages webcam state and controls
+- **Blink Detector Hook**: The `useBlinkDetector` custom React hook that manages MediaPipe face detection and blink detection
 - **Permission State**: The browser's camera permission status (granted, denied, or prompt)
 - **Video Stream**: The MediaStream object containing video data from the webcam
 - **Device Enumeration**: The process of listing available video input devices
-- **Permission Page**: The `/permission` route where users grant webcam access
-- **Calibration Page**: The `/calibration` route where users calibrate blink detection
+- **EAR (Eye Aspect Ratio)**: A metric calculated from eye landmarks to detect blinks
+- **Auto-Calibration**: Automatic process to determine blink detection threshold
+- **Calibration Page**: The `/calibration` route where users grant webcam access and calibrate blink detection
 - **Play Page**: The `/play` route where the game is actively played
 
 ## Requirements
@@ -76,8 +80,32 @@ The webcam is a critical component for the Type to Death game, as it enables bli
 
 #### Acceptance Criteria
 
-1. WHEN the webcam permission is granted and streaming THEN the Permission Page SHALL provide a "Continue" button
-2. WHEN a user clicks "Continue" after successful webcam setup THEN the application SHALL navigate to `/calibration`
+1. WHEN the webcam permission is granted and streaming THEN the Calibration Page SHALL automatically advance to calibration
+2. WHEN calibration is complete THEN the Calibration Page SHALL display a "Start Game" button
+
+### Requirement 6: Blink Detection Calibration
+
+**User Story:** As a user, I want to calibrate blink detection for my eyes, so that the game can accurately detect when I blink.
+
+#### Acceptance Criteria
+
+1. WHEN the user starts calibration THEN the system SHALL collect EAR samples for 10 seconds
+2. WHEN calibration is in progress THEN the Calibration Page SHALL display a progress indicator
+3. WHEN calibration completes THEN the system SHALL calculate a personalized blink threshold
+4. WHEN calibration completes THEN the system SHALL persist the calibration to localStorage
+5. WHEN the user returns to the Calibration Page THEN the system SHALL load saved calibration if available
+6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Recalibrate" button
+
+### Requirement 7: Real-time Blink Feedback
+
+**User Story:** As a user, I want to see visual feedback when I blink, so that I can verify the blink detection is working correctly.
+
+#### Acceptance Criteria
+
+1. WHEN blink detection is active THEN the Calibration Page SHALL display eye landmark overlays on the video
+2. WHEN a blink is detected THEN the eye overlays SHALL change color (green to red)
+3. WHEN blink detection is active THEN the Calibration Page SHALL display a blink counter
+4. WHEN the user blinks THEN the blink counter SHALL increment
 
 ## Non-Functional Requirements
 
@@ -126,8 +154,6 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 
 ## Out of Scope
 
-- Blink detection implementation (separate spec)
-- MediaPipe integration (separate spec)
 - Webcam device selection UI (can use default device for MVP)
 - Webcam settings (resolution, frame rate, etc.)
 - Recording or capturing webcam frames
@@ -135,3 +161,4 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 - Webcam stream optimization or compression
 - Analytics or telemetry for webcam usage
 - Offline mode or fallback without webcam
+- Manual calibration (eyes open/closed steps) - replaced by auto-calibration

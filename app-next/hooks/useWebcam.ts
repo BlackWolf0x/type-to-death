@@ -63,8 +63,9 @@ export interface UseWebcamReturn {
     refreshDevices: () => Promise<MediaDeviceInfo[]>;
     clearError: () => void;
 
-    // Ref
+    // Refs
     videoRef: RefObject<HTMLVideoElement | null>;
+    setVideoRef: (element: HTMLVideoElement | null) => void;
 }
 
 // ============================================================================
@@ -171,6 +172,17 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamReturn {
     // Refs (to avoid stale closures)
     const videoRef = useRef<HTMLVideoElement>(null);
     const mountedRef = useRef(true);
+
+    // Callback ref to attach stream when video element mounts/changes
+    const setVideoRef = useCallback((element: HTMLVideoElement | null) => {
+        videoRef.current = element;
+        if (element && stream) {
+            element.srcObject = stream;
+            element.play().catch(() => {
+                // Autoplay may be blocked
+            });
+        }
+    }, [stream]);
 
     // ========================================================================
     // Device Enumeration
@@ -430,7 +442,8 @@ export function useWebcam(options: UseWebcamOptions = {}): UseWebcamReturn {
         refreshDevices,
         clearError,
 
-        // Ref
+        // Refs
         videoRef,
+        setVideoRef,
     };
 }

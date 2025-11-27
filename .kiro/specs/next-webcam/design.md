@@ -1,46 +1,53 @@
-# Next.js Webcam Integration - Design
+# Next.js Webcam & Blink Detection Integration - Design
 
 ## Architecture Overview
 
-This design outlines the integration of the `useWebcam` hook into the Permission Page (`/permission`) to provide a complete webcam setup experience. The design focuses on creating a clear, user-friendly interface for permission requests, error handling, and video preview.
+This design outlines the integration of the `useWebcam` and `useBlinkDetector` hooks into the Calibration Page (`/calibration`) to provide a complete webcam and blink detection setup experience. The design focuses on creating a clear, user-friendly interface for permission requests, error handling, video preview, and blink calibration.
 
 **Main Components:**
 
-1. **Permission Page (`/permission`)** - Handles initial webcam permission request and setup
-2. **useWebcam Hook** - Existing hook that manages webcam state and controls
-3. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Spinner)
+1. **Calibration Page (`/calibration`)** - Handles webcam permission, blink calibration, and game readiness
+2. **useWebcam Hook** - Manages webcam state and controls
+3. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
+4. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
 
 ## Component Structure
 
-### 1. Permission Page Component
+### 1. Calibration Page Component
 
-**File:** `app-next/app/permission/page.tsx`
+**File:** `app-next/app/calibration/page.tsx`
 
 **Responsibilities:**
 - Request webcam access from the user
 - Display permission request UI with clear explanation
-- Show loading state during webcam initialization
+- Show loading state during webcam and MediaPipe initialization
 - Display error messages for various failure scenarios
-- Show video preview when webcam is successfully streaming
-- Provide navigation to calibration page after successful setup
+- Show video preview with eye landmark overlays
+- Handle auto-calibration flow with progress indicator
+- Display blink detection feedback (counter, eye color changes)
+- Provide navigation to play page after successful calibration
 
 **State Management:**
-- Uses `useWebcam` hook for all webcam-related state
-- Local state for UI-specific concerns (if needed)
+- Uses `useWebcam` hook for webcam state
+- Uses `useBlinkDetector` hook for blink detection state
+- Local `pageState` for UI flow: 'webcam' → 'calibration' → 'ready'
+- Canvas ref for eye landmark drawing
 
 **UI Components:**
-- `Card` - Container for permission request content
-- `Button` - Request access button, Continue button
-- `Alert` - Error messages and informational messages
-- `Spinner` - Loading indicator during initialization
-- `video` element - Webcam preview (using webcamRef from hook)
+- `Card` - Container for all content
+- `Button` - Request access, Start Calibration, Recalibrate, Start Game
+- `Alert` - Error messages and status messages
+- `video` element - Webcam preview (using setVideoRef callback)
+- `canvas` element - Eye landmark overlay
 
 **Dependencies:**
 - `useWebcam` hook from `@/hooks/useWebcam`
-- shadcn/ui components: `Button`, `Alert`, `Card`, `Spinner`
+- `useBlinkDetector` hook from `@/hooks/useBlinkDetector`
+- shadcn/ui components: `Button`, `Alert`, `Card`
+- Lucide icons: `Camera`, `Eye`, `EyeOff`, `Loader2`, `AlertCircle`, `CheckCircle2`, `RefreshCw`, `Play`
 - Next.js `useRouter` for navigation
 
-### 2. useWebcam Hook (Implemented)
+### 2. useWebcam Hook
 
 **File:** `app-next/hooks/useWebcam.ts`
 
@@ -48,64 +55,76 @@ This design outlines the integration of the `useWebcam` hook into the Permission
 - Manage webcam MediaStream lifecycle
 - Handle permission requests and errors with structured error codes
 - Enumerate video devices with automatic device change detection
-- Provide video element ref for rendering
+- Provide video element ref and callback ref for rendering
 - Track loading and streaming states
 - Support device switching
+
+### 3. useBlinkDetector Hook
+
+**File:** `app-next/hooks/useBlinkDetector.ts`
+
+**Responsibilities:**
+- Initialize MediaPipe FaceLandmarker for face detection
+- Calculate Eye Aspect Ratio (EAR) from face landmarks
+- Detect blinks based on EAR threshold
+- Handle auto-calibration with sample collection
+- Persist calibration data to localStorage
+- Expose face landmarks for eye drawing
+- Track blink count and detection state
 
 **Interface:**
 ```typescript
 // Error Codes Enum
-enum WebcamErrorCode {
-    // Browser/Environment Errors
-    API_NOT_SUPPORTED = 'WEBCAM_API_NOT_SUPPORTED',
-    REQUIRES_HTTPS = 'WEBCAM_REQUIRES_HTTPS',
-
-    // Permission Errors
-    PERMISSION_DENIED = 'WEBCAM_PERMISSION_DENIED',
-    PERMISSION_DISMISSED = 'WEBCAM_PERMISSION_DISMISSED',
-
-    // Device Errors
-    DEVICE_NOT_FOUND = 'WEBCAM_DEVICE_NOT_FOUND',
-    DEVICE_IN_USE = 'WEBCAM_DEVICE_IN_USE',
-    DEVICE_ENUMERATION_FAILED = 'WEBCAM_DEVICE_ENUMERATION_FAILED',
-
-    // Constraint Errors
-    CONSTRAINTS_NOT_SUPPORTED = 'WEBCAM_CONSTRAINTS_NOT_SUPPORTED',
-
-    // Stream Errors
-    STREAM_START_FAILED = 'WEBCAM_STREAM_START_FAILED',
-    STREAM_INTERRUPTED = 'WEBCAM_STREAM_INTERRUPTED',
-
-    // Unknown
-    UNKNOWN = 'WEBCAM_UNKNOWN',
-}
-
-// Structured Error Type
-interface WebcamError {
-    code: WebcamErrorCode;
-    message: string;
-    originalError?: Error;
+enum BlinkDetectorErrorCode {
+    MEDIAPIPE_INIT_FAILED = 'BLINK_MEDIAPIPE_INIT_FAILED',
+    MEDIAPIPE_WASM_LOAD_FAILED = 'BLINK_MEDIAPIPE_WASM_LOAD_FAILED',
+    MEDIAPIPE_MODEL_LOAD_FAILED = 'BLINK_MEDIAPIPE_MODEL_LOAD_FAILED',
+    DETECTION_FAILED = 'BLINK_DETECTION_FAILED',
+    NO_FACE_DETECTED = 'BLINK_NO_FACE_DETECTED',
+    CALIBRATION_NO_SAMPLES = 'BLINK_CALIBRATION_NO_SAMPLES',
+    CALIBRATION_INVALID = 'BLINK_CALIBRATION_INVALID',
 }
 
 // Hook Return Type
-interface UseWebcamReturn {
+interface UseBlinkDetectorReturn {
     // State
-    isStreaming: boolean;
-    isLoading: boolean;
-    error: WebcamError | null;
-    devices: MediaDeviceInfo[];
-    permissionState: PermissionState | null;
-    currentDeviceId: string | null;
+    isInitialized: boolean;
+    isDetecting: boolean;
+    error: BlinkDetectorError | null;
+
+    // Blink Data
+    blinkData: {
+        leftEAR: number;
+        rightEAR: number;
+        averageEAR: number;
+        isBlinking: boolean;
+        blinkCount: number;
+        faceDetected: boolean;
+    };
+
+    // Face Landmarks (for drawing)
+    faceLandmarks: FaceLandmark[] | null;
+
+    // Calibration
+    calibration: {
+        phase: 'idle' | 'auto';
+        eyesOpenEAR: number | null;
+        eyesClosedEAR: number | null;
+        threshold: number;
+        isCalibrated: boolean;
+        samplesCollected: number;
+        autoProgress: number;
+    };
 
     // Controls
-    start: () => Promise<boolean>;
-    stop: () => void;
-    switchDevice: (deviceId: string) => Promise<boolean>;
-    refreshDevices: () => Promise<MediaDeviceInfo[]>;
+    startDetection: () => void;
+    stopDetection: () => void;
+    resetBlinkCount: () => void;
     clearError: () => void;
 
-    // Ref
-    videoRef: RefObject<HTMLVideoElement | null>;
+    // Calibration Controls
+    startAutoCalibration: () => void;
+    resetCalibration: () => void;
 }
 ```
 
@@ -229,37 +248,53 @@ const getErrorUI = (error: WebcamError) => {
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
-
 ### Property 1: Permission Request Initiates Webcam
 
-*For any* user interaction with the "Request Camera Access" button, the system should call the useWebcam hook's start() method and transition to a loading state.
+*For any* user interaction with the "Grant Camera Access" button, the system should call the useWebcam hook's start() method and transition to a loading state.
 
 **Validates: Requirements 1.3**
 
 ### Property 2: Error Display Completeness
 
-*For any* error returned by the useWebcam hook, the Permission Page should display a corresponding error message with title, description, and actionable instructions.
+*For any* error returned by the useWebcam or useBlinkDetector hooks, the Calibration Page should display a corresponding error message with title, description, and actionable instructions.
 
 **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6**
 
 ### Property 3: Loading State Visibility
 
-*For any* time period when isLoading is true, the Permission Page should display a loading indicator and disable interactive buttons.
+*For any* time period when isLoading is true or MediaPipe is initializing, the Calibration Page should display a loading indicator.
 
 **Validates: Requirements 3.1, 3.2**
 
 ### Property 4: Video Preview Conditional Rendering
 
-*For any* state where isStreaming is true, the Permission Page should render a video element with the webcamRef attached; when isStreaming is false, the video element should not be rendered.
+*For any* state where isStreaming is true, the Calibration Page should render a video element with the setVideoRef callback attached.
 
 **Validates: Requirements 4.1, 4.2, 4.4**
 
-### Property 5: Navigation Guard
+### Property 5: Page State Transitions
 
-*For any* attempt to navigate to the calibration page, the navigation should only succeed if the webcam is successfully streaming (isStreaming === true).
+*For any* successful webcam start, the page should automatically transition from 'webcam' to 'calibration' state. *For any* successful calibration, the page should transition to 'ready' state.
 
-**Validates: Requirements 5.4**
+**Validates: Requirements 5.1, 5.2**
+
+### Property 6: Auto-Calibration Sample Collection
+
+*For any* auto-calibration session, the system should collect EAR samples for 10 seconds and calculate a threshold based on the variance between max and min EAR values.
+
+**Validates: Requirements 6.1, 6.2, 6.3**
+
+### Property 7: Calibration Persistence
+
+*For any* completed calibration, the system should persist the calibration data (eyesOpenEAR, eyesClosedEAR, threshold) to localStorage. *For any* page load, the system should restore saved calibration if available.
+
+**Validates: Requirements 6.4, 6.5**
+
+### Property 8: Blink Detection Accuracy
+
+*For any* EAR value below the calibrated threshold, the system should detect a blink and increment the blink counter (once per blink transition).
+
+**Validates: Requirements 7.3, 7.4**
 
 
 
