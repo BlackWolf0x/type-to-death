@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
 
         Camera.main.GetComponent<CameraShake>().StopShake();
         AudioManager.Instance.PlaySfx(AudioManager.Instance.GameOverSfx);
-        SFXManager.Instance.StopHeartbeat();
+        AudioManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR

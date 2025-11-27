@@ -950,6 +950,7 @@ GameObject:
   m_Component:
   - component: {fileID: 881647354}
   - component: {fileID: 881647353}
+  - component: {fileID: 881647355}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -989,6 +990,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &881647355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881647352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c69a7c5898dc6e47ba46f34d9375cc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1197071056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1061,6 +1074,31 @@ MonoBehaviour:
       Data3: 18014122
       Data4: 1064353656
     Path: event:/Impact Blood 3
+  heartbeatIntensities:
+  - Guid:
+      Data1: 0
+      Data2: 0
+      Data3: 0
+      Data4: 0
+    Path: 
+  - Guid:
+      Data1: -1100330853
+      Data2: 1134223271
+      Data3: 36097162
+      Data4: -1787906484
+    Path: event:/Heartbeat 2
+  - Guid:
+      Data1: 11286636
+      Data2: 1300897645
+      Data3: 532107933
+      Data4: 564392302
+    Path: event:/Heartbeat 3
+  - Guid:
+      Data1: 680628577
+      Data2: 1290342041
+      Data3: 1231832996
+      Data4: 971822549
+    Path: event:/Heartbeat 4
 --- !u!1 &1333200231
 GameObject:
   m_ObjectHideFlags: 0

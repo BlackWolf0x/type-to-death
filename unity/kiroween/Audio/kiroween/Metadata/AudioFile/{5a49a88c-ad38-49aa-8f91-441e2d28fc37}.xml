@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{5a49a88c-ad38-49aa-8f91-441e2d28fc37}">
+		<property name="assetPath">
+			<value>180514-heartbeat-real-trp-low-freq-loop-62411.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>24</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>20.376000000000001</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{bcd52691-6c6e-4404-a0ca-bf47ac2477d8}</destination>
+		</relationship>
+	</object>
+</objects>
