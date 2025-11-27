@@ -85,7 +85,7 @@ public class GameManager : MonoBehaviour
         blackScreenPanel.SetActive(true);
 
         Camera.main.GetComponent<CameraShake>().StopShake();
-        SFXManager.Instance.Play(SFXManager.Instance.GameOver);
+        AudioManager.Instance.PlaySfx(AudioManager.Instance.GameOverSfx);
         SFXManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
 
