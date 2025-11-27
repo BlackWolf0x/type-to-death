@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -13,6 +14,9 @@ public class GameManager : MonoBehaviour
     private bool gameOverTriggered = false;
     
     public static GameManager Instance => instance;
+    
+    [DllImport("__Internal")]
+    private static extern void GameLost();
     
     void Awake()
     {
@@ -70,11 +74,16 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(gameOverDelay);
         
         blackScreenPanel.SetActive(true);
+             
         Camera.main.GetComponent<CameraShake>().StopShake();
         SFXManager.Instance.Play(SFXManager.Instance.GameOver);
         SFXManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
         
+#if UNITY_WEBGL && !UNITY_EDITOR
+        GameLost();
+#endif
+
         Debug.Log("GameManager: Game Over");
     }
 }
