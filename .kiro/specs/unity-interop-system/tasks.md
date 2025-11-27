@@ -28,6 +28,33 @@
   - _Properties: P4, P6_
   - _Requirements: AC3.3, AC3.4, AC3.5, AC4.1, AC4.2, AC4.3_
 
+- [x] 4. Add GoToGameScene to MainMenuManager
+  - Open MainMenuManager.cs
+  - Add using UnityEngine.SceneManagement
+  - Create public GoToGameScene() method
+  - Call SceneManager.LoadScene(Helper.GameSceneIndex)
+  - _Requirements: AC5.1, AC5.2_
+
+- [x] 5. Add RestartScene to GameManager
+  - Open GameManager.cs
+  - Add using UnityEngine.SceneManagement
+  - Create public RestartScene() method
+  - Call SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex)
+  - _Requirements: AC5.3, AC5.4_
+
+- [x] 6. Add GoToMainMenu to GameManager
+  - In GameManager.cs
+  - Create public GoToMainMenu() method
+  - Call SceneManager.LoadScene(Helper.GameSceneIndex)
+  - _Requirements: AC5.5, AC5.6_
+
+- [x] 7. Add GameWon to GameManager
+  - In GameManager.cs
+  - Create public GameWon() method
+  - Add comment: "To be implemented later"
+  - Leave method body empty
+  - _Requirements: AC5.7, AC5.8_
+
 ## Manual Unity Setup Tasks
 
 ### Setup Task A: Create Plugins Folder Structure

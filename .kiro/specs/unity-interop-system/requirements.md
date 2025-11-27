@@ -63,6 +63,21 @@ The game needs to communicate with React to notify when Unity is ready and when 
 3. THE conditional SHALL allow calls in WebGL builds
 4. THE code SHALL compile without errors in Editor
 
+### Requirement 5: React-Callable Functions
+
+**User Story:** As React, I want to call Unity functions, so that I can control game flow.
+
+#### Acceptance Criteria
+
+1. THE MainMenuManager SHALL provide a public GoToGameScene() method
+2. THE GoToGameScene() method SHALL load the game scene using Helper.GameSceneIndex
+3. THE GameManager SHALL provide a public RestartScene() method
+4. THE RestartScene() method SHALL reload the current scene
+5. THE GameManager SHALL provide a public GoToMainMenu() method
+6. THE GoToMainMenu() method SHALL load the main menu scene using Helper.GameSceneIndex
+7. THE GameManager SHALL provide a public GameWon() method
+8. THE GameWon() method SHALL be empty with a "to be implemented" comment
+
 ## Non-Functional Requirements
 
 ### NFR1: Compatibility
@@ -98,8 +113,9 @@ The game needs to communicate with React to notify when Unity is ready and when 
 ## Out of Scope
 
 - Events with parameters
-- React to Unity communication
-- Other game events
+- Complex React to Unity data passing
+- Other game events beyond the 4 functions
 - Error handling
 - Event queuing
 - Multiple event listeners
+- Scene transition animations

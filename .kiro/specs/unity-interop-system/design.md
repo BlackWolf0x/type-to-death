@@ -3,13 +3,14 @@
 ## Architecture Overview
 
 The Unity Interop System consists of:
-1. React.jslib file with JavaScript functions
+1. React.jslib file with JavaScript functions (Unity → React)
 2. MainMenuManager script that calls GameIsReady on Start
 3. GameManager integration that calls GameLost on game over
 4. DllImport declarations for JavaScript interop
 5. Conditional compilation for WebGL builds only
+6. Public methods callable from React (React → Unity)
 
-This creates simple one-way communication from Unity to React.
+This creates two-way communication between Unity and React.
 
 ## Component Structure
 
@@ -28,19 +29,27 @@ This creates simple one-way communication from Unity to React.
 
 **Responsibilities:**
 - Call GameIsReady() on Start
+- Provide GoToGameScene() method for React to call
 - Use conditional compilation for WebGL only
 
 **Dependencies:**
 - React.jslib
+- Helper.GameSceneIndex
+- SceneManager
 
 ### GameManager Integration
 
 **Responsibilities:**
 - Call GameLost() in GameOverSequence
+- Provide RestartScene() method for React to call
+- Provide GoToMainMenu() method for React to call
+- Provide GameWon() method for React to call
 - Use conditional compilation for WebGL only
 
 **Dependencies:**
 - React.jslib
+- Helper.GameSceneIndex
+- SceneManager
 - Existing GameManager script
 
 ## Data Model
@@ -276,11 +285,50 @@ useEffect(() => {
 // React receives "GameLost" when game ends
 ```
 
+## React-Callable Functions
+
+### MainMenuManager.GoToGameScene()
+
+```csharp
+public void GoToGameScene()
+{
+    SceneManager.LoadScene(Helper.GameSceneIndex);
+}
+```
+
+### GameManager.RestartScene()
+
+```csharp
+public void RestartScene()
+{
+    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+}
+```
+
+### GameManager.GoToMainMenu()
+
+```csharp
+public void GoToMainMenu()
+{
+    SceneManager.LoadScene(Helper.GameSceneIndex);
+}
+```
+
+### GameManager.GameWon()
+
+```csharp
+public void GameWon()
+{
+    // To be implemented later
+}
+```
+
 ## Future Enhancements (Out of Scope)
 
 - Events with parameters (score, time, etc.)
-- React to Unity communication
 - More game events (pause, resume, etc.)
 - Event queuing system
 - Error handling and retry logic
 - Event acknowledgment from React
+- Scene transition animations
+- GameWon implementation
