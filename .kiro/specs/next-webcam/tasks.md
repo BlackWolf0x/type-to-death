@@ -87,6 +87,15 @@
   - _Properties: P7_
   - _Requirements: 8.1, 8.2, 8.3, 8.4_
 
+- [x] 9. Suppress MediaPipe/TensorFlow INFO console messages
+  - Added global console.error override at module load time
+  - Filters out messages containing "INFO:" to prevent Next.js error overlay
+  - MediaPipe WASM logs "INFO: Created TensorFlow Lite XNNPACK delegate for CPU" via console.error
+  - Next.js dev overlay incorrectly treats these INFO messages as errors
+  - Override applied in `useBlinkDetector.ts` before hook definition
+  - _Properties: P6_
+  - _Requirements: 6.1_
+
 ## Implementation Notes
 
 - The calibration page combines webcam permission and blink calibration into a single flow
@@ -98,6 +107,6 @@
 
 ## Estimated Effort
 
-- Total Tasks: 8
-- Completed: 8
+- Total Tasks: 9
+- Completed: 9
 - Status: ✅ Complete

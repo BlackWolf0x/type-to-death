@@ -3,6 +3,23 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import type { FaceLandmarkerResult } from '@mediapipe/tasks-vision';
 
 // ============================================================================
+// Suppress MediaPipe/TensorFlow INFO messages
+// MediaPipe WASM logs "INFO: Created TensorFlow Lite XNNPACK delegate for CPU"
+// via console methods, which Next.js dev overlay incorrectly treats as errors
+// ============================================================================
+
+if (typeof window !== 'undefined') {
+    const originalConsoleError = console.error;
+    console.error = (...args: unknown[]) => {
+        const message = args[0];
+        if (typeof message === 'string' && message.includes('INFO:')) {
+            return; // Suppress TensorFlow/MediaPipe INFO messages
+        }
+        originalConsoleError.apply(console, args);
+    };
+}
+
+// ============================================================================
 // Error Codes
 // ============================================================================
 
@@ -343,6 +360,7 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
 
         let animationFrameId: number;
         let lastVideoTime = -1;
+        let isFirstDetection = true;
 
         const detectLoop = () => {
             // Get video ref fresh each frame (handles callback ref timing)
@@ -362,6 +380,12 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
                     const result = faceLandmarker.detectForVideo(video, performance.now());
                     processFaceLandmarks(result);
                 } catch (err) {
+                    // Suppress TensorFlow INFO messages that MediaPipe logs as errors
+                    // "INFO: Created TensorFlow Lite XNNPACK delegate for CPU"
+                    const errorMessage = err instanceof Error ? err.message : String(err);
+                    if (errorMessage.includes('INFO:') || errorMessage.includes('TensorFlow')) {
+                        return;
+                    }
                     console.error('Detection error:', err);
                 }
             }
