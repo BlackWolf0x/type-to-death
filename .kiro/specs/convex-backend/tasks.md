@@ -18,6 +18,14 @@
   - Update ConvexClientProvider to use ConvexAuthProvider
   - _Requirements: Authentication setup for future features_
 
+- [x] 3. Implement password authentication UI
+  - Configure Password provider in convex/auth.ts
+  - Install required shadcn components (dialog, tabs, label)
+  - Create app-next/components/modals/AuthModal.tsx with sign in/register tabs
+  - Use shadcn Dialog, Tabs, Input, Button, Label components
+  - Integrate with Convex Auth useAuthActions hook
+  - _Requirements: User authentication flow_
+
 ## Implementation Notes
 
 - Use `bunx` instead of `npx` for all Convex CLI commands
@@ -28,8 +36,8 @@
 
 ## Estimated Effort
 
-- Total Tasks: 2
-- Estimated Time: 30-45 minutes
+- Total Tasks: 3
+- Estimated Time: 45-60 minutes
 - Complexity: Low
 - Risk Level: Low
 
