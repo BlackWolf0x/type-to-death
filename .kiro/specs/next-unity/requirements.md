@@ -36,6 +36,9 @@ The game requires real-time communication between React (blink detection) and Un
 3. WHEN Unity finishes loading THEN the loading indicator SHALL disappear
 4. WHEN Unity is loaded THEN the game canvas SHALL be visible and interactive
 5. THE Unity canvas SHALL fill the entire viewport (fullscreen)
+6. WHEN Unity sends "GameIsReady" event THEN the system SHALL automatically start the game
+7. WHEN transitioning to game scene THEN the loading text SHALL fade out first (300ms)
+8. WHEN transitioning to game scene THEN the loading overlay SHALL fade out after (1000ms duration, 600ms delay)
 
 ### Requirement 2: Blink Detection Integration
 

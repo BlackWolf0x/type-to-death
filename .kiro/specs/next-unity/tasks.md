@@ -78,8 +78,47 @@ Unity C# scripts must implement:
 1. `Monster.OnBlinkDetected()` - Method to handle blink events
 2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
 
+- [x] 7. Implement Unity Event Listening and Auto-Start
+  - Added addEventListener and removeEventListener from useUnityContext
+  - Created handleGameIsReady callback to set unityReady state
+  - Added useEffect to listen for "GameIsReady" event from Unity
+  - Added useEffect to auto-start game when unityReady becomes true
+  - Removed manual Start button (game now starts automatically)
+  - Added smooth loading screen transitions:
+    - Text fades out immediately (300ms duration)
+    - Overlay fades out after 600ms delay (1000ms duration)
+  - Added separate textVisible state for independent text fade control
+  - Loading screen shows "Checking requirements..." then "Loading game..."
+  - _Properties: P1, P2_
+  - _Requirements: 1.6, 1.7, 1.8_
+
+## Implementation Notes
+
+- Unity build files must be placed in `/public/game/` directory
+- The webcam video element is hidden but continues streaming for blink detection
+- Blink detection uses calibration saved from `/calibration` page
+- Loading screen shows percentage from 0-100% during Unity initialization
+- All UI elements use z-index to layer above Unity canvas (z-0)
+- Debug controls remain visible for testing and development
+- **Unity must send "GameIsReady" event when ready to start the game**
+- Game starts automatically when Unity is ready (no manual button needed)
+- Loading screen has layered fade: text disappears first, then overlay
+
+## Unity Setup Requirements
+
+The Unity build must include:
+1. `build.loader.js` - Unity loader script
+2. `build.data` - Game data
+3. `build.framework.js` - Unity framework
+4. `build.wasm` - WebAssembly binary
+
+Unity C# scripts must implement:
+1. `Monster.OnBlinkDetected()` - Method to handle blink events
+2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
+3. **Send "GameIsReady" event when Unity is ready** - Use SendToReact("GameIsReady")
+
 ## Estimated Effort
 
-- Total Tasks: 6
-- Completed: 6
+- Total Tasks: 7
+- Completed: 7
 - Status: ✅ Complete
