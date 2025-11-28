@@ -33,6 +33,8 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 3. WHEN displaying challenge text THEN the system SHALL replace the placeholder text with the actual challenge passage
 4. WHEN displaying challenge text THEN the system SHALL render all words in a readable format with appropriate spacing
 5. WHEN a challenge is active THEN the system SHALL maintain the text display until the challenge is completed or reset
+6. WHEN the game has not started THEN the typing game UI SHALL be hidden off-screen
+7. WHEN the game starts THEN the typing game UI SHALL slide up into view with a smooth animation
 
 ### Requirement 2
 

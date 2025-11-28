@@ -9,8 +9,9 @@ import { Loader2 } from "lucide-react";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
+    const [gameStarted, setGameStarted] = useState(false);
 
-    const { unityProvider, loadingProgression, isLoaded, sendMessage } = useUnityContext({
+    const { unityProvider, isLoaded, sendMessage } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
         dataUrl: "/game/build.data",
         frameworkUrl: "/game/build.framework.js",
@@ -28,16 +29,13 @@ export default function PlayPage() {
 
     function handleStartGame() {
         sendMessage("MainMenuManager", "GoToGameScene");
-    }
-
-    function handleManualBlink() {
-        sendMessage("Monster", "OnBlinkDetected");
+        setGameStarted(true);
     }
 
     return (
         <>
             {/* GameWebcam handles calibration/permission checks and signals when ready */}
-            <GameWebcam onBlink={handleBlink} onReady={handleReady} />
+            <GameWebcam onBlink={handleBlink} onReady={handleReady} gameStarted={gameStarted} />
 
             {/* Show checking state before ready */}
             {!isReady && (
@@ -52,29 +50,23 @@ export default function PlayPage() {
             {/* Only render Unity after ready */}
             {isReady && (
                 <>
-                    {/* {!isLoaded && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl z-20">
-                            Loading... {Math.round(loadingProgression * 100)}%
-                        </div>
-                    )} */}
                     <Unity
                         unityProvider={unityProvider}
                         style={{ visibility: isLoaded ? "visible" : "hidden" }}
                         className="fixed inset-0 w-screen h-screen z-0 pointer-events-none!"
                     />
 
-                    {/* Debug UI */}
-                    <div className="fixed top-4 left-4 z-10 space-x-2">
-                        <Button onClick={handleStartGame}>
-                            Start
-                        </Button>
-                        <Button onClick={handleManualBlink}>
-                            Manual Blink
-                        </Button>
-                    </div>
+                    {/* Debug UI - hide after game starts */}
+                    {!gameStarted && (
+                        <div className="fixed top-4 left-4 z-10 space-x-2">
+                            <Button onClick={handleStartGame}>
+                                Start
+                            </Button>
+                        </div>
+                    )}
 
-                    {/* Typing game UI */}
-                    <TypingGame />
+                    {/* Typing game UI - slides up when game starts */}
+                    <TypingGame isVisible={gameStarted} />
                 </>
             )}
         </>

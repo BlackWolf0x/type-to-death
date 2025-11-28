@@ -30,9 +30,10 @@ async function checkCameraPermission(): Promise<'granted' | 'denied' | 'prompt'>
 interface GameWebcamProps {
     onBlink: () => void;
     onReady: () => void;
+    gameStarted?: boolean;
 }
 
-export function GameWebcam({ onBlink, onReady }: GameWebcamProps) {
+export function GameWebcam({ onBlink, onReady, gameStarted = false }: GameWebcamProps) {
     const router = useRouter();
     const hasRedirected = useRef(false);
     const hasSignaledReady = useRef(false);
@@ -83,12 +84,21 @@ export function GameWebcam({ onBlink, onReady }: GameWebcamProps) {
         }
     }, [webcam.error, router]);
 
-    // Send blink events to parent
+    // Reset blink count when game starts
+    const hasResetForGame = useRef(false);
     useEffect(() => {
-        if (blink.isBlinking) {
+        if (gameStarted && !hasResetForGame.current) {
+            hasResetForGame.current = true;
+            blink.resetBlinkCount();
+        }
+    }, [gameStarted, blink]);
+
+    // Send blink events to parent (only when game has started)
+    useEffect(() => {
+        if (gameStarted && blink.isBlinking) {
             onBlink();
         }
-    }, [blink.isBlinking, onBlink]);
+    }, [gameStarted, blink.isBlinking, onBlink]);
 
     return (
         <>
@@ -108,7 +118,7 @@ export function GameWebcam({ onBlink, onReady }: GameWebcamProps) {
                 ) : (
                     <Eye className="h-5 w-5 text-green-400" />
                 )}
-                <span>Blinks: {blink.blinkCount}</span>
+                <span>Blinks: {gameStarted ? blink.blinkCount : '∞'}</span>
             </div>
         </>
     );

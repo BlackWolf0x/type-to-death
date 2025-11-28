@@ -136,6 +136,10 @@ The webcam and blink detection are critical components for the Type to Death gam
 6. WHEN the webcam fails to start THEN the Play Page SHALL redirect to /calibration
 7. WHEN Unity is loading THEN the Play Page SHALL display a loading indicator
 8. WHEN all checks pass THEN the Play Page SHALL display blink detection feedback during gameplay
+9. WHEN the game has not started THEN the blink counter SHALL display an infinity symbol (∞)
+10. WHEN the game starts THEN the blink counter SHALL reset to 0
+11. WHEN the game has not started THEN blink events SHALL NOT be sent to Unity
+12. WHEN the game starts THEN blink events SHALL be sent to Unity for each detected blink
 
 ## Non-Functional Requirements
 
