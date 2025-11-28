@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { GameWebcam } from "@/components/game/GameWebcam";
+import { TypingGame } from "@/typing-game";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -14,6 +15,7 @@ export default function PlayPage() {
         dataUrl: "/game/build.data",
         frameworkUrl: "/game/build.framework.js",
         codeUrl: "/game/build.wasm",
+        streamingAssetsUrl: "/game/StreamingAssets"
     });
 
     const handleBlink = useCallback(() => {
@@ -50,11 +52,11 @@ export default function PlayPage() {
             {/* Only render Unity after ready */}
             {isReady && (
                 <>
-                    {!isLoaded && (
+                    {/* {!isLoaded && (
                         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl z-20">
                             Loading... {Math.round(loadingProgression * 100)}%
                         </div>
-                    )}
+                    )} */}
                     <Unity
                         unityProvider={unityProvider}
                         style={{ visibility: isLoaded ? "visible" : "hidden" }}
@@ -70,6 +72,9 @@ export default function PlayPage() {
                             Manual Blink
                         </Button>
                     </div>
+
+                    {/* Typing game UI */}
+                    <TypingGame />
                 </>
             )}
         </>

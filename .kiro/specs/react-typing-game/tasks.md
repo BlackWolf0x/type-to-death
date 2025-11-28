@@ -245,3 +245,24 @@
   - Replace challenge completion message with toast.success()
   - Ensure toasts are positioned appropriately and don't interfere with gameplay
   - Test all toast notifications appear correctly
+
+
+- [x] 21. Port typing game to Next.js project
+  - Install zustand dependency in Next.js project (app-next)
+  - Add shadcn input component with ref forwarding support
+  - Create stores directory and port appStore.ts with Zustand state management
+  - Create hooks directory and port useAutoFocus.ts hook
+  - Create typing-game directory structure in app-next:
+    - typing-game/data.ts - All typing challenges
+    - typing-game/utils/wordParser.ts - Word parsing utility
+    - typing-game/store.ts - Complete Zustand store with game logic
+    - typing-game/components/TextDisplay.tsx - Text display with cursor and character coloring
+    - typing-game/components/TypingInput.tsx - Input field with validation and event handling
+    - typing-game/index.tsx - Main component that loads challenges and renders UI
+  - Update play page to import TypingGame from @/typing-game
+  - Remove old non-working TypingGame component from components/game
+  - Configure TypeScript path aliases (@/stores, @/hooks, @/typing-game)
+  - Test typing functionality works correctly in Next.js environment
+  - Verify all features work: character-by-character typing, error highlighting, word progression, challenge completion
+  - _Requirements: All requirements from original spec_
+  - _Properties: All properties from original spec_
