@@ -1076,11 +1076,11 @@ MonoBehaviour:
     Path: event:/Impact Blood 3
   heartbeatIntensities:
   - Guid:
-      Data1: 0
-      Data2: 0
-      Data3: 0
-      Data4: 0
-    Path: 
+      Data1: -423609030
+      Data2: 1290014239
+      Data3: 1975601825
+      Data4: -88068768
+    Path: event:/Heartbeat 1
   - Guid:
       Data1: -1100330853
       Data2: 1134223271

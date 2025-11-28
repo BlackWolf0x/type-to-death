@@ -2,6 +2,7 @@ using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
 
+[DefaultExecutionOrder(-100)]
 public class AudioManager : MonoBehaviour
 {
     private static AudioManager instance;
@@ -13,7 +14,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private EventReference[] heartbeatIntensities = new EventReference[4];
     
     public EventInstance gameOverSfx;
-    private EventInstance heartbeatInstance;
+    private EventInstance[] heartbeatInstances = new EventInstance[4];
     private int currentHeartbeatIndex = -1;
     
     public static AudioManager Instance => instance;
@@ -24,6 +25,7 @@ public class AudioManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else if (instance != this)
         {
@@ -31,18 +33,26 @@ public class AudioManager : MonoBehaviour
             return;
         }
         
+        ValidateHeartbeatReferences();
         InstantiateSFXs();
     }
-    
+
     void Start()
     {
-        ValidateHeartbeatReferences();
+        OnLoseCompletionChanged(0f);
     }
     
     void InstantiateSFXs()
     {
         gameOverSfx = RuntimeManager.CreateInstance(gameOverRef);
-        heartbeatInstance = default;
+        
+        for (int i = 0; i < heartbeatIntensities.Length; i++)
+        {
+            if (!heartbeatIntensities[i].IsNull)
+            {
+                heartbeatInstances[i] = RuntimeManager.CreateInstance(heartbeatIntensities[i]);
+            }
+        }
     }
     
     void ValidateHeartbeatReferences()
@@ -65,10 +75,13 @@ public class AudioManager : MonoBehaviour
     {
         GameObserver.Notifier -= OnLoseCompletionChanged;
         
-        if (heartbeatInstance.isValid())
+        for (int i = 0; i < heartbeatInstances.Length; i++)
         {
-            heartbeatInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-            heartbeatInstance.release();
+            if (heartbeatInstances[i].isValid())
+            {
+                heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                heartbeatInstances[i].release();
+            }
         }
     }
     
@@ -93,30 +106,35 @@ public class AudioManager : MonoBehaviour
     
     public void PlayHeartbeat()
     {
-        if (heartbeatInstance.isValid())
-        {
-            heartbeatInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-            heartbeatInstance.release();
-        }
-        
-        if (currentHeartbeatIndex < 0 || currentHeartbeatIndex >= heartbeatIntensities.Length)
+        if (currentHeartbeatIndex < 0 || currentHeartbeatIndex >= heartbeatInstances.Length)
         {
             return;
         }
         
-        EventReference eventRef = heartbeatIntensities[currentHeartbeatIndex];
-        if (eventRef.IsNull) return;
-        
-        heartbeatInstance = RuntimeManager.CreateInstance(eventRef);
-        heartbeatInstance.start();
+        for (int i = 0; i < heartbeatInstances.Length; i++)
+        {
+            if (heartbeatInstances[i].isValid())
+            {
+                if (i == currentHeartbeatIndex)
+                {
+                    heartbeatInstances[i].start();
+                }
+                else
+                {
+                    heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                }
+            }
+        }
     }
     
     public void StopHeartbeat()
     {
-        if (heartbeatInstance.isValid())
+        for (int i = 0; i < heartbeatInstances.Length; i++)
         {
-            heartbeatInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
-            heartbeatInstance.release();
+            if (heartbeatInstances[i].isValid())
+            {
+                heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            }
         }
         currentHeartbeatIndex = -1;
     }
