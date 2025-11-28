@@ -109,5 +109,6 @@ public class GameManager : MonoBehaviour
     public void GameWon()
     {
         // To be implemented later
+        monsterObject.SetActive(false);
     }
 }

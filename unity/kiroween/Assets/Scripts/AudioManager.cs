@@ -1,3 +1,4 @@
+using System.Collections;
 using FMOD.Studio;
 using FMODUnity;
 using UnityEngine;
@@ -16,6 +17,7 @@ public class AudioManager : MonoBehaviour
     public EventInstance gameOverSfx;
     private EventInstance[] heartbeatInstances = new EventInstance[4];
     private int currentHeartbeatIndex = -1;
+    private bool isInitialized = false;
     
     public static AudioManager Instance => instance;
     public EventInstance GameOverSfx => gameOverSfx;
@@ -25,7 +27,6 @@ public class AudioManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else if (instance != this)
         {
@@ -34,11 +35,26 @@ public class AudioManager : MonoBehaviour
         }
         
         ValidateHeartbeatReferences();
-        InstantiateSFXs();
     }
 
     void Start()
     {
+        StartCoroutine(InitializeWhenBanksLoaded());
+    }
+    
+    IEnumerator InitializeWhenBanksLoaded()
+    {
+        while (!RuntimeManager.HaveAllBanksLoaded)
+        {
+            yield return null;
+        }
+        
+        // Extra frame to ensure FMOD is fully ready
+        yield return null;
+        
+        InstantiateSFXs();
+        isInitialized = true;
+        
         OnLoseCompletionChanged(0f);
     }
     
@@ -106,6 +122,8 @@ public class AudioManager : MonoBehaviour
     
     public void PlayHeartbeat()
     {
+        if (!isInitialized) return;
+        
         if (currentHeartbeatIndex < 0 || currentHeartbeatIndex >= heartbeatInstances.Length)
         {
             return;
@@ -141,6 +159,7 @@ public class AudioManager : MonoBehaviour
     
     public void PlaySfx(EventInstance sfx)
     {
+        if (!isInitialized) return;
         sfx.start();
     }
 }

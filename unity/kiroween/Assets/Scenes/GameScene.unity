@@ -1011,7 +1011,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1197071058}
-  - component: {fileID: 1197071057}
   - component: {fileID: 1197071059}
   m_Layer: 0
   m_Name: SFXManager
@@ -1020,26 +1019,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1197071057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1197071056}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b1bfefae049d8644ad600d9eb61fddc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameOver:
-    clip: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
-    volume: 0.7
-  heartbeatIntensities:
-  - {fileID: 8300000, guid: f2959c35379cc5c4f9758b2efe264dee, type: 3}
-  - {fileID: 8300000, guid: e9fa31c5f052faf46bef9e18478af768, type: 3}
-  - {fileID: 8300000, guid: 024f4f5b5c2482e45a9d654bc9df5a5a, type: 3}
-  - {fileID: 8300000, guid: 0b4bfacbb8712e140935c4570d298791, type: 3}
 --- !u!4 &1197071058
 Transform:
   m_ObjectHideFlags: 0
