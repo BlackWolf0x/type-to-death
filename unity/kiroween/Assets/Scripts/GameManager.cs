@@ -93,7 +93,7 @@ public class GameManager : MonoBehaviour
         GameLost();
 #endif
 
-        Debug.Log("GameManager: Game Over");
+        // Debug.Log("GameManager: Game Over");
     }
 
     public void RestartScene()

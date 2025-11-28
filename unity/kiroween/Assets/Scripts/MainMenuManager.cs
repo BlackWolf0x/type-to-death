@@ -13,8 +13,8 @@ public class MainMenuManager : MonoBehaviour
     {
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // GameIsReady();
-        // startButton.SetActive(false);
+        GameIsReady();
+        startButton.SetActive(false);
 #endif
 
         Debug.Log("Game is ready");
