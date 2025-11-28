@@ -14,8 +14,12 @@ public class AudioManager : MonoBehaviour
     [Header("Heartbeat System")]
     [SerializeField] private EventReference[] heartbeatIntensities = new EventReference[4];
     
+    [Header("Ambiance")]
+    [SerializeField] private EventReference ambianceRef;
+    
     public EventInstance gameOverSfx;
     private EventInstance[] heartbeatInstances = new EventInstance[4];
+    private EventInstance ambianceInstance;
     private int currentHeartbeatIndex = -1;
     private bool isInitialized = false;
     
@@ -56,6 +60,7 @@ public class AudioManager : MonoBehaviour
         isInitialized = true;
         
         OnLoseCompletionChanged(0f);
+        PlayAmbiance();
     }
     
     void InstantiateSFXs()
@@ -68,6 +73,11 @@ public class AudioManager : MonoBehaviour
             {
                 heartbeatInstances[i] = RuntimeManager.CreateInstance(heartbeatIntensities[i]);
             }
+        }
+        
+        if (!ambianceRef.IsNull)
+        {
+            ambianceInstance = RuntimeManager.CreateInstance(ambianceRef);
         }
     }
     
@@ -98,6 +108,12 @@ public class AudioManager : MonoBehaviour
                 heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
                 heartbeatInstances[i].release();
             }
+        }
+        
+        if (ambianceInstance.isValid())
+        {
+            ambianceInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            ambianceInstance.release();
         }
     }
     
@@ -139,7 +155,7 @@ public class AudioManager : MonoBehaviour
                 }
                 else
                 {
-                    heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+                    heartbeatInstances[i].stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
                 }
             }
         }
@@ -161,5 +177,20 @@ public class AudioManager : MonoBehaviour
     {
         if (!isInitialized) return;
         sfx.start();
+    }
+    
+    public void PlayAmbiance()
+    {
+        if (!isInitialized) return;
+        if (!ambianceInstance.isValid()) return;
+        ambianceInstance.start();
+    }
+    
+    public void StopAmbiance()
+    {
+        if (ambianceInstance.isValid())
+        {
+            ambianceInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        }
     }
 }

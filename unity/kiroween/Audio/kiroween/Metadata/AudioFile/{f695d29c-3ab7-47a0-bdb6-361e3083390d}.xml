@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{f695d29c-3ab7-47a0-bdb6-361e3083390d}">
+		<property name="assetPath">
+			<value>Haunted House 5.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>43.861337868480724</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{bcd52691-6c6e-4404-a0ca-bf47ac2477d8}</destination>
+		</relationship>
+	</object>
+</objects>
