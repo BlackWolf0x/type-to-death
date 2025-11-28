@@ -236,6 +236,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableLogging: 0
   lives: 8
   startingDistance: 10
   goalDistance: 2
