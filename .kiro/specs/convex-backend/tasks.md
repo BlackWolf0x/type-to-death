@@ -11,6 +11,13 @@
   - _Properties: P1, P2, P3, P4_
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3_
 
+- [x] 2. Set up Convex Auth integration
+  - Install @convex-dev/auth and @auth/core@0.37.0 dependencies
+  - Initialize Convex Auth with `bunx @convex-dev/auth`
+  - Create convex/schema.ts with auth tables
+  - Update ConvexClientProvider to use ConvexAuthProvider
+  - _Requirements: Authentication setup for future features_
+
 ## Implementation Notes
 
 - Use `bunx` instead of `npx` for all Convex CLI commands
@@ -21,8 +28,8 @@
 
 ## Estimated Effort
 
-- Total Tasks: 1
-- Estimated Time: 15-30 minutes
+- Total Tasks: 2
+- Estimated Time: 30-45 minutes
 - Complexity: Low
 - Risk Level: Low
 
