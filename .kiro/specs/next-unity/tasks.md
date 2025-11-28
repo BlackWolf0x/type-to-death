@@ -117,8 +117,56 @@ Unity C# scripts must implement:
 2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
 3. **Send "GameIsReady" event when Unity is ready** - Use SendToReact("GameIsReady")
 
+- [x] 8. Implement Game Over and Restart Functionality
+  - Added addEventListener for "GameLost" event from Unity
+  - Created handleGameLost callback to set gameLost state
+  - Added gameLost state to track game over condition
+  - When game lost: hide typing game, reset typing game store, show infinity for blinks
+  - Created game over overlay with "You Died" text (red, large font)
+  - Added "Try Again" button below game over text
+  - Implemented handleRestartGame function (reusable for win screen):
+    - Sends sendMessage("GameManager", "RestartScene") to Unity
+    - Resets typing game store
+    - Reloads story with loadStory()
+    - Hides game over overlay
+    - Shows typing game and starts blink counting
+  - Exported useTypingGameStore from typing-game index for external access
+  - Game over overlay fades in/out with 700ms transition
+  - _Properties: P2, P6_
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9, 6.10_
+
+## Implementation Notes
+
+- Unity build files must be placed in `/public/game/` directory
+- The webcam video element is hidden but continues streaming for blink detection
+- Blink detection uses calibration saved from `/calibration` page
+- Loading screen shows percentage from 0-100% during Unity initialization
+- All UI elements use z-index to layer above Unity canvas (z-0)
+- Debug controls remain visible for testing and development
+- **Unity must send "GameIsReady" event when ready to start the game**
+- **Unity must send "GameLost" event when player loses**
+- Game starts automatically when Unity is ready (no manual button needed)
+- Loading screen has layered fade: text disappears first, then overlay
+- Game over overlay uses z-30 to appear above all other elements
+- Restart functionality is reusable for win screen implementation
+
+## Unity Setup Requirements
+
+The Unity build must include:
+1. `build.loader.js` - Unity loader script
+2. `build.data` - Game data
+3. `build.framework.js` - Unity framework
+4. `build.wasm` - WebAssembly binary
+
+Unity C# scripts must implement:
+1. `Monster.OnBlinkDetected()` - Method to handle blink events
+2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
+3. **Send "GameIsReady" event when Unity is ready** - Use SendToReact("GameIsReady")
+4. **Send "GameLost" event when player loses** - Use SendToReact("GameLost")
+5. **GameManager.RestartScene()** - Method to restart the game scene
+
 ## Estimated Effort
 
-- Total Tasks: 7
-- Completed: 7
+- Total Tasks: 8
+- Completed: 8
 - Status: ✅ Complete

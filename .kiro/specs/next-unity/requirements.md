@@ -86,6 +86,23 @@ The game requires real-time communication between React (blink detection) and Un
 2. THE webcam SHALL continue streaming for blink detection
 3. THE webcam feed SHALL NOT be visible to the user during gameplay
 
+### Requirement 6: Game Over and Restart
+
+**User Story:** As a player, I want to see a game over screen when I lose and be able to restart the game, so that I can try again without refreshing the page.
+
+#### Acceptance Criteria
+
+1. WHEN Unity sends "GameLost" event THEN the system SHALL display a game over overlay
+2. WHEN the game over overlay appears THEN it SHALL show "You Died" text in red
+3. WHEN the game over overlay appears THEN the typing game SHALL hide and reset
+4. WHEN the game over overlay appears THEN the blink counter SHALL show infinity (∞)
+5. WHEN the game over overlay appears THEN a "Try Again" button SHALL be visible
+6. WHEN the "Try Again" button is clicked THEN the system SHALL send "RestartScene" message to Unity GameManager
+7. WHEN the game restarts THEN the typing game SHALL reappear and reload the story
+8. WHEN the game restarts THEN the blink counter SHALL reset to 0 and start counting
+9. WHEN the game restarts THEN the game over overlay SHALL fade out
+10. THE restart functionality SHALL be reusable for future win screens
+
 ## Non-Functional Requirements
 
 ### NFR1: Performance
