@@ -103,6 +103,26 @@ The game requires real-time communication between React (blink detection) and Un
 9. WHEN the game restarts THEN the game over overlay SHALL fade out
 10. THE restart functionality SHALL be reusable for future win screens
 
+### Requirement 7: Win State and Victory Screen
+
+**User Story:** As a player, I want to see a victory screen when I complete all typing challenges, so that I know I've won and can play again.
+
+#### Acceptance Criteria
+
+1. WHEN the typing game story is complete THEN the system SHALL send "GameWon" message to Unity GameManager
+2. WHEN the story completes THEN the system SHALL display a win overlay
+3. WHEN the win overlay appears THEN it SHALL show "You Survived!" text in green
+4. WHEN the win overlay appears THEN it SHALL be centered without a dark background overlay
+5. WHEN the win overlay appears THEN it SHALL have a semi-transparent dark card background
+6. WHEN the win overlay appears THEN a "Play Again" button SHALL be visible
+7. WHEN the "Play Again" button is clicked THEN the system SHALL use the reusable restart function
+8. WHEN the game restarts from win screen THEN the typing game SHALL reset and reload
+9. WHEN the game restarts from win screen THEN the win overlay SHALL fade out
+10. THE win overlay SHALL use z-30 to appear above all game elements
+11. WHEN the story completes THEN the typing game SHALL hide and reset
+12. WHEN the story completes THEN the blink counter SHALL show infinity (∞)
+13. WHEN the game restarts from win screen THEN the blink counter SHALL reset to 0
+
 ## Non-Functional Requirements
 
 ### NFR1: Performance

@@ -165,8 +165,102 @@ Unity C# scripts must implement:
 4. **Send "GameLost" event when player loses** - Use SendToReact("GameLost")
 5. **GameManager.RestartScene()** - Method to restart the game scene
 
+- [x] 9. Implement Win State and Victory Screen
+  - Added isStoryComplete subscription from typing game store
+  - Added gameWon state to track victory condition
+  - Added useEffect to watch isStoryComplete and send "GameWon" to Unity
+  - Sends sendMessage("GameManager", "GameWon") when story completes
+  - Created win overlay with centered card (no full-screen dark background)
+  - Win card has semi-transparent dark background (bg-black/80)
+  - Displays "You Survived!" text in green (text-green-500)
+  - Added "Play Again" button with green styling
+  - Updated handleRestartGame to reset gameWon state
+  - Updated auto-start logic to prevent restart when gameWon is true
+  - Win overlay fades in/out with 700ms transition
+  - Uses z-30 to appear above all game elements
+  - _Properties: P2, P7_
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.10_
+
+## Implementation Notes
+
+- Unity build files must be placed in `/public/game/` directory
+- The webcam video element is hidden but continues streaming for blink detection
+- Blink detection uses calibration saved from `/calibration` page
+- Loading screen shows percentage from 0-100% during Unity initialization
+- All UI elements use z-index to layer above Unity canvas (z-0)
+- Debug controls remain visible for testing and development
+- **Unity must send "GameIsReady" event when ready to start the game**
+- **Unity must send "GameLost" event when player loses**
+- **React sends "GameWon" to Unity when typing game completes**
+- Game starts automatically when Unity is ready (no manual button needed)
+- Loading screen has layered fade: text disappears first, then overlay
+- Game over overlay uses z-30 to appear above all other elements
+- Win overlay uses z-30 with centered card (no full-screen overlay)
+- Restart functionality is reusable for both game over and win screens
+
+## Unity Setup Requirements
+
+The Unity build must include:
+1. `build.loader.js` - Unity loader script
+2. `build.data` - Game data
+3. `build.framework.js` - Unity framework
+4. `build.wasm` - WebAssembly binary
+
+Unity C# scripts must implement:
+1. `Monster.OnBlinkDetected()` - Method to handle blink events
+2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
+3. **Send "GameIsReady" event when Unity is ready** - Use SendToReact("GameIsReady")
+4. **Send "GameLost" event when player loses** - Use SendToReact("GameLost")
+5. **GameManager.RestartScene()** - Method to restart the game scene
+6. **GameManager.GameWon()** - Method to receive win notification from React
+
+- [x] 10. Fix Win State to Hide Typing Game and Reset Blink Counter
+  - Updated win state useEffect to set gameStarted to false when story completes
+  - Updated win state useEffect to call resetTypingGame() when story completes
+  - This hides the typing game and shows infinity (∞) for blink counter
+  - Updated GameWebcam to reset hasResetForGame ref when gameStarted becomes false
+  - This allows blink counter to reset to 0 on subsequent game restarts
+  - Ensures proper state reset for both game over and win scenarios
+  - _Properties: P2, P7_
+  - _Requirements: 7.11, 7.12, 7.13_
+
+## Implementation Notes
+
+- Unity build files must be placed in `/public/game/` directory
+- The webcam video element is hidden but continues streaming for blink detection
+- Blink detection uses calibration saved from `/calibration` page
+- Loading screen shows percentage from 0-100% during Unity initialization
+- All UI elements use z-index to layer above Unity canvas (z-0)
+- Debug controls remain visible for testing and development
+- **Unity must send "GameIsReady" event when ready to start the game**
+- **Unity must send "GameLost" event when player loses**
+- **React sends "GameWon" to Unity when typing game completes**
+- Game starts automatically when Unity is ready (no manual button needed)
+- Loading screen has layered fade: text disappears first, then overlay
+- Game over overlay uses z-30 to appear above all other elements
+- Win overlay uses z-30 with centered card (no full-screen overlay)
+- Restart functionality is reusable for both game over and win screens
+- **Blink counter resets properly on every game restart (both from game over and win screens)**
+- **Typing game hides and resets on both game over and win states**
+
+## Unity Setup Requirements
+
+The Unity build must include:
+1. `build.loader.js` - Unity loader script
+2. `build.data` - Game data
+3. `build.framework.js` - Unity framework
+4. `build.wasm` - WebAssembly binary
+
+Unity C# scripts must implement:
+1. `Monster.OnBlinkDetected()` - Method to handle blink events
+2. `MainMenuManager.GoToGameScene()` - Method to transition scenes
+3. **Send "GameIsReady" event when Unity is ready** - Use SendToReact("GameIsReady")
+4. **Send "GameLost" event when player loses** - Use SendToReact("GameLost")
+5. **GameManager.RestartScene()** - Method to restart the game scene
+6. **GameManager.GameWon()** - Method to receive win notification from React
+
 ## Estimated Effort
 
-- Total Tasks: 8
-- Completed: 8
+- Total Tasks: 10
+- Completed: 10
 - Status: ✅ Complete

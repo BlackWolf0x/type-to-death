@@ -90,6 +90,9 @@ export function GameWebcam({ onBlink, onReady, gameStarted = false }: GameWebcam
         if (gameStarted && !hasResetForGame.current) {
             hasResetForGame.current = true;
             blink.resetBlinkCount();
+        } else if (!gameStarted) {
+            // Reset the flag when game ends so it can reset again on next start
+            hasResetForGame.current = false;
         }
     }, [gameStarted, blink]);
 

@@ -12,11 +12,13 @@ export default function PlayPage() {
     const [unityReady, setUnityReady] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameLost, setGameLost] = useState(false);
+    const [gameWon, setGameWon] = useState(false);
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
 
     const resetTypingGame = useTypingGameStore((state) => state.reset);
     const loadStory = useTypingGameStore((state) => state.loadStory);
+    const isStoryComplete = useTypingGameStore((state) => state.isStoryComplete);
 
     const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
@@ -49,7 +51,7 @@ export default function PlayPage() {
 
     // Auto-start game when Unity is ready, with fade-out transition
     useEffect(() => {
-        if (unityReady && !gameStarted && !gameLost) {
+        if (unityReady && !gameStarted && !gameLost && !gameWon) {
             sendMessage("MainMenuManager", "GoToGameScene");
             setGameStarted(true);
             // Fade out text immediately, then overlay after delay
@@ -58,7 +60,17 @@ export default function PlayPage() {
                 setLoadingVisible(false);
             }, 600);
         }
-    }, [unityReady, gameStarted, gameLost, sendMessage]);
+    }, [unityReady, gameStarted, gameLost, gameWon, sendMessage]);
+
+    // Send win event to Unity when story is complete
+    useEffect(() => {
+        if (isStoryComplete && gameStarted && !gameWon) {
+            sendMessage("GameManager", "GameWon");
+            setGameWon(true);
+            setGameStarted(false);
+            resetTypingGame();
+        }
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
@@ -74,6 +86,7 @@ export default function PlayPage() {
         resetTypingGame();
         loadStory();
         setGameLost(false);
+        setGameWon(false);
         setGameStarted(true);
     }, [sendMessage, resetTypingGame, loadStory]);
 
@@ -114,6 +127,26 @@ export default function PlayPage() {
                 >
                     Try Again
                 </Button>
+            </div>
+
+            {/* Win overlay - no dark background, just centered content */}
+            <div
+                className={`fixed inset-0 flex flex-col items-center justify-center gap-8 z-30 transition-opacity duration-700 ${gameWon
+                    ? 'opacity-100'
+                    : 'opacity-0 pointer-events-none'
+                    }`}
+            >
+                <div className="bg-black/80 px-12 py-8 rounded-2xl flex flex-col items-center gap-6">
+                    <h1 className="text-5xl font-bold text-green-500 tracking-wider">You Survived!</h1>
+                    <Button
+                        onClick={handleRestartGame}
+                        variant="outline"
+                        size="lg"
+                        className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+                    >
+                        Play Again
+                    </Button>
+                </div>
             </div>
 
             {/* Only render Unity after ready */}
