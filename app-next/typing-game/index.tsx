@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useTypingGameStore } from "./store";
-import { useGameStatsStore, formatTime, calculateWPM } from "@/stores/gameStatsStore";
+import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { TextDisplay } from "./components/TextDisplay";
 import { TypingInput } from "./components/TypingInput";
 import { Eye, EyeOff, Clock, Keyboard } from "lucide-react";
@@ -23,7 +23,10 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
     const loadStory = useTypingGameStore((state) => state.loadStory);
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
     const charactersTyped = useGameStatsStore((state) => state.charactersTyped);
+    const totalKeystrokes = useGameStatsStore((state) => state.totalKeystrokes);
+    const correctKeystrokes = useGameStatsStore((state) => state.correctKeystrokes);
     const wpm = calculateWPM(charactersTyped, elapsedTime);
+    const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
 
     useEffect(() => {
         loadStory();
@@ -70,7 +73,9 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
                     </div>
 
                     {/* Accuracy */}
-
+                    <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                        <span className="text-green-400 font-medium">{accuracy}%</span>
+                    </div>
                 </div>
             </div>
 

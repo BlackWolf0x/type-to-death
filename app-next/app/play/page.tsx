@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { GameWebcam } from "@/components/game/GameWebcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
-import { useGameStatsStore, formatTime, calculateWPM } from "@/stores/gameStatsStore";
+import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -25,12 +25,15 @@ export default function PlayPage() {
     // Game stats
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
     const charactersTyped = useGameStatsStore((state) => state.charactersTyped);
+    const totalKeystrokes = useGameStatsStore((state) => state.totalKeystrokes);
+    const correctKeystrokes = useGameStatsStore((state) => state.correctKeystrokes);
     const startTimer = useGameStatsStore((state) => state.startTimer);
     const stopTimer = useGameStatsStore((state) => state.stopTimer);
     const resetStats = useGameStatsStore((state) => state.resetStats);
     const tick = useGameStatsStore((state) => state.tick);
     const isTimerRunning = useGameStatsStore((state) => state.isTimerRunning);
     const wpm = calculateWPM(charactersTyped, elapsedTime);
+    const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
 
     const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
@@ -156,6 +159,8 @@ export default function PlayPage() {
                     <span>Time: {formatTime(elapsedTime)}</span>
                     <span>•</span>
                     <span>{wpm} WPM</span>
+                    <span>•</span>
+                    <span>{accuracy}% Accuracy</span>
                 </div>
                 <Button
                     onClick={handleRestartGame}
@@ -179,6 +184,8 @@ export default function PlayPage() {
                         <span>Time: {formatTime(elapsedTime)}</span>
                         <span>•</span>
                         <span>{wpm} WPM</span>
+                        <span>•</span>
+                        <span>{accuracy}% Accuracy</span>
                     </div>
                     <Button
                         onClick={handleRestartGame}

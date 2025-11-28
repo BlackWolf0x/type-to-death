@@ -7,6 +7,8 @@ interface GameStatsStore {
 
     // Typing stats
     charactersTyped: number;
+    totalKeystrokes: number;
+    correctKeystrokes: number;
 
     // Actions
     startTimer: () => void;
@@ -14,6 +16,7 @@ interface GameStatsStore {
     resetStats: () => void;
     tick: () => void;
     addCharacters: (count: number) => void;
+    recordKeystroke: (isCorrect: boolean) => void;
 }
 
 export const useGameStatsStore = create<GameStatsStore>((set) => ({
@@ -21,6 +24,8 @@ export const useGameStatsStore = create<GameStatsStore>((set) => ({
     elapsedTime: 0,
     isTimerRunning: false,
     charactersTyped: 0,
+    totalKeystrokes: 0,
+    correctKeystrokes: 0,
 
     // Actions
     startTimer: () => set({ isTimerRunning: true }),
@@ -31,6 +36,8 @@ export const useGameStatsStore = create<GameStatsStore>((set) => ({
         elapsedTime: 0,
         isTimerRunning: false,
         charactersTyped: 0,
+        totalKeystrokes: 0,
+        correctKeystrokes: 0,
     }),
 
     tick: () => set((state) => ({
@@ -39,6 +46,11 @@ export const useGameStatsStore = create<GameStatsStore>((set) => ({
 
     addCharacters: (count: number) => set((state) => ({
         charactersTyped: state.charactersTyped + count,
+    })),
+
+    recordKeystroke: (isCorrect: boolean) => set((state) => ({
+        totalKeystrokes: state.totalKeystrokes + 1,
+        correctKeystrokes: isCorrect ? state.correctKeystrokes + 1 : state.correctKeystrokes,
     })),
 }));
 
@@ -55,4 +67,10 @@ export function calculateWPM(charactersTyped: number, elapsedSeconds: number): n
     const minutes = elapsedSeconds / 60;
     const words = charactersTyped / 5;
     return Math.round(words / minutes);
+}
+
+// Calculate accuracy percentage
+export function calculateAccuracy(correctKeystrokes: number, totalKeystrokes: number): number {
+    if (totalKeystrokes === 0) return 100;
+    return Math.round((correctKeystrokes / totalKeystrokes) * 100);
 }

@@ -129,6 +129,15 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 };
             }
 
+            // Record keystroke if a new character was typed (not backspace)
+            if (value.length > state.inputValue.length) {
+                const newCharPos = value.length - 1;
+                const typedChar = value[newCharPos];
+                const expectedChar = currentWord[newCharPos];
+                const isCorrect = typedChar === expectedChar;
+                useGameStatsStore.getState().recordKeystroke(isCorrect);
+            }
+
             let hasAnyError = false;
             for (let i = 0; i < value.length; i++) {
                 if (i >= currentWord.length || value[i] !== currentWord[i]) {
