@@ -295,8 +295,27 @@
   - Typing game now slides up from bottom when Start button is clicked
   - _Requirements: 1.6, 1.7_
 
+- [x] 24. Implement game statistics tracking
+  - Create `app-next/stores/gameStatsStore.ts` with Zustand
+  - Add elapsedTime, charactersTyped, and isTimerRunning state
+  - Add startTimer, stopTimer, resetStats, tick, and addCharacters actions
+  - Export formatTime helper for MM:SS formatting
+  - Export calculateWPM helper for WPM calculation (characters / 5 / minutes)
+  - Integrate timer with play page (start on game start, stop on win/lose, reset on restart)
+  - Add timer tick effect with 1-second interval
+  - Track characters typed in typing game store when words complete
+  - Count word length + 1 for space on handleSpaceOrEnter
+  - Count only word length (no space) for last word auto-complete
+  - Display timer and WPM in typing game stats bar
+  - Add Clock icon (blue) for timer display
+  - Add Keyboard icon (purple) for WPM display
+  - Display final time and WPM on game over overlay
+  - Display final time and WPM on victory overlay
+  - Format stats as "Time: MM:SS • XX WPM"
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10_
+
 ## Estimated Effort
 
-- Total Tasks: 23
-- Completed: 23
+- Total Tasks: 24
+- Completed: 24
 - Status: ✅ Complete

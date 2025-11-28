@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { GameWebcam } from "@/components/game/GameWebcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
+import { useGameStatsStore, formatTime, calculateWPM } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -15,10 +16,21 @@ export default function PlayPage() {
     const [gameWon, setGameWon] = useState(false);
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
+    const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1 });
 
     const resetTypingGame = useTypingGameStore((state) => state.reset);
     const loadStory = useTypingGameStore((state) => state.loadStory);
     const isStoryComplete = useTypingGameStore((state) => state.isStoryComplete);
+
+    // Game stats
+    const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
+    const charactersTyped = useGameStatsStore((state) => state.charactersTyped);
+    const startTimer = useGameStatsStore((state) => state.startTimer);
+    const stopTimer = useGameStatsStore((state) => state.stopTimer);
+    const resetStats = useGameStatsStore((state) => state.resetStats);
+    const tick = useGameStatsStore((state) => state.tick);
+    const isTimerRunning = useGameStatsStore((state) => state.isTimerRunning);
+    const wpm = calculateWPM(charactersTyped, elapsedTime);
 
     const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
@@ -37,8 +49,9 @@ export default function PlayPage() {
     const handleGameLost = useCallback(() => {
         setGameLost(true);
         setGameStarted(false);
+        stopTimer();
         resetTypingGame();
-    }, [resetTypingGame]);
+    }, [resetTypingGame, stopTimer]);
 
     useEffect(() => {
         addEventListener("GameIsReady", handleGameIsReady);
@@ -54,13 +67,24 @@ export default function PlayPage() {
         if (unityReady && !gameStarted && !gameLost && !gameWon) {
             sendMessage("MainMenuManager", "GoToGameScene");
             setGameStarted(true);
+            resetStats();
+            startTimer();
             // Fade out text immediately, then overlay after delay
             setTextVisible(false);
             setTimeout(() => {
                 setLoadingVisible(false);
             }, 600);
         }
-    }, [unityReady, gameStarted, gameLost, gameWon, sendMessage]);
+    }, [unityReady, gameStarted, gameLost, gameWon, sendMessage, resetStats, startTimer]);
+
+    // Timer tick effect
+    useEffect(() => {
+        if (!isTimerRunning) return;
+        const interval = setInterval(() => {
+            tick();
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isTimerRunning, tick]);
 
     // Send win event to Unity when story is complete
     useEffect(() => {
@@ -68,9 +92,10 @@ export default function PlayPage() {
             sendMessage("GameManager", "GameWon");
             setGameWon(true);
             setGameStarted(false);
+            stopTimer();
             resetTypingGame();
         }
-    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame]);
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
@@ -85,10 +110,12 @@ export default function PlayPage() {
         sendMessage("GameManager", "RestartScene");
         resetTypingGame();
         loadStory();
+        resetStats();
+        startTimer();
         setGameLost(false);
         setGameWon(false);
         setGameStarted(true);
-    }, [sendMessage, resetTypingGame, loadStory]);
+    }, [sendMessage, resetTypingGame, loadStory, resetStats, startTimer]);
 
     // Determine loading screen state
     const showLoading = !isReady || !unityReady;
@@ -97,7 +124,12 @@ export default function PlayPage() {
     return (
         <>
             {/* GameWebcam handles calibration/permission checks and signals when ready */}
-            <GameWebcam onBlink={handleBlink} onReady={handleReady} gameStarted={gameStarted} />
+            <GameWebcam
+                onBlink={handleBlink}
+                onReady={handleReady}
+                onBlinkDataChange={setBlinkData}
+                gameStarted={gameStarted}
+            />
 
             {/* Loading screen with fade transition */}
             <div
@@ -120,6 +152,11 @@ export default function PlayPage() {
                     }`}
             >
                 <h1 className="text-6xl font-bold text-red-600 tracking-wider">You Died</h1>
+                <div className="flex items-center gap-6 text-white/80 text-lg">
+                    <span>Time: {formatTime(elapsedTime)}</span>
+                    <span>•</span>
+                    <span>{wpm} WPM</span>
+                </div>
                 <Button
                     onClick={handleRestartGame}
                     variant="outline"
@@ -138,6 +175,11 @@ export default function PlayPage() {
             >
                 <div className="bg-black/80 px-12 py-8 rounded-2xl flex flex-col items-center gap-6">
                     <h1 className="text-5xl font-bold text-green-500 tracking-wider">You Survived!</h1>
+                    <div className="flex items-center gap-6 text-white/80 text-lg">
+                        <span>Time: {formatTime(elapsedTime)}</span>
+                        <span>•</span>
+                        <span>{wpm} WPM</span>
+                    </div>
                     <Button
                         onClick={handleRestartGame}
                         variant="outline"
@@ -159,7 +201,7 @@ export default function PlayPage() {
                     />
 
                     {/* Typing game UI - slides up when game starts */}
-                    <TypingGame isVisible={gameStarted} />
+                    <TypingGame isVisible={gameStarted} blinkData={blinkData} />
                 </>
             )}
         </>

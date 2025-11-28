@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useWebcam } from "@/hooks/useWebcam";
 import { useBlinkDetector } from "@/hooks/useBlinkDetector";
-import { Eye, EyeOff } from "lucide-react";
 
 // Check if calibration exists in localStorage
 function hasStoredCalibration(): boolean {
@@ -27,13 +26,19 @@ async function checkCameraPermission(): Promise<'granted' | 'denied' | 'prompt'>
     }
 }
 
+export interface BlinkData {
+    isBlinking: boolean;
+    blinkCount: number;
+}
+
 interface GameWebcamProps {
     onBlink: () => void;
     onReady: () => void;
+    onBlinkDataChange?: (data: BlinkData) => void;
     gameStarted?: boolean;
 }
 
-export function GameWebcam({ onBlink, onReady, gameStarted = false }: GameWebcamProps) {
+export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = false }: GameWebcamProps) {
     const router = useRouter();
     const hasRedirected = useRef(false);
     const hasSignaledReady = useRef(false);
@@ -103,26 +108,22 @@ export function GameWebcam({ onBlink, onReady, gameStarted = false }: GameWebcam
         }
     }, [gameStarted, blink.isBlinking, onBlink]);
 
-    return (
-        <>
-            {/* Hidden webcam video for blink detection */}
-            <video
-                ref={webcam.setVideoRef}
-                autoPlay
-                playsInline
-                muted
-                className="hidden"
-            />
+    // Send blink data to parent for display
+    useEffect(() => {
+        onBlinkDataChange?.({
+            isBlinking: blink.isBlinking,
+            blinkCount: gameStarted ? blink.blinkCount : -1, // -1 means show infinity
+        });
+    }, [blink.isBlinking, blink.blinkCount, gameStarted, onBlinkDataChange]);
 
-            {/* Blink status indicator */}
-            <div className="fixed bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                {blink.isBlinking ? (
-                    <EyeOff className="h-5 w-5 text-yellow-400" />
-                ) : (
-                    <Eye className="h-5 w-5 text-green-400" />
-                )}
-                <span>Blinks: {gameStarted ? blink.blinkCount : '∞'}</span>
-            </div>
-        </>
+    return (
+        /* Hidden webcam video for blink detection */
+        <video
+            ref={webcam.setVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="hidden"
+        />
     );
 }

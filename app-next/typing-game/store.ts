@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { story, type Chapter } from './data';
 import { parseWords } from './utils/wordParser';
+import { useGameStatsStore } from '@/stores/gameStatsStore';
 
 interface TypingGameStore {
     // Story metadata
@@ -157,6 +158,9 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 const newCompletedWords = [...state.completedWords];
                 newCompletedWords[state.currentWordIndex] = true;
 
+                // Track characters typed for the last word (no space needed)
+                useGameStatsStore.getState().addCharacters(currentWord.length);
+
                 setTimeout(() => {
                     useTypingGameStore.getState().nextChapter();
                 }, 500);
@@ -188,6 +192,9 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
 
             if (state.hasError) return state;
             if (state.inputValue !== currentWord) return state;
+
+            // Track characters typed (word length + 1 for space)
+            useGameStatsStore.getState().addCharacters(currentWord.length + 1);
 
             const newCurrentWordIndex = state.currentWordIndex + 1;
             const newCompletedWords = [...state.completedWords];
