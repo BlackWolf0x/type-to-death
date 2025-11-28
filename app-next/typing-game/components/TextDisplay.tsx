@@ -7,7 +7,7 @@ export function TextDisplay() {
     const words = useTypingGameStore((state) => state.words);
     const currentWordIndex = useTypingGameStore((state) => state.currentWordIndex);
     const currentCharIndex = useTypingGameStore((state) => state.currentCharIndex);
-    const isAllComplete = useTypingGameStore((state) => state.isAllComplete);
+    const isStoryComplete = useTypingGameStore((state) => state.isStoryComplete);
     const inputValue = useTypingGameStore((state) => state.inputValue);
 
     const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -85,7 +85,7 @@ export function TextDisplay() {
         }
     }, [currentCharIndex, currentWordIndex, currentWordChars.length]);
 
-    if (isAllComplete) {
+    if (isStoryComplete) {
         return (
             <div className="rounded-lg bg-linear-to-br from-green-100 to-emerald-100 border-2 border-green-500 text-black p-8 text-center">
                 <div className="text-4xl mb-4">🎉</div>

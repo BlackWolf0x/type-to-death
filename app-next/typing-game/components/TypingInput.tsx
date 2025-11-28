@@ -8,7 +8,7 @@ export function TypingInput() {
     const inputValue = useTypingGameStore((state) => state.inputValue);
     const hasError = useTypingGameStore((state) => state.hasError);
     const errorCount = useTypingGameStore((state) => state.errorCount);
-    const isAllComplete = useTypingGameStore((state) => state.isAllComplete);
+    const isStoryComplete = useTypingGameStore((state) => state.isStoryComplete);
     const currentWordIndex = useTypingGameStore((state) => state.currentWordIndex);
     const words = useTypingGameStore((state) => state.words);
 
@@ -67,7 +67,7 @@ export function TypingInput() {
         e.preventDefault();
     };
 
-    if (isAllComplete) {
+    if (isStoryComplete) {
         return null;
     }
 

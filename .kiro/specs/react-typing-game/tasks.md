@@ -266,3 +266,22 @@
   - Verify all features work: character-by-character typing, error highlighting, word progression, challenge completion
   - _Requirements: All requirements from original spec_
   - _Properties: All properties from original spec_
+
+
+- [x] 22. Restructure data format to support story with chapters
+  - Update data.ts to use new Story interface with title, introduction, and chapters array
+  - Define Chapter interface (text, difficulty)
+  - Define Story interface (title, introduction, chapters)
+  - Replace flat typingChallenges array with structured story object
+  - Add legacy typingChallenges export for backward compatibility
+  - Update store.ts to use new story format:
+    - Add storyTitle and storyIntroduction state
+    - Rename challenges → chapters, currentChallengeIndex → currentChapterIndex
+    - Rename isChallengeComplete → isChapterComplete, isAllComplete → isStoryComplete
+    - Add totalChapters for progress tracking
+    - Rename loadChallenges() → loadStory(), nextChallenge() → nextChapter()
+  - Update index.tsx to call loadStory() instead of loadChallenges()
+  - Update TextDisplay.tsx and TypingInput.tsx to use isStoryComplete instead of isAllComplete
+  - Test that story loads correctly with new format
+  - Verify all 12 chapters from "The Archivist's Descent" load and play correctly
+  - _Requirements: 1.2, 7.1, 7.2, 8.1, 8.2, 8.3, 8.4_

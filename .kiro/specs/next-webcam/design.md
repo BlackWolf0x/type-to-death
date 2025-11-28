@@ -123,12 +123,14 @@ interface GameWebcamProps {
 
 **Responsibilities:**
 - Initialize MediaPipe FaceLandmarker for face detection
-- Calculate Eye Aspect Ratio (EAR) from face landmarks
-- Detect blinks based on EAR threshold
+- Calculate Eye Aspect Ratio (EAR) from face landmarks using 6-point formula
+- Detect blinks using state machine (open → closing → closed → opening → open)
+- Apply temporal filtering to prevent false positives (MIN_BLINK_FRAMES, MAX_BLINK_FRAMES, REOPEN_FRAMES)
 - Handle manual 2-step calibration with sample collection
 - Persist calibration data to localStorage (save on complete, load on init, clear on reset)
 - Expose face landmarks for eye drawing
 - Track blink count and detection state
+- Only count blinks when eyes close AND reopen (prevents squinting false positives)
 
 **Interface:**
 ```typescript
@@ -185,6 +187,77 @@ interface UseBlinkDetectorReturn {
     resetCalibration: () => void;
 }
 ```
+
+## Core Algorithms
+
+### 1. Eye Aspect Ratio (EAR) Calculation
+
+The EAR is calculated using the standard 6-point formula for robust blink detection:
+
+```
+EAR = (||p2 - p6|| + ||p3 - p5||) / (2 * ||p1 - p4||)
+```
+
+**Landmark Points:**
+- `p1, p4` = horizontal corners (outer, inner)
+- `p2, p6` = first vertical pair (top1, bottom1)
+- `p3, p5` = second vertical pair (top2, bottom2) - center points for stability
+
+**MediaPipe Landmark Indices:**
+
+Left Eye:
+- outerCorner: 33, innerCorner: 133
+- top1: 159, bottom1: 145
+- top2: 158, bottom2: 153 (center points)
+
+Right Eye:
+- outerCorner: 362, innerCorner: 263
+- top1: 386, bottom1: 374
+- top2: 387, bottom2: 373 (center points)
+
+The center vertical points (top2/bottom2) provide more stable measurements, especially when the face isn't perfectly frontal.
+
+### 2. Blink Detection State Machine
+
+Blinks are detected using a state machine to ensure temporal consistency:
+
+```
+States: open → closing → closed → opening → open (blink counted!)
+```
+
+**State Transitions:**
+
+1. **open → closing**: EAR drops below threshold
+2. **closing → closed**: Eyes remain closed for MIN_BLINK_FRAMES (2 frames)
+3. **closed → opening**: EAR rises above threshold
+4. **opening → open**: Eyes remain open for REOPEN_FRAMES (2 frames) → **Blink counted**
+
+**Parameters:**
+- `MIN_BLINK_FRAMES = 2`: Minimum frames eyes must be closed (~33ms at 60fps)
+- `MAX_BLINK_FRAMES = 15`: Maximum frames for valid blink (~250ms at 60fps)
+- `REOPEN_FRAMES = 2`: Frames eyes must reopen to confirm blink completed
+
+**Benefits:**
+- Filters out noise and partial blinks
+- Only counts complete blinks (close + reopen)
+- Prevents false positives from squinting or looking down
+- Distinguishes blinks from drowsiness (eyes closed too long)
+
+### 3. Threshold Calculation
+
+After manual calibration, the threshold is calculated as:
+
+```
+threshold = eyesClosedEAR + (gap * 0.3)
+```
+
+Where `gap = eyesOpenEAR - eyesClosedEAR`
+
+This means the system triggers when eyes are approximately 30% closed from their open state, providing a good balance between sensitivity and false positive prevention.
+
+**Calibration Quality Check:**
+- If `gap < 0.1`, a warning is logged suggesting the user close their eyes more firmly during calibration
+- Typical good calibration: gap ≥ 0.2
 
 ## Data Models
 
@@ -348,9 +421,9 @@ const getErrorUI = (error: WebcamError) => {
 
 **Validates: Requirements 6.5, 8.1, 8.2, 8.3, 8.4**
 
-### Property 8: Blink Detection Accuracy
+### Property 8: Blink Detection Accuracy and Robustness
 
-*For any* EAR value below the calibrated threshold, the system should detect a blink and increment the blink counter (once per blink transition).
+*For any* valid blink (eyes close for 2-15 frames then reopen for 2+ frames), the system should detect the blink and increment the counter exactly once. *For any* partial blink, squint, or noise (< 2 frames closed), the system should NOT count it as a blink.
 
 **Validates: Requirements 7.3, 7.4**
 

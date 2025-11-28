@@ -1,16 +1,16 @@
 import { create } from 'zustand';
-import { typingChallenges } from './data';
+import { story, type Chapter } from './data';
 import { parseWords } from './utils/wordParser';
 
-interface TypingChallenge {
-    text: string;
-    difficulty: 'easy' | 'medium' | 'hard';
-}
-
 interface TypingGameStore {
-    // Challenge management
-    challenges: TypingChallenge[];
-    currentChallengeIndex: number;
+    // Story metadata
+    storyTitle: string;
+    storyIntroduction: string;
+
+    // Chapter management
+    chapters: Chapter[];
+    currentChapterIndex: number;
+    totalChapters: number;
 
     // Word tracking
     words: string[];
@@ -27,22 +27,25 @@ interface TypingGameStore {
 
     // Status
     isComplete: boolean;
-    isChallengeComplete: boolean;
-    isAllComplete: boolean;
+    isChapterComplete: boolean;
+    isStoryComplete: boolean;
 
     // Actions
-    loadChallenges: () => void;
+    loadStory: () => void;
     setInputValue: (value: string) => void;
     validateCharacter: () => void;
     handleSpaceOrEnter: () => void;
-    nextChallenge: () => void;
+    nextChapter: () => void;
     reset: () => void;
 }
 
 export const useTypingGameStore = create<TypingGameStore>((set) => ({
     // Initial state
-    challenges: [],
-    currentChallengeIndex: 0,
+    storyTitle: '',
+    storyIntroduction: '',
+    chapters: [],
+    currentChapterIndex: 0,
+    totalChapters: 0,
     words: [],
     currentWordIndex: 0,
     completedWords: [],
@@ -51,26 +54,28 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
     hasError: false,
     errorCount: 0,
     isComplete: false,
-    isChallengeComplete: false,
-    isAllComplete: false,
-
+    isChapterComplete: false,
+    isStoryComplete: false,
 
     // Actions
-    loadChallenges: () => {
+    loadStory: () => {
         try {
-            const challenges = typingChallenges as TypingChallenge[];
+            const { title, introduction, chapters } = story;
 
-            if (!challenges || challenges.length === 0) {
-                const fallbackChallenge: TypingChallenge = {
-                    text: "Welcome to Type to Death. This is a fallback challenge.",
+            if (!chapters || chapters.length === 0) {
+                const fallbackChapter: Chapter = {
+                    text: "Welcome to Type to Death. This is a fallback chapter.",
                     difficulty: 'easy'
                 };
-                const words = parseWords(fallbackChallenge.text);
+                const words = parseWords(fallbackChapter.text);
                 const completedWords = new Array(words.length).fill(false);
 
                 set({
-                    challenges: [fallbackChallenge],
-                    currentChallengeIndex: 0,
+                    storyTitle: 'Type to Death',
+                    storyIntroduction: '',
+                    chapters: [fallbackChapter],
+                    currentChapterIndex: 0,
+                    totalChapters: 1,
                     words,
                     currentWordIndex: 0,
                     completedWords,
@@ -79,19 +84,22 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                     hasError: false,
                     errorCount: 0,
                     isComplete: false,
-                    isChallengeComplete: false,
-                    isAllComplete: false,
+                    isChapterComplete: false,
+                    isStoryComplete: false,
                 });
                 return;
             }
 
-            const firstChallenge = challenges[0];
-            const words = parseWords(firstChallenge.text);
+            const firstChapter = chapters[0];
+            const words = parseWords(firstChapter.text);
             const completedWords = new Array(words.length).fill(false);
 
             set({
-                challenges,
-                currentChallengeIndex: 0,
+                storyTitle: title,
+                storyIntroduction: introduction,
+                chapters,
+                currentChapterIndex: 0,
+                totalChapters: chapters.length,
                 words,
                 currentWordIndex: 0,
                 completedWords,
@@ -100,11 +108,11 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 hasError: false,
                 errorCount: 0,
                 isComplete: false,
-                isChallengeComplete: false,
-                isAllComplete: false,
+                isChapterComplete: false,
+                isStoryComplete: false,
             });
         } catch (error) {
-            console.error('Error loading challenges:', error);
+            console.error('Error loading story:', error);
         }
     },
 
@@ -150,7 +158,7 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 newCompletedWords[state.currentWordIndex] = true;
 
                 setTimeout(() => {
-                    useTypingGameStore.getState().nextChallenge();
+                    useTypingGameStore.getState().nextChapter();
                 }, 500);
 
                 return {
@@ -159,7 +167,7 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                     hasError: false,
                     errorCount: 0,
                     completedWords: newCompletedWords,
-                    isChallengeComplete: true,
+                    isChapterComplete: true,
                 };
             }
 
@@ -185,7 +193,7 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             const newCompletedWords = [...state.completedWords];
             newCompletedWords[state.currentWordIndex] = true;
 
-            const isChallengeComplete = newCurrentWordIndex >= state.words.length;
+            const isChapterComplete = newCurrentWordIndex >= state.words.length;
 
             return {
                 currentWordIndex: newCurrentWordIndex,
@@ -194,36 +202,36 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 inputValue: '',
                 hasError: false,
                 errorCount: 0,
-                isChallengeComplete,
+                isChapterComplete,
             };
         });
 
         const state = useTypingGameStore.getState();
-        if (state.isChallengeComplete) {
+        if (state.isChapterComplete) {
             setTimeout(() => {
-                useTypingGameStore.getState().nextChallenge();
+                useTypingGameStore.getState().nextChapter();
             }, 500);
         }
     },
 
-    nextChallenge: () => {
+    nextChapter: () => {
         set((state) => {
-            const newChallengeIndex = state.currentChallengeIndex + 1;
+            const newChapterIndex = state.currentChapterIndex + 1;
 
-            if (newChallengeIndex >= state.challenges.length) {
+            if (newChapterIndex >= state.chapters.length) {
                 return {
                     isComplete: true,
-                    isChallengeComplete: true,
-                    isAllComplete: true,
+                    isChapterComplete: true,
+                    isStoryComplete: true,
                 };
             }
 
-            const nextChallenge = state.challenges[newChallengeIndex];
-            const words = parseWords(nextChallenge.text);
+            const nextChapter = state.chapters[newChapterIndex];
+            const words = parseWords(nextChapter.text);
             const completedWords = new Array(words.length).fill(false);
 
             return {
-                currentChallengeIndex: newChallengeIndex,
+                currentChapterIndex: newChapterIndex,
                 words,
                 currentWordIndex: 0,
                 completedWords,
@@ -231,15 +239,18 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 inputValue: '',
                 hasError: false,
                 errorCount: 0,
-                isChallengeComplete: false,
+                isChapterComplete: false,
             };
         });
     },
 
     reset: () => {
         set({
-            challenges: [],
-            currentChallengeIndex: 0,
+            storyTitle: '',
+            storyIntroduction: '',
+            chapters: [],
+            currentChapterIndex: 0,
+            totalChapters: 0,
             words: [],
             currentWordIndex: 0,
             completedWords: [],
@@ -248,8 +259,8 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
             hasError: false,
             errorCount: 0,
             isComplete: false,
-            isChallengeComplete: false,
-            isAllComplete: false,
+            isChapterComplete: false,
+            isStoryComplete: false,
         });
     },
 }));

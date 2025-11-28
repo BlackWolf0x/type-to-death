@@ -134,25 +134,37 @@ function clearCalibration(): void {
 }
 
 // MediaPipe Face Mesh landmark indices for eyes
+// Standard 6-point EAR calculation uses:
+// - 2 horizontal corner points (p1, p4)
+// - 2 vertical pairs for more stable measurements (p2-p6, p3-p5)
 const LEFT_EYE_INDICES = {
-    left: 33,
-    right: 133,
-    top1: 159,
-    top2: 145,
-    bottom1: 160,
-    bottom2: 144,
+    // Horizontal corners
+    outerCorner: 33,   // p1 - outer corner (left side)
+    innerCorner: 133,  // p4 - inner corner (right side)
+    // Vertical pair 1
+    top1: 159,         // p2 - upper lid
+    bottom1: 145,      // p6 - lower lid (opposite p2)
+    // Vertical pair 2 (center points for better accuracy)
+    top2: 158,         // p3 - upper lid center
+    bottom2: 153,      // p5 - lower lid center (opposite p3)
 };
 
 const RIGHT_EYE_INDICES = {
-    left: 362,
-    right: 263,
-    top1: 386,
-    top2: 374,
-    bottom1: 385,
-    bottom2: 380,
+    // Horizontal corners
+    outerCorner: 362,  // p1 - outer corner (right side)
+    innerCorner: 263,  // p4 - inner corner (left side)
+    // Vertical pair 1
+    top1: 386,         // p2 - upper lid
+    bottom1: 374,      // p6 - lower lid (opposite p2)
+    // Vertical pair 2 (center points for better accuracy)
+    top2: 387,         // p3 - upper lid center
+    bottom2: 373,      // p5 - lower lid center (opposite p3)
 };
 
-const CONSEC_FRAMES = 1;
+// Blink detection parameters
+const MIN_BLINK_FRAMES = 1;      // Minimum frames eyes must be closed (prevents noise)
+const MAX_BLINK_FRAMES = 15;     // Maximum frames for a blink (~250ms at 60fps) - longer = drowsiness, not blink
+const REOPEN_FRAMES = 2;         // Frames eyes must be open to confirm blink completed
 
 // ============================================================================
 // Utility Functions
@@ -166,21 +178,34 @@ function distance(p1: { x: number; y: number; z: number }, p2: { x: number; y: n
     );
 }
 
+/**
+ * Calculate Eye Aspect Ratio (EAR) using the standard 6-point formula:
+ * EAR = (||p2 - p6|| + ||p3 - p5||) / (2 * ||p1 - p4||)
+ *
+ * Where:
+ * - p1, p4 = horizontal corners (outer, inner)
+ * - p2, p6 = first vertical pair (top1, bottom1)
+ * - p3, p5 = second vertical pair (top2, bottom2) - center points for stability
+ */
 function calculateEAR(landmarks: FaceLandmark[], eyeIndices: typeof LEFT_EYE_INDICES): number {
-    const p1 = landmarks[eyeIndices.left];
-    const p2 = landmarks[eyeIndices.right];
-    const p3 = landmarks[eyeIndices.top1];
-    const p4 = landmarks[eyeIndices.top2];
-    const p5 = landmarks[eyeIndices.bottom1];
-    const p6 = landmarks[eyeIndices.bottom2];
+    // Horizontal corners
+    const p1 = landmarks[eyeIndices.outerCorner];
+    const p4 = landmarks[eyeIndices.innerCorner];
+    // Vertical pair 1
+    const p2 = landmarks[eyeIndices.top1];
+    const p6 = landmarks[eyeIndices.bottom1];
+    // Vertical pair 2 (center)
+    const p3 = landmarks[eyeIndices.top2];
+    const p5 = landmarks[eyeIndices.bottom2];
 
     if (!p1 || !p2 || !p3 || !p4 || !p5 || !p6) {
         return 0;
     }
 
-    const vertical1 = distance(p3, p5);
-    const vertical2 = distance(p4, p6);
-    const horizontal = distance(p1, p2);
+    // Standard EAR formula
+    const vertical1 = distance(p2, p6);  // First vertical pair
+    const vertical2 = distance(p3, p5);  // Second vertical pair (center)
+    const horizontal = distance(p1, p4); // Horizontal distance
 
     if (horizontal === 0) return 0;
 
@@ -229,9 +254,12 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
 
     // Refs
     const detectionRunningRef = useRef(false);
-    const wasBlinkingRef = useRef(false);
-    const consecutiveFramesRef = useRef(0);
     const calibrationSamplesRef = useRef<number[]>([]);
+
+    // Blink state machine refs
+    const blinkStateRef = useRef<'open' | 'closing' | 'closed' | 'opening'>('open');
+    const closedFramesRef = useRef(0);
+    const openFramesRef = useRef(0);
 
     // ========================================================================
     // Initialize MediaPipe
@@ -327,23 +355,44 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
             return;
         }
 
-        // Blink detection logic
-        if (avgEAR < earThreshold) {
-            consecutiveFramesRef.current += 1;
+        // Blink detection state machine
+        // A valid blink: open → closing → closed (2-15 frames) → opening → open
+        const eyesClosed = avgEAR < earThreshold;
+        const state = blinkStateRef.current;
 
-            if (consecutiveFramesRef.current >= CONSEC_FRAMES) {
+        if (eyesClosed) {
+            openFramesRef.current = 0;
+            closedFramesRef.current += 1;
+
+            if (state === 'open' || state === 'opening') {
+                blinkStateRef.current = 'closing';
+            } else if (state === 'closing' && closedFramesRef.current >= MIN_BLINK_FRAMES) {
+                blinkStateRef.current = 'closed';
                 setIsBlinking(true);
+            }
 
-                // Increment counter only on transition from not blinking to blinking
-                if (!wasBlinkingRef.current) {
-                    setBlinkCount(prev => prev + 1);
-                }
-                wasBlinkingRef.current = true;
+            // If eyes stay closed too long, it's not a blink (drowsiness or intentional)
+            if (closedFramesRef.current > MAX_BLINK_FRAMES) {
+                blinkStateRef.current = 'closed';
             }
         } else {
-            consecutiveFramesRef.current = 0;
-            setIsBlinking(false);
-            wasBlinkingRef.current = false;
+            // Eyes are open
+            closedFramesRef.current = 0;
+            openFramesRef.current += 1;
+
+            if (state === 'closed' || state === 'closing') {
+                blinkStateRef.current = 'opening';
+            } else if (state === 'opening' && openFramesRef.current >= REOPEN_FRAMES) {
+                // Blink completed! Eyes closed and reopened
+                blinkStateRef.current = 'open';
+                setIsBlinking(false);
+                setBlinkCount(prev => prev + 1);
+            } else if (state === 'opening') {
+                // Still confirming reopen
+            } else {
+                blinkStateRef.current = 'open';
+                setIsBlinking(false);
+            }
         }
     }, [calibrationState, isCalibrated, earThreshold]);
 
@@ -360,7 +409,6 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
 
         let animationFrameId: number;
         let lastVideoTime = -1;
-        let isFirstDetection = true;
 
         const detectLoop = () => {
             // Get video ref fresh each frame (handles callback ref timing)
@@ -452,8 +500,17 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
 
         // Calculate threshold if we have both values
         if (eyesOpenEAR !== null) {
-            // Threshold at 60% toward closed (40% open + 60% closed)
-            const threshold = eyesOpenEAR * 0.4 + avgClosed * 0.6;
+            const gap = eyesOpenEAR - avgClosed;
+
+            // Warn if calibration seems off
+            if (gap < 0.1) {
+                console.warn(`Calibration warning: Gap between open (${eyesOpenEAR.toFixed(3)}) and closed (${avgClosed.toFixed(3)}) is small (${gap.toFixed(3)}). Try closing eyes more firmly during calibration.`);
+            }
+
+            // Threshold at 70% from closed toward open
+            // This means we trigger when eyes are 30% closed
+            // More forgiving than 60/40 split
+            const threshold = avgClosed + (gap * 0.3);
             setEarThreshold(threshold);
             setIsCalibrated(true);
 
@@ -464,7 +521,7 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
                 threshold,
             });
 
-            console.log(`Calibration complete! Open: ${eyesOpenEAR.toFixed(3)}, Closed: ${avgClosed.toFixed(3)}, Threshold: ${threshold.toFixed(3)}`);
+            console.log(`Calibration complete! Open: ${eyesOpenEAR.toFixed(3)}, Closed: ${avgClosed.toFixed(3)}, Gap: ${gap.toFixed(3)}, Threshold: ${threshold.toFixed(3)}`);
         }
     }, [eyesOpenEAR]);
 
@@ -475,9 +532,11 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
         setEyesClosedEAR(null);
         setEarThreshold(0.18);
         calibrationSamplesRef.current = [];
-        consecutiveFramesRef.current = 0;
-        wasBlinkingRef.current = false;
+        blinkStateRef.current = 'open';
+        closedFramesRef.current = 0;
+        openFramesRef.current = 0;
         setBlinkCount(0);
+        setIsBlinking(false);
 
         // Clear from localStorage
         clearCalibration();

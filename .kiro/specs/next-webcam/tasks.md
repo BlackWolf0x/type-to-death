@@ -34,12 +34,15 @@
 - [x] 4. Implement useBlinkDetector hook
   - Created `app-next/hooks/useBlinkDetector.ts`
   - Integrated MediaPipe FaceLandmarker for face detection
-  - Implemented EAR (Eye Aspect Ratio) calculation
+  - Implemented EAR (Eye Aspect Ratio) calculation with 6-point formula
+  - Added center vertical landmark points (158/153 left, 387/373 right) for stability
   - Added manual 2-step calibration (eyes open → eyes closed)
-  - Threshold calculated as: eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6
+  - Threshold calculated as: closed + (gap * 0.3) for 30% closed trigger point
   - Added structured error codes (BlinkDetectorErrorCode enum)
   - Added face landmark exposure for eye drawing
-  - Added blink counting with consecutive frame detection
+  - Implemented state machine blink detection (open → closing → closed → opening → open)
+  - Added temporal filtering: MIN_BLINK_FRAMES=2, MAX_BLINK_FRAMES=15, REOPEN_FRAMES=2
+  - Blink only counted when eyes close AND reopen (prevents false positives)
   - Detection loop starts immediately and polls for video readiness
   - _Properties: P6, P7, P8_
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4_
@@ -129,11 +132,28 @@
   - _Properties: P11_
   - _Requirements: 9.5, 9.7_
 
+- [x] 12. Improve blink detection robustness
+  - Updated EAR calculation to use proper 6-point formula with center vertical points
+  - Added landmark indices: top2/bottom2 (158/153 for left, 387/373 for right)
+  - Implemented state machine for blink detection: open → closing → closed → opening → open
+  - Added temporal filtering parameters:
+    - MIN_BLINK_FRAMES = 2 (minimum frames eyes must be closed)
+    - MAX_BLINK_FRAMES = 15 (maximum frames for valid blink, ~250ms at 60fps)
+    - REOPEN_FRAMES = 2 (frames eyes must reopen to confirm blink)
+  - Blink only counted when eyes close AND reopen (prevents false positives from squinting)
+  - Updated threshold calculation: closed + (gap * 0.3) instead of weighted average
+  - Added calibration gap warning when gap < 0.1
+  - Removed unused refs (wasBlinkingRef, consecutiveFramesRef)
+  - _Properties: P7, P8_
+  - _Requirements: 7.3, 7.4_
+
 ## Implementation Notes
 
 - The calibration page combines webcam permission and blink calibration into a single flow
 - Manual 2-step calibration: user records eyes-open EAR, then eyes-closed EAR
-- Threshold calculation: eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6
+- Threshold calculation: closed + (gap * 0.3) for 30% closed trigger point
+- State machine ensures blinks are only counted when eyes close AND reopen
+- Temporal filtering prevents false positives from noise and partial blinks
 - All calibration data persists to localStorage for returning users
 - Returning users skip directly to ready state if calibration exists
 - Eye landmarks are drawn on a canvas overlay for real-time visual feedback
@@ -143,6 +163,6 @@
 
 ## Estimated Effort
 
-- Total Tasks: 11
-- Completed: 11
+- Total Tasks: 12
+- Completed: 12
 - Status: ✅ Complete
