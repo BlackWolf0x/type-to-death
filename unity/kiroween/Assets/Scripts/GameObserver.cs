@@ -92,7 +92,7 @@ public class GameObserver : MonoBehaviour
         // Update stored percentage
         loseCompletionPercentage = newPercentage;
         
-        Debug.Log($"GameObserver: Lose completion percentage updated to {loseCompletionPercentage:F1}%. Notifying subscribers.");
+        // Debug.Log($"GameObserver: Lose completion percentage updated to {loseCompletionPercentage:F1}%. Notifying subscribers.");
         
         // Invoke Notifier action to broadcast to all subscribers
         Notifier?.Invoke(loseCompletionPercentage);

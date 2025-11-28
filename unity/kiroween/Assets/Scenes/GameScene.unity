@@ -236,6 +236,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91a3b8333d4ab6447be1889e9f2c2701, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableLogging: 0
   lives: 8
   startingDistance: 10
   goalDistance: 2
@@ -350,9 +351,9 @@ GameObject:
   m_Component:
   - component: {fileID: 330585546}
   - component: {fileID: 330585545}
-  - component: {fileID: 330585544}
   - component: {fileID: 330585547}
   - component: {fileID: 330585548}
+  - component: {fileID: 330585549}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -360,14 +361,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &330585544
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 330585543}
-  m_Enabled: 1
 --- !u!20 &330585545
 Camera:
   m_ObjectHideFlags: 0
@@ -495,6 +488,20 @@ MonoBehaviour:
   - 0.001
   - 0.002
   - 0.003
+--- !u!114 &330585549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86c6556701af9e04380698b89f691b6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  nonRigidbodyVelocity: 0
+  attenuationObject: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -944,6 +951,7 @@ GameObject:
   m_Component:
   - component: {fileID: 881647354}
   - component: {fileID: 881647353}
+  - component: {fileID: 881647355}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -983,6 +991,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &881647355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 881647352}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c69a7c5898dc6e47ba46f34d9375cc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1197071056
 GameObject:
   m_ObjectHideFlags: 0
@@ -992,7 +1012,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1197071058}
-  - component: {fileID: 1197071057}
+  - component: {fileID: 1197071059}
   m_Layer: 0
   m_Name: SFXManager
   m_TagString: Untagged
@@ -1000,26 +1020,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1197071057
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1197071056}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b1bfefae049d8644ad600d9eb61fddc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  gameOver:
-    clip: {fileID: 8300000, guid: 35f2c1a431bc5f345aac55f6b3917f99, type: 3}
-    volume: 0.7
-  heartbeatIntensities:
-  - {fileID: 8300000, guid: f2959c35379cc5c4f9758b2efe264dee, type: 3}
-  - {fileID: 8300000, guid: e9fa31c5f052faf46bef9e18478af768, type: 3}
-  - {fileID: 8300000, guid: 024f4f5b5c2482e45a9d654bc9df5a5a, type: 3}
-  - {fileID: 8300000, guid: 0b4bfacbb8712e140935c4570d298791, type: 3}
 --- !u!4 &1197071058
 Transform:
   m_ObjectHideFlags: 0
@@ -1035,6 +1035,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1197071059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1197071056}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b9071cb8846620448d2751975f62165, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameOverRef:
+    Guid:
+      Data1: 1570786299
+      Data2: 1105865005
+      Data3: 18014122
+      Data4: 1064353656
+    Path: event:/Impact Blood 3
+  heartbeatIntensities:
+  - Guid:
+      Data1: -423609030
+      Data2: 1290014239
+      Data3: 1975601825
+      Data4: -88068768
+    Path: event:/Heartbeat 1
+  - Guid:
+      Data1: -1100330853
+      Data2: 1134223271
+      Data3: 36097162
+      Data4: -1787906484
+    Path: event:/Heartbeat 2
+  - Guid:
+      Data1: 11286636
+      Data2: 1300897645
+      Data3: 532107933
+      Data4: 564392302
+    Path: event:/Heartbeat 3
+  - Guid:
+      Data1: 680628577
+      Data2: 1290342041
+      Data3: 1231832996
+      Data4: 971822549
+    Path: event:/Heartbeat 4
 --- !u!1 &1333200231
 GameObject:
   m_ObjectHideFlags: 0
