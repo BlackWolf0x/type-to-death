@@ -85,15 +85,15 @@ public class GameManager : MonoBehaviour
         blackScreenPanel.SetActive(true);
 
         Camera.main.GetComponent<CameraShake>().StopShake();
-        SFXManager.Instance.Play(SFXManager.Instance.GameOver);
-        SFXManager.Instance.StopHeartbeat();
+        AudioManager.Instance.PlaySfx(AudioManager.Instance.GameOverSfx);
+        AudioManager.Instance.StopHeartbeat();
         monsterObject.SetActive(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         GameLost();
 #endif
 
-        Debug.Log("GameManager: Game Over");
+        // Debug.Log("GameManager: Game Over");
     }
 
     public void RestartScene()
@@ -109,5 +109,6 @@ public class GameManager : MonoBehaviour
     public void GameWon()
     {
         // To be implemented later
+        monsterObject.SetActive(false);
     }
 }

@@ -4,6 +4,9 @@ using UnityEngine.InputSystem;
 public class MonsterController : MonoBehaviour
 {
     // ===== Serialized Configuration Variables =====
+    [Header("Debug Settings")]
+    [SerializeField] private bool enableLogging = true;
+    
     [Header("Monster Configuration")]
     [SerializeField] private int lives = 5;
     [Tooltip("Initial distance from camera where monster spawns")]
@@ -32,6 +35,27 @@ public class MonsterController : MonoBehaviour
     private bool gameOver = false;
     private AnimationClip lastRandomPose = null;
 
+    // ===== Logging =====
+    private enum LogType { Log, Warning, Error }
+    
+    private void MonsterLog(object message, LogType logType = LogType.Log)
+    {
+        if (!enableLogging) return;
+        
+        switch (logType)
+        {
+            case LogType.Log:
+                Debug.Log($"MonsterController: {message}");
+                break;
+            case LogType.Warning:
+                Debug.LogWarning($"MonsterController: {message}");
+                break;
+            case LogType.Error:
+                Debug.LogError($"MonsterController: {message}");
+                break;
+        }
+    }
+
     // ===== Component References =====
     private Camera mainCamera;
     private Animator animator;
@@ -49,7 +73,7 @@ public class MonsterController : MonoBehaviour
         // Validate camera exists
         if (mainCamera == null)
         {
-            Debug.LogError("MonsterController: Camera.main is null! Ensure a camera is tagged as MainCamera.");
+            MonsterLog("Camera.main is null! Ensure a camera is tagged as MainCamera.", LogType.Error);
             enabled = false;
             return;
         }
@@ -57,7 +81,7 @@ public class MonsterController : MonoBehaviour
         // Try to get Animator component
         if (!TryGetComponent(out animator))
         {
-            Debug.LogWarning("MonsterController: Animator component not found. Sprint animation will not play.");
+            MonsterLog("Animator component not found. Sprint animation will not play.", LogType.Warning);
             // Continue without animator - not critical for core functionality
         }
         else
@@ -67,15 +91,15 @@ public class MonsterController : MonoBehaviour
             {
                 overrideController = new AnimatorOverrideController(animator.runtimeAnimatorController);
                 animator.runtimeAnimatorController = overrideController;
-                Debug.Log("MonsterController: AnimatorOverrideController created for dynamic pose management.");
+                MonsterLog("AnimatorOverrideController created for dynamic pose management.");
             }
             else
             {
-                Debug.LogWarning("MonsterController: Animator has no controller assigned. Poses will not work.");
+                MonsterLog("Animator has no controller assigned. Poses will not work.", LogType.Warning);
             }
         }
 
-        Debug.Log("MonsterController: Awake completed successfully.");
+        MonsterLog("Awake completed successfully.");
 
         // Calculate spawn position at startingDistance from camera
         Vector3 cameraPosition = mainCamera.transform.position;
@@ -114,7 +138,7 @@ public class MonsterController : MonoBehaviour
     #if UNITY_EDITOR
     private void OnTestBlinkPerformed(InputAction.CallbackContext context)
     {
-        Debug.Log("MonsterController: [EDITOR] Spacebar pressed - simulating blink event.");
+        MonsterLog("[EDITOR] Spacebar pressed - simulating blink event.");
         OnBlinkDetected();
     }
     #endif
@@ -140,7 +164,7 @@ public class MonsterController : MonoBehaviour
         {
             // Edge case: if lives is 1 or less, set to 0
             teleportDistance = 0f;
-            Debug.LogWarning("MonsterController: Lives is set to 1 or less. Teleport distance set to 0.");
+            MonsterLog("Lives is set to 1 or less. Teleport distance set to 0.", LogType.Warning);
         }
 
         
@@ -154,11 +178,11 @@ public class MonsterController : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(directionToCamera);
         }
     
-        Debug.Log($"MonsterController: Spawned at distance {startingDistance} from camera. Lives: {currentLives}, Teleport Distance: {teleportDistance}");
+        MonsterLog($"Spawned at distance {startingDistance} from camera. Lives: {currentLives}, Teleport Distance: {teleportDistance}");
         
         // Apply starting pose
         ApplyPose(startingPose);
-        Debug.Log("MonsterController: Starting pose applied.");
+        MonsterLog("Starting pose applied.");
     }
 
 
@@ -178,21 +202,21 @@ public class MonsterController : MonoBehaviour
         // Check if starting pose is assigned
         if (startingPose == null)
         {
-            Debug.LogError("MonsterController: Starting Pose is not assigned! Please assign a pose in the Inspector.");
+            MonsterLog("Starting Pose is not assigned! Please assign a pose in the Inspector.", LogType.Error);
             hasErrors = true;
         }
         
         // Check if final pose is assigned
         if (finalPose == null)
         {
-            Debug.LogError("MonsterController: Final Pose is not assigned! Please assign a pose in the Inspector.");
+            MonsterLog("Final Pose is not assigned! Please assign a pose in the Inspector.", LogType.Error);
             hasErrors = true;
         }
         
         // Check if random poses array has at least 1 element
         if (randomPoses == null || randomPoses.Length == 0)
         {
-            Debug.LogError("MonsterController: Random Poses array is empty! Please assign at least one random pose.");
+            MonsterLog("Random Poses array is empty! Please assign at least one random pose.", LogType.Error);
             hasErrors = true;
         }
         else
@@ -203,7 +227,7 @@ public class MonsterController : MonoBehaviour
             {
                 if (randomPoses[i] == null)
                 {
-                    Debug.LogWarning($"MonsterController: Random Poses[{i}] is null. This element will be skipped.");
+                    MonsterLog($"Random Poses[{i}] is null. This element will be skipped.", LogType.Warning);
                     nullCount++;
                 }
             }
@@ -211,7 +235,7 @@ public class MonsterController : MonoBehaviour
             // If all elements are null, that's an error
             if (nullCount == randomPoses.Length)
             {
-                Debug.LogError("MonsterController: All Random Poses are null! Please assign at least one valid pose.");
+                MonsterLog("All Random Poses are null! Please assign at least one valid pose.", LogType.Error);
                 hasErrors = true;
             }
         }
@@ -219,12 +243,12 @@ public class MonsterController : MonoBehaviour
         // Disable script if critical errors found
         if (hasErrors)
         {
-            Debug.LogError("MonsterController: Pose validation failed. Script disabled.");
+            MonsterLog("Pose validation failed. Script disabled.", LogType.Error);
             enabled = false;
             return;
         }
         
-        Debug.Log("MonsterController: Pose validation successful.");
+        MonsterLog("Pose validation successful.");
     }
     
     private void ValidateConfiguration()
@@ -234,7 +258,7 @@ public class MonsterController : MonoBehaviour
         // Clamp lives to minimum of 2 (need at least 1 teleport + 1 sprint)
         if (lives < 2)
         {
-            Debug.LogWarning($"MonsterController: Lives ({lives}) is less than 2. Clamping to 2 (minimum required for teleport + sprint).");
+            MonsterLog($"Lives ({lives}) is less than 2. Clamping to 2 (minimum required for teleport + sprint).", LogType.Warning);
             lives = 2;
             configChanged = true;
         }
@@ -242,7 +266,7 @@ public class MonsterController : MonoBehaviour
         // Ensure goalDistance < startingDistance
         if (goalDistance >= startingDistance)
         {
-            Debug.LogWarning($"MonsterController: goalDistance ({goalDistance}) must be less than startingDistance ({startingDistance}). Auto-correcting goalDistance to {startingDistance - 1}.");
+            MonsterLog($"goalDistance ({goalDistance}) must be less than startingDistance ({startingDistance}). Auto-correcting goalDistance to {startingDistance - 1}.", LogType.Warning);
             goalDistance = startingDistance - 1f;
             configChanged = true;
         }
@@ -250,14 +274,14 @@ public class MonsterController : MonoBehaviour
         // Ensure distances are positive
         if (startingDistance <= 0f)
         {
-            Debug.LogWarning($"MonsterController: startingDistance ({startingDistance}) must be positive. Setting to 10.");
+            MonsterLog($"startingDistance ({startingDistance}) must be positive. Setting to 10.", LogType.Warning);
             startingDistance = 10f;
             configChanged = true;
         }
 
         if (goalDistance < 0f)
         {
-            Debug.LogWarning($"MonsterController: goalDistance ({goalDistance}) must be non-negative. Setting to 2.");
+            MonsterLog($"goalDistance ({goalDistance}) must be non-negative. Setting to 2.", LogType.Warning);
             goalDistance = 2f;
             configChanged = true;
         }
@@ -265,14 +289,14 @@ public class MonsterController : MonoBehaviour
         // Ensure sprint speed is positive
         if (sprintSpeed <= 0f)
         {
-            Debug.LogWarning($"MonsterController: sprintSpeed ({sprintSpeed}) must be positive. Setting to 5.");
+            MonsterLog($"sprintSpeed ({sprintSpeed}) must be positive. Setting to 5.", LogType.Warning);
             sprintSpeed = 5f;
             configChanged = true;
         }
 
         if (configChanged)
         {
-            Debug.Log($"MonsterController: Configuration validated and corrected. Lives: {lives}, StartingDistance: {startingDistance}, GoalDistance: {goalDistance}, SprintSpeed: {sprintSpeed}");
+            MonsterLog($"Configuration validated and corrected. Lives: {lives}, StartingDistance: {startingDistance}, GoalDistance: {goalDistance}, SprintSpeed: {sprintSpeed}");
         }
     }
 
@@ -314,7 +338,7 @@ public class MonsterController : MonoBehaviour
 
         gameOver = true;
 
-        Debug.Log("MonsterController: GAME OVER! Monster reached the camera.");
+        MonsterLog("GAME OVER! Monster reached the camera.");
     }
 
     private void TeleportTowardCamera(float distance)
@@ -356,12 +380,12 @@ public class MonsterController : MonoBehaviour
         // Validate random poses array
         if (randomPoses == null || randomPoses.Length == 0)
         {
-            Debug.LogWarning("MonsterController: Cannot select random pose - randomPoses array is empty.");
+            MonsterLog("Cannot select random pose - randomPoses array is empty.", LogType.Warning);
             return null;
         }
         
         // Filter out null elements
-        System.Collections.Generic.List<AnimationClip> validPoses = new System.Collections.Generic.List<AnimationClip>();
+        System.Collections.Generic.List<AnimationClip> validPoses = new();
         for (int i = 0; i < randomPoses.Length; i++)
         {
             if (randomPoses[i] != null)
@@ -373,7 +397,7 @@ public class MonsterController : MonoBehaviour
         // Check if we have any valid poses
         if (validPoses.Count == 0)
         {
-            Debug.LogWarning("MonsterController: Cannot select random pose - all elements in randomPoses are null.");
+            MonsterLog("Cannot select random pose - all elements in randomPoses are null.", LogType.Warning);
             return null;
         }
         
@@ -381,12 +405,12 @@ public class MonsterController : MonoBehaviour
         if (validPoses.Count == 1)
         {
             lastRandomPose = validPoses[0];
-            Debug.Log($"MonsterController: Selected only available pose '{lastRandomPose.name}'");
+            MonsterLog($"Selected only available pose '{lastRandomPose.name}'");
             return lastRandomPose;
         }
         
         // Filter out the last pose to avoid repetition
-        System.Collections.Generic.List<AnimationClip> availablePoses = new System.Collections.Generic.List<AnimationClip>();
+        System.Collections.Generic.List<AnimationClip> availablePoses = new();
         for (int i = 0; i < validPoses.Count; i++)
         {
             if (validPoses[i] != lastRandomPose)
@@ -402,7 +426,7 @@ public class MonsterController : MonoBehaviour
         // Store for next time
         lastRandomPose = selectedPose;
         
-        Debug.Log($"MonsterController: Selected random pose '{selectedPose.name}' (index {randomIndex} of {availablePoses.Count} available poses, excluding last)");
+        MonsterLog($"Selected random pose '{selectedPose.name}' (index {randomIndex} of {availablePoses.Count} available poses, excluding last)");
         
         return selectedPose;
     }
@@ -413,13 +437,13 @@ public class MonsterController : MonoBehaviour
         // Validate animator and pose clip
         if (animator == null || overrideController == null)
         {
-            Debug.LogWarning("MonsterController: Cannot apply pose - Animator or OverrideController is missing.");
+            MonsterLog("Cannot apply pose - Animator or OverrideController is missing.", LogType.Warning);
             return;
         }
         
         if (poseClip == null)
         {
-            Debug.LogWarning("MonsterController: Cannot apply pose - Pose clip is null.");
+            MonsterLog("Cannot apply pose - Pose clip is null.", LogType.Warning);
             return;
         }
         
@@ -429,7 +453,7 @@ public class MonsterController : MonoBehaviour
         // Play the "Pose" state at normalized time 0 (first frame)
         animator.Play("Pose", 0, 0f);
         
-        Debug.Log($"MonsterController: Applied pose '{poseClip.name}' via AnimatorOverrideController");
+        MonsterLog($"Applied pose '{poseClip.name}' via AnimatorOverrideController");
     }
 
     public void OnBlinkDetected()
@@ -437,13 +461,13 @@ public class MonsterController : MonoBehaviour
         // Early return if already sprinting
         if (isSprinting)
         {
-            Debug.Log("MonsterController: Blink ignored - monster is already sprinting.");
+            MonsterLog("Blink ignored - monster is already sprinting.");
             return;
         }
 
         // Decrement lives
         currentLives--;
-        Debug.Log($"MonsterController: Blink detected! Lives remaining: {currentLives}");
+        MonsterLog($"Blink detected! Lives remaining: {currentLives}");
         
         // Notify GameObserver via static action
         GameObserver.BlinkTracker?.Invoke(currentLives);
@@ -453,7 +477,7 @@ public class MonsterController : MonoBehaviour
         {
             // Multiple lives remaining - teleport closer by teleportDistance
             TeleportTowardCamera(teleportDistance);
-            Debug.Log($"MonsterController: Teleported {teleportDistance} units closer. Distance from camera: {Vector3.Distance(transform.position, mainCamera.transform.position):F2}");
+            MonsterLog($"Teleported {teleportDistance} units closer. Distance from camera: {Vector3.Distance(transform.position, mainCamera.transform.position):F2}");
             
             // Apply random pose
             AnimationClip randomPose = SelectRandomPose();
@@ -466,11 +490,11 @@ public class MonsterController : MonoBehaviour
         {
             // One life remaining - teleport to exactly goal distance
             TeleportToGoalDistance();
-            Debug.Log($"MonsterController: Teleported to goal distance ({goalDistance} units from camera).");
+            MonsterLog($"Teleported to goal distance ({goalDistance} units from camera).");
             
             // Apply final pose
             ApplyPose(finalPose);
-            Debug.Log("MonsterController: Final pose applied.");
+            MonsterLog("Final pose applied.");
         }
         else if (currentLives == 0)
         {
@@ -483,10 +507,12 @@ public class MonsterController : MonoBehaviour
             if (animator != null)
             {
                 animator.SetBool("isSprinting", true);
-                Debug.Log("MonsterController: Sprint animation triggered - overriding final pose.");
+                MonsterLog("Sprint animation triggered - overriding final pose.");
             }
             
-            Debug.Log("MonsterController: Sprint attack initiated! Monster is now moving toward camera.");
+            MonsterLog("Sprint attack initiated! Monster is now moving toward camera.");
         }
     }
+
+
 }
