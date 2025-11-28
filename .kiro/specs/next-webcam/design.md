@@ -7,9 +7,11 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 **Main Components:**
 
 1. **Calibration Page (`/calibration`)** - Handles webcam permission, blink calibration, and game readiness
-2. **useWebcam Hook** - Manages webcam state and controls
-3. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
-4. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
+2. **Play Page (`/play`)** - Game page with automatic webcam/calibration verification
+3. **GameWebcam Component** - Handles webcam checks, redirects, and blink event forwarding
+4. **useWebcam Hook** - Manages webcam state and controls
+5. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
+6. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
 
 ## Component Structure
 
@@ -59,18 +61,76 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 - Track loading and streaming states
 - Support device switching
 
-### 3. useBlinkDetector Hook
+### 3. Play Page Component
+
+**File:** `app-next/app/play/page.tsx`
+
+**Responsibilities:**
+- Load Unity WebGL game
+- Integrate GameWebcam component for blink detection
+- Display loading states (checking requirements, loading Unity)
+- Forward blink events to Unity via sendMessage
+- Provide debug UI for manual testing
+
+**State Management:**
+- `isReady` - Tracks if webcam/calibration checks passed
+- Uses `useUnityContext` for Unity integration
+- Receives `onReady` callback from GameWebcam before loading Unity
+
+**Dependencies:**
+- `GameWebcam` component
+- `react-unity-webgl` for Unity integration
+- shadcn/ui `Button` component
+- Lucide `Loader2` icon
+
+### 4. GameWebcam Component
+
+**File:** `app-next/components/game/GameWebcam.tsx`
+
+**Responsibilities:**
+- Check for stored calibration data in localStorage
+- Check camera permission without prompting (via Permissions API)
+- Redirect to `/calibration` if checks fail
+- Start webcam only after all checks pass
+- Signal parent component when ready via `onReady` callback
+- Forward blink events to parent via `onBlink` callback
+- Display blink counter indicator during gameplay
+- Handle webcam errors by redirecting to calibration
+
+**Props:**
+```typescript
+interface GameWebcamProps {
+    onBlink: () => void;    // Called when blink detected
+    onReady: () => void;    // Called when checks pass and webcam starts
+}
+```
+
+**State Management:**
+- Uses `useWebcam` hook for webcam control
+- Uses `useBlinkDetector` hook for blink detection
+- Uses `useRouter` for navigation/redirects
+- Refs to prevent duplicate redirects and ready signals
+
+**Dependencies:**
+- `useWebcam` hook
+- `useBlinkDetector` hook
+- Next.js `useRouter`
+- Lucide icons: `Eye`, `EyeOff`
+
+### 5. useBlinkDetector Hook
 
 **File:** `app-next/hooks/useBlinkDetector.ts`
 
 **Responsibilities:**
 - Initialize MediaPipe FaceLandmarker for face detection
-- Calculate Eye Aspect Ratio (EAR) from face landmarks
-- Detect blinks based on EAR threshold
-- Handle auto-calibration with sample collection
-- Persist calibration data to localStorage
+- Calculate Eye Aspect Ratio (EAR) from face landmarks using 6-point formula
+- Detect blinks using state machine (open → closing → closed → opening → open)
+- Apply temporal filtering to prevent false positives (MIN_BLINK_FRAMES, MAX_BLINK_FRAMES, REOPEN_FRAMES)
+- Handle manual 2-step calibration with sample collection
+- Persist calibration data to localStorage (save on complete, load on init, clear on reset)
 - Expose face landmarks for eye drawing
 - Track blink count and detection state
+- Only count blinks when eyes close AND reopen (prevents squinting false positives)
 
 **Interface:**
 ```typescript
@@ -127,6 +187,77 @@ interface UseBlinkDetectorReturn {
     resetCalibration: () => void;
 }
 ```
+
+## Core Algorithms
+
+### 1. Eye Aspect Ratio (EAR) Calculation
+
+The EAR is calculated using the standard 6-point formula for robust blink detection:
+
+```
+EAR = (||p2 - p6|| + ||p3 - p5||) / (2 * ||p1 - p4||)
+```
+
+**Landmark Points:**
+- `p1, p4` = horizontal corners (outer, inner)
+- `p2, p6` = first vertical pair (top1, bottom1)
+- `p3, p5` = second vertical pair (top2, bottom2) - center points for stability
+
+**MediaPipe Landmark Indices:**
+
+Left Eye:
+- outerCorner: 33, innerCorner: 133
+- top1: 159, bottom1: 145
+- top2: 158, bottom2: 153 (center points)
+
+Right Eye:
+- outerCorner: 362, innerCorner: 263
+- top1: 386, bottom1: 374
+- top2: 387, bottom2: 373 (center points)
+
+The center vertical points (top2/bottom2) provide more stable measurements, especially when the face isn't perfectly frontal.
+
+### 2. Blink Detection State Machine
+
+Blinks are detected using a state machine to ensure temporal consistency:
+
+```
+States: open → closing → closed → opening → open (blink counted!)
+```
+
+**State Transitions:**
+
+1. **open → closing**: EAR drops below threshold
+2. **closing → closed**: Eyes remain closed for MIN_BLINK_FRAMES (2 frames)
+3. **closed → opening**: EAR rises above threshold
+4. **opening → open**: Eyes remain open for REOPEN_FRAMES (2 frames) → **Blink counted**
+
+**Parameters:**
+- `MIN_BLINK_FRAMES = 2`: Minimum frames eyes must be closed (~33ms at 60fps)
+- `MAX_BLINK_FRAMES = 15`: Maximum frames for valid blink (~250ms at 60fps)
+- `REOPEN_FRAMES = 2`: Frames eyes must reopen to confirm blink completed
+
+**Benefits:**
+- Filters out noise and partial blinks
+- Only counts complete blinks (close + reopen)
+- Prevents false positives from squinting or looking down
+- Distinguishes blinks from drowsiness (eyes closed too long)
+
+### 3. Threshold Calculation
+
+After manual calibration, the threshold is calculated as:
+
+```
+threshold = eyesClosedEAR + (gap * 0.3)
+```
+
+Where `gap = eyesOpenEAR - eyesClosedEAR`
+
+This means the system triggers when eyes are approximately 30% closed from their open state, providing a good balance between sensitivity and false positive prevention.
+
+**Calibration Quality Check:**
+- If `gap < 0.1`, a warning is logged suggesting the user close their eyes more firmly during calibration
+- Typical good calibration: gap ≥ 0.2
 
 ## Data Models
 
@@ -278,23 +409,47 @@ const getErrorUI = (error: WebcamError) => {
 
 **Validates: Requirements 5.1, 5.2**
 
-### Property 6: Auto-Calibration Sample Collection
+### Property 6: Manual Calibration Flow
 
-*For any* auto-calibration session, the system should collect EAR samples for 10 seconds and calculate a threshold based on the variance between max and min EAR values.
+*For any* calibration session, the user must complete two steps: (1) record eyes-open EAR, (2) record eyes-closed EAR. The threshold is calculated as eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6.
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 
 ### Property 7: Calibration Persistence
 
-*For any* completed calibration, the system should persist the calibration data (eyesOpenEAR, eyesClosedEAR, threshold) to localStorage. *For any* page load, the system should restore saved calibration if available.
+*For any* completed calibration, the system should persist the calibration data (eyesOpenEAR, eyesClosedEAR, threshold) to localStorage. *For any* page load, the system should restore saved calibration if available. *For any* reset action, the system should clear localStorage.
 
-**Validates: Requirements 6.4, 6.5**
+**Validates: Requirements 6.5, 8.1, 8.2, 8.3, 8.4**
 
-### Property 8: Blink Detection Accuracy
+### Property 8: Blink Detection Accuracy and Robustness
 
-*For any* EAR value below the calibrated threshold, the system should detect a blink and increment the blink counter (once per blink transition).
+*For any* valid blink (eyes close for 2-15 frames then reopen for 2+ frames), the system should detect the blink and increment the counter exactly once. *For any* partial blink, squint, or noise (< 2 frames closed), the system should NOT count it as a blink.
 
 **Validates: Requirements 7.3, 7.4**
+
+### Property 9: Play Page Redirect on Missing Calibration
+
+*For any* navigation to /play when localStorage does not contain calibration data, the system should redirect to /calibration without starting the webcam.
+
+**Validates: Requirements 9.1, 9.2**
+
+### Property 10: Play Page Redirect on Missing Permission
+
+*For any* navigation to /play when camera permission is not granted, the system should redirect to /calibration without prompting for permission.
+
+**Validates: Requirements 9.3, 9.4**
+
+### Property 11: Play Page Unity Loading Delay
+
+*For any* navigation to /play, Unity should not initialize until after webcam and calibration checks pass successfully.
+
+**Validates: Requirements 9.5, 9.7**
+
+### Property 12: Play Page Webcam Error Handling
+
+*For any* webcam error that occurs after checks pass, the Play Page should redirect to /calibration.
+
+**Validates: Requirements 9.6**
 
 
 

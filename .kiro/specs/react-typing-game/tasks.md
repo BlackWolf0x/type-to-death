@@ -245,3 +245,77 @@
   - Replace challenge completion message with toast.success()
   - Ensure toasts are positioned appropriately and don't interfere with gameplay
   - Test all toast notifications appear correctly
+
+
+- [x] 21. Port typing game to Next.js project
+  - Install zustand dependency in Next.js project (app-next)
+  - Add shadcn input component with ref forwarding support
+  - Create stores directory and port appStore.ts with Zustand state management
+  - Create hooks directory and port useAutoFocus.ts hook
+  - Create typing-game directory structure in app-next:
+    - typing-game/data.ts - All typing challenges
+    - typing-game/utils/wordParser.ts - Word parsing utility
+    - typing-game/store.ts - Complete Zustand store with game logic
+    - typing-game/components/TextDisplay.tsx - Text display with cursor and character coloring
+    - typing-game/components/TypingInput.tsx - Input field with validation and event handling
+    - typing-game/index.tsx - Main component that loads challenges and renders UI
+  - Update play page to import TypingGame from @/typing-game
+  - Remove old non-working TypingGame component from components/game
+  - Configure TypeScript path aliases (@/stores, @/hooks, @/typing-game)
+  - Test typing functionality works correctly in Next.js environment
+  - Verify all features work: character-by-character typing, error highlighting, word progression, challenge completion
+  - _Requirements: All requirements from original spec_
+  - _Properties: All properties from original spec_
+
+
+- [x] 22. Restructure data format to support story with chapters
+  - Update data.ts to use new Story interface with title, introduction, and chapters array
+  - Define Chapter interface (text, difficulty)
+  - Define Story interface (title, introduction, chapters)
+  - Replace flat typingChallenges array with structured story object
+  - Add legacy typingChallenges export for backward compatibility
+  - Update store.ts to use new story format:
+    - Add storyTitle and storyIntroduction state
+    - Rename challenges → chapters, currentChallengeIndex → currentChapterIndex
+    - Rename isChallengeComplete → isChapterComplete, isAllComplete → isStoryComplete
+    - Add totalChapters for progress tracking
+    - Rename loadChallenges() → loadStory(), nextChallenge() → nextChapter()
+  - Update index.tsx to call loadStory() instead of loadChallenges()
+  - Update TextDisplay.tsx and TypingInput.tsx to use isStoryComplete instead of isAllComplete
+  - Test that story loads correctly with new format
+  - Verify all 12 chapters from "The Archivist's Descent" load and play correctly
+  - _Requirements: 1.2, 7.1, 7.2, 8.1, 8.2, 8.3, 8.4_
+
+
+- [x] 23. Implement typing game slide-up animation on game start
+  - Added `isVisible` prop to TypingGame component
+  - Updated TypingGame styling to start hidden off-screen (`-bottom-full`)
+  - Added smooth slide-up transition (700ms ease-out) when `isVisible` becomes true
+  - Updated Play Page to pass `gameStarted` state as `isVisible` prop
+  - Typing game now slides up from bottom when Start button is clicked
+  - _Requirements: 1.6, 1.7_
+
+- [x] 24. Implement game statistics tracking
+  - Create `app-next/stores/gameStatsStore.ts` with Zustand
+  - Add elapsedTime, charactersTyped, and isTimerRunning state
+  - Add startTimer, stopTimer, resetStats, tick, and addCharacters actions
+  - Export formatTime helper for MM:SS formatting
+  - Export calculateWPM helper for WPM calculation (characters / 5 / minutes)
+  - Integrate timer with play page (start on game start, stop on win/lose, reset on restart)
+  - Add timer tick effect with 1-second interval
+  - Track characters typed in typing game store when words complete
+  - Count word length + 1 for space on handleSpaceOrEnter
+  - Count only word length (no space) for last word auto-complete
+  - Display timer and WPM in typing game stats bar
+  - Add Clock icon (blue) for timer display
+  - Add Keyboard icon (purple) for WPM display
+  - Display final time and WPM on game over overlay
+  - Display final time and WPM on victory overlay
+  - Format stats as "Time: MM:SS • XX WPM"
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10_
+
+## Estimated Effort
+
+- Total Tasks: 24
+- Completed: 24
+- Status: ✅ Complete

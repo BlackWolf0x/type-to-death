@@ -20,9 +20,10 @@ The webcam and blink detection are critical components for the Type to Death gam
 - **Video Stream**: The MediaStream object containing video data from the webcam
 - **Device Enumeration**: The process of listing available video input devices
 - **EAR (Eye Aspect Ratio)**: A metric calculated from eye landmarks to detect blinks
-- **Auto-Calibration**: Automatic process to determine blink detection threshold
+- **Manual Calibration**: Two-step process where user records eyes-open and eyes-closed EAR values
 - **Calibration Page**: The `/calibration` route where users grant webcam access and calibrate blink detection
 - **Play Page**: The `/play` route where the game is actively played
+- **localStorage**: Browser storage API used to persist calibration data between sessions
 
 ## Requirements
 
@@ -82,6 +83,9 @@ The webcam and blink detection are critical components for the Type to Death gam
 
 1. WHEN the webcam permission is granted and streaming THEN the Calibration Page SHALL automatically advance to calibration
 2. WHEN calibration is complete THEN the Calibration Page SHALL display a "Start Game" button
+3. WHEN a user navigates to /play without calibration data THEN the system SHALL redirect to /calibration
+4. WHEN a user navigates to /play without camera permission THEN the system SHALL redirect to /calibration
+5. WHEN a user navigates to /play with valid calibration and permission THEN the system SHALL start the webcam and load the game
 
 ### Requirement 6: Blink Detection Calibration
 
@@ -89,12 +93,23 @@ The webcam and blink detection are critical components for the Type to Death gam
 
 #### Acceptance Criteria
 
-1. WHEN the user starts calibration THEN the system SHALL collect EAR samples for 10 seconds
-2. WHEN calibration is in progress THEN the Calibration Page SHALL display a progress indicator
-3. WHEN calibration completes THEN the system SHALL calculate a personalized blink threshold
-4. WHEN calibration completes THEN the system SHALL persist the calibration to localStorage
-5. WHEN the user returns to the Calibration Page THEN the system SHALL load saved calibration if available
-6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Recalibrate" button
+1. WHEN the user starts eyes-open calibration THEN the system SHALL collect EAR samples while recording
+2. WHEN the user clicks "Save" for eyes-open THEN the system SHALL store the average EAR value
+3. WHEN the user starts eyes-closed calibration THEN the system SHALL collect EAR samples while recording
+4. WHEN the user clicks "Save" for eyes-closed THEN the system SHALL calculate threshold as (eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6)
+5. WHEN both calibration steps complete THEN the system SHALL mark calibration as complete AND save calibration data to localStorage
+6. WHEN the user wants to recalibrate THEN the Calibration Page SHALL provide a "Start Over" button
+
+### Requirement 8: Calibration Persistence
+
+**User Story:** As a returning user, I want my calibration data to be saved, so that I don't have to recalibrate every time I play.
+
+#### Acceptance Criteria
+
+1. WHEN calibration completes THEN the system SHALL save eyesOpenEAR, eyesClosedEAR, and threshold to localStorage
+2. WHEN the page loads THEN the system SHALL restore calibration data from localStorage if available
+3. WHEN calibration data exists in localStorage THEN the Calibration Page SHALL skip directly to the ready state
+4. WHEN the user clicks "Start Over" THEN the system SHALL clear calibration data from localStorage
 
 ### Requirement 7: Real-time Blink Feedback
 
@@ -106,6 +121,25 @@ The webcam and blink detection are critical components for the Type to Death gam
 2. WHEN a blink is detected THEN the eye overlays SHALL change color (green to red)
 3. WHEN blink detection is active THEN the Calibration Page SHALL display a blink counter
 4. WHEN the user blinks THEN the blink counter SHALL increment
+
+### Requirement 9: Play Page Webcam Integration
+
+**User Story:** As a player, I want the game to automatically check my webcam and calibration before loading, so that I don't encounter errors during gameplay.
+
+#### Acceptance Criteria
+
+1. WHEN the Play Page loads THEN the system SHALL check for stored calibration data in localStorage
+2. WHEN calibration data is missing THEN the Play Page SHALL redirect to /calibration without prompting for camera access
+3. WHEN calibration data exists THEN the system SHALL check camera permission without prompting
+4. WHEN camera permission is not granted THEN the Play Page SHALL redirect to /calibration
+5. WHEN both calibration and permission are valid THEN the Play Page SHALL start the webcam and load Unity
+6. WHEN the webcam fails to start THEN the Play Page SHALL redirect to /calibration
+7. WHEN Unity is loading THEN the Play Page SHALL display a loading indicator
+8. WHEN all checks pass THEN the Play Page SHALL display blink detection feedback during gameplay
+9. WHEN the game has not started THEN the blink counter SHALL display an infinity symbol (∞)
+10. WHEN the game starts THEN the blink counter SHALL reset to 0
+11. WHEN the game has not started THEN blink events SHALL NOT be sent to Unity
+12. WHEN the game starts THEN blink events SHALL be sent to Unity for each detected blink
 
 ## Non-Functional Requirements
 
@@ -161,4 +195,4 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 - Webcam stream optimization or compression
 - Analytics or telemetry for webcam usage
 - Offline mode or fallback without webcam
-- Manual calibration (eyes open/closed steps) - replaced by auto-calibration
+- Cloud-based calibration sync across devices

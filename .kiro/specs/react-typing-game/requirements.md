@@ -33,6 +33,8 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 3. WHEN displaying challenge text THEN the system SHALL replace the placeholder text with the actual challenge passage
 4. WHEN displaying challenge text THEN the system SHALL render all words in a readable format with appropriate spacing
 5. WHEN a challenge is active THEN the system SHALL maintain the text display until the challenge is completed or reset
+6. WHEN the game has not started THEN the typing game UI SHALL be hidden off-screen
+7. WHEN the game starts THEN the typing game UI SHALL slide up into view with a smooth animation
 
 ### Requirement 2
 
@@ -145,3 +147,20 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 3. WHEN validating input THEN the system SHALL complete validation within 16ms to maintain 60fps responsiveness
 4. WHEN the text container updates THEN the system SHALL use efficient rendering to prevent frame drops
 5. WHEN handling input events THEN the system SHALL prioritize input processing to ensure typing feels immediate
+
+### Requirement 11: Game Statistics Tracking
+
+**User Story:** As a player, I want to see my typing performance statistics, so that I can track my progress and improve my skills.
+
+#### Acceptance Criteria
+
+1. WHEN the game starts THEN the timer SHALL start from 0 seconds
+2. WHEN the game is active THEN the timer SHALL increment by 1 every second
+3. WHEN the game ends (win or lose) THEN the timer SHALL stop
+4. WHEN the game restarts THEN the timer SHALL reset to 0
+5. THE timer SHALL display in MM:SS format in the typing game UI
+6. WHEN a word is completed THEN the system SHALL count characters typed (word length + 1 for space)
+7. WHEN the last word is completed THEN the system SHALL count only the word length (no space)
+8. THE WPM SHALL be calculated as (characters typed / 5) / minutes elapsed
+9. THE WPM SHALL display in real-time in the typing game UI
+10. THE final time and WPM SHALL display on both win and lose overlays
