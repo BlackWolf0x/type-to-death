@@ -87,6 +87,7 @@ public class GameManager : MonoBehaviour
         Camera.main.GetComponent<CameraShake>().StopShake();
         AudioManager.Instance.PlaySfx(AudioManager.Instance.GameOverSfx);
         AudioManager.Instance.StopHeartbeat();
+        AudioManager.Instance.StopAmbiance();
         monsterObject.SetActive(false);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -108,7 +109,8 @@ public class GameManager : MonoBehaviour
 
     public void GameWon()
     {
-        // To be implemented later
+        AudioManager.Instance.StopHeartbeat();
+        AudioManager.Instance.StopAmbiance();
         monsterObject.SetActive(false);
     }
 }
