@@ -71,7 +71,7 @@ export const insertStory = internalMutation({
 
 
 // Constants for retry logic
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Internal action to generate a story using Claude
@@ -144,7 +144,7 @@ export const generateStory = internalAction({
             console.error(`Story generation failed (attempt ${currentRetry + 1}/${MAX_RETRIES}):`, error);
 
             // Schedule retry if we haven't exceeded max retries
-            if (currentRetry < MAX_RETRIES - 1) {
+            if (currentRetry < MAX_RETRIES ) {
                 console.log(`Scheduling retry in 5 minutes (attempt ${currentRetry + 2}/${MAX_RETRIES})`);
                 await ctx.scheduler.runAfter(RETRY_DELAY_MS, internal.stories.generateStory, {
                     retryCount: currentRetry + 1,
