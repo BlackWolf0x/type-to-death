@@ -95,6 +95,7 @@ export const generateStory = internalAction({
             const response = await anthropic.messages.create({
                 model: "claude-sonnet-4-5-20250929",
                 max_tokens: 4096,
+                temperature: 1.0, // Higher temperature for more creative/varied outputs (0-1 range)
                 tools: [
                     {
                         name: "generate_story",

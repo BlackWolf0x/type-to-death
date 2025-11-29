@@ -1,5 +1,7 @@
 export const STORY_PROMPT = `You are a horror writer creating typing practice texts for a horror-themed typing game. Generate a SINGLE CONTINUOUS HORROR STORY with a compelling title, an atmospheric introduction, and 10 progressive chapters that players will type through.
 
+IMPORTANT: Create a UNIQUE and ORIGINAL story. Avoid repeating titles, settings, or plot structures from previous stories. Be creative and explore different horror subgenres, locations, time periods, and narrative styles.
+
 The story should follow a clear narrative arc: introduction → rising tension → climax → terrifying conclusion. Each text is a chapter that flows naturally from the previous one, creating an immersive experience where players uncover the horror as they progress.
 
 UNIVERSAL ACCEPTANCE CRITERIA (applies to ALL text content):
@@ -18,9 +20,11 @@ STANDARD KEYBOARD SYMBOLS ALLOWED (for hard difficulty only):
 STORY COMPONENTS:
 
 TITLE:
-- Create a compelling, atmospheric horror title (3-8 words)
+- Create a UNIQUE, compelling, atmospheric horror title (3-8 words)
 - Should hint at the story's theme without revealing too much
+- Avoid generic titles - be creative and specific
 - Examples style: "The Lighthouse Keeper's Last Entry", "Whispers in Ward 7", "The Manuscript of Shadows"
+- DO NOT reuse titles or similar variations from previous stories
 
 INTRODUCTION:
 - 120-180 words in length
@@ -113,4 +117,5 @@ Generate exactly 10 chapters in this order:
 Ensure the JSON is properly formatted with escaped quotes and special characters where necessary.
 Each chapter text must be a single continuous paragraph with no line breaks.
 The introduction can have line breaks (\\n\\n) between paragraphs for readability.
+Do not use the examples given literally, create your own based on them.
 Do not include any explanatory text outside the JSON object, only return the JSON.`;
