@@ -8,7 +8,7 @@ public class Elevator : MonoBehaviour
     [SerializeField] private float descendDuration = 2f;
     
     [Header("Flicker Settings")]
-    [SerializeField] private float minIntensity = 0.5f;
+    [SerializeField] private float minIntensity = 0.1f;
     [SerializeField] private float maxIntensity = 1.5f;
     [SerializeField] private float flickerSpeed = 10f;
     
