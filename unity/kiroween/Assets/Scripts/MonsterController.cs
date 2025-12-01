@@ -508,6 +508,9 @@ public class MonsterController : MonoBehaviour
             // Apply final pose
             ApplyPose(finalPose);
             MonsterLog("Final pose applied.");
+            
+            // Increase humming pitch
+            AudioManager.Instance.IncreaseHummingPitch();
         }
         else if (currentLives == 0)
         {

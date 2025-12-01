@@ -3277,6 +3277,14 @@ MonoBehaviour:
       Data3: 1908412344
       Data4: -847091137
     Path: event:/Ambiance
+  hummingRef:
+    Guid:
+      Data1: 1178778646
+      Data2: 1238405799
+      Data3: -879106174
+      Data4: 556906121
+    Path: event:/Humming
+  hummingPitchIncrease: 1.1
   introDelay: 1.2
 --- !u!1 &1245970627 stripped
 GameObject:

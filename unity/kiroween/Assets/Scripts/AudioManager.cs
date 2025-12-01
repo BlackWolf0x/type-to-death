@@ -18,6 +18,10 @@ public class AudioManager : MonoBehaviour
     [Header("Ambiance")]
     [SerializeField] private EventReference ambianceRef;
     
+    [Header("Humming")]
+    [SerializeField] private EventReference hummingRef;
+    [SerializeField] private float hummingPitchIncrease = 2f;
+    
     [Header("Timing")]
     [SerializeField] private float introDelay = 2f;
     
@@ -25,8 +29,10 @@ public class AudioManager : MonoBehaviour
     public EventInstance introSfx;
     private EventInstance[] heartbeatInstances = new EventInstance[4];
     private EventInstance ambianceInstance;
+    private EventInstance hummingInstance;
     private int currentHeartbeatIndex = -1;
     private bool isInitialized = false;
+    private bool isHummingPlaying = false;
     
     public static AudioManager Instance => instance;
     public EventInstance GameOverSfx => gameOverSfx;
@@ -93,6 +99,11 @@ public class AudioManager : MonoBehaviour
         {
             ambianceInstance = RuntimeManager.CreateInstance(ambianceRef);
         }
+        
+        if (!hummingRef.IsNull)
+        {
+            hummingInstance = RuntimeManager.CreateInstance(hummingRef);
+        }
     }
     
     void ValidateHeartbeatReferences()
@@ -130,6 +141,12 @@ public class AudioManager : MonoBehaviour
             ambianceInstance.release();
         }
         
+        if (hummingInstance.isValid())
+        {
+            hummingInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            hummingInstance.release();
+        }
+        
         if (introSfx.isValid())
         {
             introSfx.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
@@ -153,6 +170,13 @@ public class AudioManager : MonoBehaviour
         {
             currentHeartbeatIndex = newIndex;
             PlayHeartbeat();
+        }
+        
+        // Play humming when lose completion reaches 75% or higher
+        if (percentage >= 75f && !isHummingPlaying)
+        {
+            PlayHumming();
+            isHummingPlaying = true;
         }
     }
     
@@ -191,6 +215,9 @@ public class AudioManager : MonoBehaviour
             }
         }
         currentHeartbeatIndex = -1;
+        
+        // Also stop humming when stopping heartbeat (game over scenario)
+        StopHumming();
     }
     
     public void PlaySfx(EventInstance sfx)
@@ -211,6 +238,30 @@ public class AudioManager : MonoBehaviour
         if (ambianceInstance.isValid())
         {
             ambianceInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+        }
+    }
+    
+    public void PlayHumming()
+    {
+        if (!isInitialized) return;
+        if (!hummingInstance.isValid()) return;
+        hummingInstance.start();
+    }
+    
+    public void StopHumming()
+    {
+        if (hummingInstance.isValid())
+        {
+            hummingInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+            isHummingPlaying = false;
+        }
+    }
+    
+    public void IncreaseHummingPitch()
+    {
+        if (hummingInstance.isValid())
+        {
+            hummingInstance.setPitch(hummingPitchIncrease);
         }
     }
 }
