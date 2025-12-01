@@ -25,6 +25,7 @@ public class MonsterController : MonoBehaviour
     [SerializeField] private AnimationClip finalPose;
     [Tooltip("Array of poses randomly selected during intermediate teleports")]
     [SerializeField] private AnimationClip[] randomPoses;
+    [SerializeField] private Animator playerLight;
 
     // ===== Private Runtime State Variables =====
     private int currentLives;
@@ -513,6 +514,9 @@ public class MonsterController : MonoBehaviour
             // No lives remaining - trigger sprint
             // Monster should already be at goalDistance from previous blink
             isSprinting = true;
+
+            // Move player light backwards
+            playerLight.Play("move-back");
             
             // Trigger animator parameter if animator exists
             // This will override any active pose and transition to sprint animation
