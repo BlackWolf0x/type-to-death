@@ -33,6 +33,7 @@ public class MonsterController : MonoBehaviour
     [SerializeField] private bool isSprinting = false;
     private float teleportDistance;
     private bool gameOver = false;
+    private bool canBlink = false;
     private AnimationClip lastRandomPose = null;
 
     // ===== Logging =====
@@ -183,6 +184,14 @@ public class MonsterController : MonoBehaviour
         // Apply starting pose
         ApplyPose(startingPose);
         MonsterLog("Starting pose applied.");
+
+        // Enable blinking after 2 seconds
+        Invoke(nameof(EnableBlinking), 2f);
+    }
+
+    public void EnableBlinking()
+    {
+        canBlink = true;
     }
 
 
@@ -458,6 +467,9 @@ public class MonsterController : MonoBehaviour
 
     public void OnBlinkDetected()
     {
+        // Check can blink
+        if (!canBlink) return;
+
         // Early return if already sprinting
         if (isSprinting)
         {
