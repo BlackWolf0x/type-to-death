@@ -73,8 +73,8 @@ export function HomeBanner() {
                     Don&apos;t blink. Don&apos;t stop typing. Don&apos;t become the next story.
                 </p>
 
-                <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    <Button variant="outlineRed" size="xl" className="relative" asChild>
+                <div className="mb-10 flex flex-col items-center gap-8 sm:flex-row sm:justify-center">
+                    <Button variant="outlineRed" size="xl" className="relative -rotate-4" asChild>
                         <Link href="/play">
                             <div className="absolute -bottom-2 w-3/4 h-px rotate-2 bg-red-500" />
                             <div className="absolute -bottom-2 w-3/5 h-px -rotate-3 bg-red-500" />
