@@ -224,6 +224,22 @@ Unity C# scripts must implement:
   - _Properties: P2, P7_
   - _Requirements: 7.11, 7.12, 7.13_
 
+- [x] 11. Implement Story Introduction Screen
+  - Add showIntro and introSeen state variables
+  - Add introScrollRef for scrollable intro text container
+  - Import story data from @/typing-game/data.ts
+  - Add useEffect to show intro when isReady and not introSeen
+  - Update Unity auto-start logic to require introSeen state
+  - Create handleStartGame callback to hide intro and set introSeen
+  - Add intro screen overlay with fade transition (700ms)
+  - Display story.title in red (text-red-500) with large font
+  - Display story.introduction in scrollable container (max-h-[50vh])
+  - Add "Begin" button with red styling to start game
+  - Update showLoading logic to hide when intro is visible
+  - Ensure intro only appears on first play, skipped on restart
+  - _Properties: P8, P9_
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
+
 ## Implementation Notes
 
 - Unity build files must be placed in `/public/game/` directory
@@ -261,6 +277,6 @@ Unity C# scripts must implement:
 
 ## Estimated Effort
 
-- Total Tasks: 10
-- Completed: 10
+- Total Tasks: 11
+- Completed: 11
 - Status: ✅ Complete

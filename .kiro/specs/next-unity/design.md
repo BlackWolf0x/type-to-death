@@ -56,11 +56,16 @@ export default function PlayPage() {
 
 ```
 1. Component mounts
-2. useUnityContext initializes with build URLs
-3. Unity starts loading (loadingProgression updates)
-4. Loading screen displays progress
-5. Unity finishes loading (isLoaded = true)
-6. Game canvas becomes visible
+2. Webcam and calibration checks run
+3. Requirements ready (isReady = true)
+4. Intro screen displays (if not seen before)
+5. User clicks "Begin" button
+6. introSeen state set to true
+7. useUnityContext initializes with build URLs
+8. Unity starts loading (loadingProgression updates)
+9. Loading screen displays progress
+10. Unity finishes loading (isLoaded = true)
+11. Game canvas becomes visible
 ```
 
 ### Blink Detection Flow
@@ -234,8 +239,21 @@ export function UnityGame() {
 
 **Validates: Requirements 5.1, 5.3**
 
+### P8: Intro Screen Display Logic
+
+*For any* first-time play session, the intro screen should display after requirements are ready and before Unity loads. *For any* restart, the intro screen should be skipped.
+
+**Validates: Requirements 8.1, 8.8, 8.9**
+
+### P9: Intro Content Accuracy
+
+*For any* intro screen display, the title and introduction text should match the story data from data.ts exactly.
+
+**Validates: Requirements 8.2, 8.3, 8.10**
+
 ## UI Layout
 
+### Game Screen
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  [Start] [Manual Blink]  ← Debug controls (top-left)   │
@@ -247,6 +265,25 @@ export function UnityGame() {
 │                                                          │
 │                                                          │
 │                          [👁️ Blinks: 5] ← Indicator    │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Intro Screen
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                          │
+│                                                          │
+│              The Archivist's Descent                    │
+│                    (red title)                          │
+│                                                          │
+│         ┌────────────────────────────────┐             │
+│         │  Story introduction text...    │             │
+│         │  (scrollable if needed)        │             │
+│         │                                 │             │
+│         └────────────────────────────────┘             │
+│                                                          │
+│                    [Begin]                              │
+│                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -287,6 +324,15 @@ export function UnityGame() {
 - Each blink triggers sendMessage once
 - Unity handles multiple rapid calls
 - Blink counter increments correctly
+
+### E5: User Refreshes Page During Gameplay
+
+**Scenario:** User refreshes the browser during gameplay
+
+**Handling:**
+- Intro screen will show again (introSeen state is lost)
+- Game restarts from beginning
+- Future: Consider persisting introSeen to localStorage
 
 ## Performance Considerations
 

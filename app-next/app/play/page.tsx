@@ -1,15 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { GameWebcam } from "@/components/game/GameWebcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { story } from "@/typing-game/data";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
+    const [showIntro, setShowIntro] = useState(false);
+    const [introSeen, setIntroSeen] = useState(false);
     const [unityReady, setUnityReady] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const [gameLost, setGameLost] = useState(false);
@@ -17,6 +20,7 @@ export default function PlayPage() {
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
     const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1 });
+    const introScrollRef = useRef<HTMLDivElement>(null);
 
     const resetTypingGame = useTypingGameStore((state) => state.reset);
     const loadStory = useTypingGameStore((state) => state.loadStory);
@@ -65,9 +69,16 @@ export default function PlayPage() {
         };
     }, [addEventListener, removeEventListener, handleGameIsReady, handleGameLost]);
 
-    // Auto-start game when Unity is ready, with fade-out transition
+    // Show intro when requirements are ready (but only if not seen yet)
     useEffect(() => {
-        if (unityReady && !gameStarted && !gameLost && !gameWon) {
+        if (isReady && !introSeen && !showIntro) {
+            setShowIntro(true);
+        }
+    }, [isReady, introSeen, showIntro]);
+
+    // Auto-start game when Unity is ready AND intro has been seen
+    useEffect(() => {
+        if (unityReady && introSeen && !gameStarted && !gameLost && !gameWon) {
             sendMessage("MainMenuManager", "GoToGameScene");
             setGameStarted(true);
             resetStats();
@@ -78,7 +89,12 @@ export default function PlayPage() {
                 setLoadingVisible(false);
             }, 600);
         }
-    }, [unityReady, gameStarted, gameLost, gameWon, sendMessage, resetStats, startTimer]);
+    }, [unityReady, introSeen, gameStarted, gameLost, gameWon, sendMessage, resetStats, startTimer]);
+
+    const handleStartGame = useCallback(() => {
+        setShowIntro(false);
+        setIntroSeen(true);
+    }, []);
 
     // Timer tick effect
     useEffect(() => {
@@ -120,8 +136,8 @@ export default function PlayPage() {
         setGameStarted(true);
     }, [sendMessage, resetTypingGame, loadStory, resetStats, startTimer]);
 
-    // Determine loading screen state
-    const showLoading = !isReady || !unityReady;
+    // Determine loading screen state (only show when intro is not visible and game not ready)
+    const showLoading = (!isReady || !unityReady) && !showIntro;
     const loadingText = !isReady ? "Checking requirements..." : "Loading game...";
 
     return (
@@ -144,6 +160,36 @@ export default function PlayPage() {
                 <div className={`flex items-center gap-3 transition-opacity duration-75 ${textVisible ? 'opacity-100' : 'opacity-0'}`}>
                     <Loader2 className="h-6 w-6 animate-spin" />
                     <span>{loadingText}</span>
+                </div>
+            </div>
+
+            {/* Intro screen */}
+            <div
+                className={`fixed inset-0 flex items-center justify-center bg-black text-white z-25 transition-opacity duration-700 ${showIntro
+                    ? 'opacity-100'
+                    : 'opacity-0 pointer-events-none'
+                    }`}
+            >
+                <div className="max-w-2xl mx-auto px-8 flex flex-col items-center gap-8">
+                    <h1 className="text-4xl font-bold text-center tracking-wide text-red-500">
+                        {story.title}
+                    </h1>
+                    <div
+                        ref={introScrollRef}
+                        className="max-h-[50vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+                    >
+                        <p className="text-lg leading-relaxed text-white/80 whitespace-pre-line">
+                            {story.introduction}
+                        </p>
+                    </div>
+                    <Button
+                        onClick={handleStartGame}
+                        variant="outline"
+                        size="lg"
+                        className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                    >
+                        Begin
+                    </Button>
                 </div>
             </div>
 

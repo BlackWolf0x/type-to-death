@@ -22,6 +22,8 @@ The game requires real-time communication between React (blink detection) and Un
 - **SendMessage**: Method to call Unity C# functions from JavaScript
 - **Monster**: Unity GameObject that responds to blink events
 - **MainMenuManager**: Unity GameObject that manages scene transitions
+- **Story Introduction**: The narrative text displayed before gameplay begins, providing context and setting
+- **Intro Screen**: The overlay that displays the story title and introduction before the game starts
 
 ## Requirements
 
@@ -39,6 +41,23 @@ The game requires real-time communication between React (blink detection) and Un
 6. WHEN Unity sends "GameIsReady" event THEN the system SHALL automatically start the game
 7. WHEN transitioning to game scene THEN the loading text SHALL fade out first (300ms)
 8. WHEN transitioning to game scene THEN the loading overlay SHALL fade out after (1000ms duration, 600ms delay)
+
+### Requirement 8: Story Introduction Screen
+
+**User Story:** As a player, I want to see the story introduction before the game starts, so that I understand the context and setting of the game.
+
+#### Acceptance Criteria
+
+1. WHEN requirements are checked and ready THEN the system SHALL display the intro screen
+2. WHEN the intro screen appears THEN it SHALL show the story title in red text
+3. WHEN the intro screen appears THEN it SHALL show the story introduction text
+4. THE introduction text SHALL be scrollable if it exceeds viewport height
+5. WHEN the intro screen appears THEN a "Begin" button SHALL be visible
+6. WHEN the "Begin" button is clicked THEN the intro screen SHALL fade out
+7. WHEN the intro screen fades out THEN Unity SHALL start loading
+8. WHEN the player restarts the game THEN the intro screen SHALL NOT appear again
+9. THE intro screen SHALL only appear on the first play session
+10. THE intro screen SHALL use story data from data.ts
 
 ### Requirement 2: Blink Detection Integration
 
@@ -157,6 +176,7 @@ The integration SHALL work on all browsers that support WebGL and MediaDevices A
 - Calibration data from `/calibration` page
 - shadcn/ui Button component
 - Lucide icons (Eye, EyeOff)
+- Story data from `@/typing-game/data.ts`
 
 ## Success Metrics
 
