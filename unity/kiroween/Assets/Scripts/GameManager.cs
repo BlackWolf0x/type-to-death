@@ -110,6 +110,7 @@ public class GameManager : MonoBehaviour
     public void GameWon()
     {
         AudioManager.Instance.StopHeartbeat();
+        AudioManager.Instance.StopHumming();
         AudioManager.Instance.StopAmbiance();
         monsterObject.SetActive(false);
     }
