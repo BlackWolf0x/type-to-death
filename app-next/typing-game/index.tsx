@@ -5,7 +5,7 @@ import { useTypingGameStore } from "./store";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { TextDisplay } from "./components/TextDisplay";
 import { TypingInput } from "./components/TypingInput";
-import { Eye, EyeOff, Clock, Keyboard } from "lucide-react";
+import { Eye, EyeOff, Clock, Keyboard, BookOpen } from "lucide-react";
 
 export { useTypingGameStore } from "./store";
 
@@ -21,6 +21,8 @@ interface TypingGameProps {
 
 export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
     const loadStory = useTypingGameStore((state) => state.loadStory);
+    const currentChapterIndex = useTypingGameStore((state) => state.currentChapterIndex);
+    const totalChapters = useTypingGameStore((state) => state.totalChapters);
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
     const charactersTyped = useGameStatsStore((state) => state.charactersTyped);
     const totalKeystrokes = useGameStatsStore((state) => state.totalKeystrokes);
@@ -55,6 +57,14 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
                                 <Eye className="h-5 w-5 text-green-400" />
                             )}
                             <span>Blinks: {blinkData.blinkCount === -1 ? '∞' : blinkData.blinkCount}</span>
+                        </div>
+                    )}
+
+                    {/* Chapter indicator */}
+                    {totalChapters > 0 && (
+                        <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                            <BookOpen className="h-5 w-5 text-orange-400" />
+                            <span>Chapter {currentChapterIndex + 1}/{totalChapters}</span>
                         </div>
                     )}
                 </div>

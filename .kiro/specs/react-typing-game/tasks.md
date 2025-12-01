@@ -314,8 +314,31 @@
   - Format stats as "Time: MM:SS • XX WPM"
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10_
 
+- [x] 25. Add accuracy tracking to game statistics
+  - Update gameStatsStore to track totalKeystrokes and correctKeystrokes
+  - Add recordKeystroke action that increments totalKeystrokes and conditionally increments correctKeystrokes
+  - Export calculateAccuracy helper function (correctKeystrokes / totalKeystrokes * 100)
+  - Integrate keystroke tracking in typing game store's setInputValue
+  - Record keystroke when new character is typed (not on backspace)
+  - Compare typed character against expected character to determine if correct
+  - Display accuracy percentage in typing game stats bar
+  - Reset keystroke counters when game restarts
+  - _Requirements: 11.11, 11.12_
+  - _Properties: P16_
+
+- [x] 26. Add chapter progress indicator to typing game UI
+  - Import BookOpen icon from lucide-react
+  - Subscribe to currentChapterIndex and totalChapters from typing game store
+  - Add chapter indicator component in stats bar (left side, before blink data)
+  - Display format "Chapter X/Y" where X is currentChapterIndex + 1
+  - Style with BookOpen icon (orange color) and black background
+  - Show only when totalChapters > 0
+  - Update in real-time as player progresses through chapters
+  - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
+  - _Properties: P17_
+
 ## Estimated Effort
 
-- Total Tasks: 24
-- Completed: 24
+- Total Tasks: 26
+- Completed: 26
 - Status: ✅ Complete
