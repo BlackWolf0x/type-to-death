@@ -26,6 +26,18 @@ const schema = defineSchema({
         ),
         createdAt: v.number(),
     }).index("by_createdAt", ["createdAt"]),
+
+    highscores: defineTable({
+        storyId: v.id("stories"),
+        userId: v.id("users"),
+        wordPerMinute: v.number(),
+        accuracy: v.number(),
+        timeTaken: v.number(),
+        score: v.number(),
+        createdAt: v.number(),
+    })
+        .index("by_score", ["score"])
+        .index("by_user_story", ["userId", "storyId"]),
 });
 
 export default schema;
