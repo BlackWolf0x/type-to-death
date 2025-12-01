@@ -74,8 +74,10 @@ export function HomeBanner() {
                 </p>
 
                 <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    <Button variant="outlineRed" size="xl" asChild>
+                    <Button variant="outlineRed" size="xl" className="relative" asChild>
                         <Link href="/play">
+                            <div className="absolute -bottom-2 w-3/4 h-px rotate-2 bg-red-500" />
+                            <div className="absolute -bottom-2 w-3/5 h-px -rotate-3 bg-red-500" />
                             <Skull />
                             Play Now
                             <MoveRight className="ml-2 translate-y-0.5" />
