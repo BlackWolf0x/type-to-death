@@ -58,12 +58,15 @@
   - _Properties: P3_
   - _Requirements: AC3.1, AC3.2, AC3.3_
 
-- [x] 8. Implement IncreaseHummingPitch Method
+- [x] 8. Implement IncreaseHummingPitch Method with Whispers
   - Create public IncreaseHummingPitch() method
-  - Check if hummingInstance is valid
-  - Call hummingInstance.setPitch(hummingPitchIncrease)
+  - Check if hummingInstance is valid and set pitch
+  - Check if whispersInstance is valid and start it
+  - Add whispersRef EventReference field and whispersInstance
+  - Create whispers instance in InstantiateSFXs()
+  - Stop whispers in StopHumming() and OnDisable()
   - _Properties: P3_
-  - _Requirements: AC3.4, AC3.5_
+  - _Requirements: AC3.4, AC3.5, AC3.6, AC3.7_
 
 - [x] 9. Integrate Pitch Increase in MonsterController
   - Call AudioManager.Instance.IncreaseHummingPitch() in currentLives == 1 branch

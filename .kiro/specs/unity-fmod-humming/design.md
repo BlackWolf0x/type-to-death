@@ -44,6 +44,7 @@ The humming system plays a looping sound automatically when lose completion reac
 ```csharp
 [Header("Humming")]
 [SerializeField] private EventReference hummingRef;
+[SerializeField] private EventReference whispersRef;
 [SerializeField] private float hummingPitchIncrease = 2f;
 ```
 
@@ -51,6 +52,7 @@ The humming system plays a looping sound automatically when lose completion reac
 
 ```csharp
 private EventInstance hummingInstance;
+private EventInstance whispersInstance;
 private bool isHummingPlaying = false;
 ```
 
@@ -93,12 +95,14 @@ In OnLoseCompletionChanged(percentage):
    - Set isHummingPlaying = true
 ```
 
-### 5. Pitch Increase
+### 5. Pitch Increase and Whispers Start
 
 ```
 IncreaseHummingPitch():
 1. Check if hummingInstance is valid
 2. Set pitch: hummingInstance.setPitch(hummingPitchIncrease)
+3. Check if whispersInstance is valid
+4. Start whispers: whispersInstance.start()
 ```
 
 ### 6. MonsterController Integration
@@ -151,27 +155,40 @@ In OnBlinkDetected():
 ```csharp
 [Header("Humming")]
 [SerializeField] private EventReference hummingRef;
+[SerializeField] private EventReference whispersRef;
 [SerializeField] private float hummingPitchIncrease = 2f;
 private EventInstance hummingInstance;
+private EventInstance whispersInstance;
 private bool isHummingPlaying = false;
 ```
 
 **Modified Methods:**
 
-**InstantiateSFXs()** - Add humming instance creation:
+**InstantiateSFXs()** - Add humming and whispers instance creation:
 ```csharp
 if (!hummingRef.IsNull)
 {
     hummingInstance = RuntimeManager.CreateInstance(hummingRef);
 }
+
+if (!whispersRef.IsNull)
+{
+    whispersInstance = RuntimeManager.CreateInstance(whispersRef);
+}
 ```
 
-**OnDisable()** - Add humming instance cleanup:
+**OnDisable()** - Add humming and whispers instance cleanup:
 ```csharp
 if (hummingInstance.isValid())
 {
     hummingInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
     hummingInstance.release();
+}
+
+if (whispersInstance.isValid())
+{
+    whispersInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+    whispersInstance.release();
 }
 ```
 
@@ -219,6 +236,11 @@ public void StopHumming()
         hummingInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
         isHummingPlaying = false;
     }
+    
+    if (whispersInstance.isValid())
+    {
+        whispersInstance.stop(FMOD.Studio.STOP_MODE.ALLOWFADEOUT);
+    }
 }
 
 public void IncreaseHummingPitch()
@@ -226,6 +248,11 @@ public void IncreaseHummingPitch()
     if (hummingInstance.isValid())
     {
         hummingInstance.setPitch(hummingPitchIncrease);
+    }
+    
+    if (whispersInstance.isValid())
+    {
+        whispersInstance.start();
     }
 }
 ```

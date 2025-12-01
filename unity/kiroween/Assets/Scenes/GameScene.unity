@@ -3284,6 +3284,13 @@ MonoBehaviour:
       Data3: -879106174
       Data4: 556906121
     Path: event:/Humming
+  whispersRef:
+    Guid:
+      Data1: 2064785683
+      Data2: 1263558494
+      Data3: 1087505298
+      Data4: 1264139162
+    Path: event:/Whispers
   hummingPitchIncrease: 1.1
   introDelay: 1.2
 --- !u!1 &1245970627 stripped

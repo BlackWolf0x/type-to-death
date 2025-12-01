@@ -40,28 +40,31 @@ When lose completion reaches 75%, a humming sound begins playing automatically. 
 4. THE AudioManager SHALL automatically call PlayHumming() when lose completion reaches 75%
 5. THE system SHALL prevent playing humming multiple times if already playing
 
-### Requirement 3: Humming Pitch Increase
+### Requirement 3: Humming Pitch Increase and Whispers
 
-**User Story:** As a player, I want the humming pitch to increase when I reach 1 life, so that I feel maximum tension before the final moment.
+**User Story:** As a player, I want the humming pitch to increase and whispers to start when I reach 1 life, so that I feel maximum tension before the final moment.
 
 #### Acceptance Criteria
 
 1. THE AudioManager SHALL provide a serialized float field for humming pitch increase value
 2. THE field SHALL be named hummingPitchIncrease and default to 2.0
 3. THE field SHALL be assignable in the Inspector under "Humming" header
-4. THE AudioManager SHALL provide an IncreaseHummingPitch() method
-5. WHEN IncreaseHummingPitch() is called, THE system SHALL set the humming pitch to hummingPitchIncrease value
-6. THE MonsterController SHALL call IncreaseHummingPitch() when currentLives equals 1
+4. THE AudioManager SHALL provide a serialized EventReference field for whispers sound
+5. THE AudioManager SHALL provide an IncreaseHummingPitch() method
+6. WHEN IncreaseHummingPitch() is called, THE system SHALL set the humming pitch to hummingPitchIncrease value
+7. WHEN IncreaseHummingPitch() is called, THE system SHALL start playing the whispers sound
+8. THE MonsterController SHALL call IncreaseHummingPitch() when currentLives equals 1
 
-### Requirement 4: Humming Stop Control
+### Requirement 4: Humming and Whispers Stop Control
 
-**User Story:** As a system, I want to stop the humming when game over occurs, so that it doesn't continue playing.
+**User Story:** As a system, I want to stop the humming and whispers when game over occurs, so that they don't continue playing.
 
 #### Acceptance Criteria
 
 1. THE AudioManager SHALL provide a StopHumming() method
 2. WHEN StopHumming() is called, THE system SHALL stop the humming EventInstance with fade out
-3. THE AudioManager SHALL call StopHumming() when StopHeartbeat() is called (game over scenario)
+3. WHEN StopHumming() is called, THE system SHALL stop the whispers EventInstance with fade out
+4. THE AudioManager SHALL call StopHumming() when StopHeartbeat() is called (game over scenario)
 
 ### Requirement 5: Lose Completion Integration
 
