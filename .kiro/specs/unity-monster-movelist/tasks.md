@@ -3,8 +3,6 @@
 ## Tasks Overview
 
 - [x] 1. Add Pose Configuration Fields
-
-
   - Add serialized fields for startingPose, finalPose, and randomPoses array
   - Add [Header("Pose Configuration")] attribute
   - Add tooltips for each field
@@ -12,8 +10,6 @@
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
 - [x] 2. Implement Pose Validation
-
-
   - Create ValidatePoses() method
   - Check if startingPose is assigned
   - Check if finalPose is assigned
@@ -25,8 +21,6 @@
   - _Requirements: 1.5_
 
 - [x] 3. Implement Pose Application Method
-
-
   - Create ApplyPose(AnimationClip poseClip) method
   - Check if animator and poseClip are not null
   - Use animator.Play() to apply pose at normalized time 0
@@ -35,69 +29,54 @@
   - _Requirements: 5.1, 5.2, 5.3, 6.1_
 
 - [x] 4. Apply Starting Pose on Spawn
-
-
   - In Start() method, after spawn position setup
   - Call ApplyPose(startingPose)
   - Add debug log for starting pose application
   - _Properties: P1_
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
+- [x] 5. Initialize Pose Pool System
+  - Create InitializeValidPoses() method
+  - Filter out null poses from randomPoses array into validPoses list
+  - Create ResetUnusedPoses() method to refill unusedPoses pool
+  - Call InitializeValidPoses() from Start() after pose validation
+  - Add debug logging for pool initialization
+  - _Properties: P9_
+  - _Requirements: 3.4, 3.5_
 
-
-- [ ] 5. Implement Random Pose Selection
+- [x] 6. Implement Random Pose Selection with Pool Tracking
   - Create SelectRandomPose() method
-  - Use Random.Range(0, randomPoses.Length) for selection
+  - Check if unusedPoses pool is empty, reset if needed
+  - Use Random.Range(0, unusedPoses.Count) for selection
+  - Remove selected pose from unusedPoses pool
   - Return selected AnimationClip
-  - Add debug logging with selected index
-  - _Properties: P2, P8_
+  - Add debug logging with remaining pool size
+  - _Properties: P2, P8, P9, P10_
+  - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6_
 
-
-  - _Requirements: 3.1, 3.3_
-
-- [ ] 6. Apply Random Pose on Intermediate Teleports
+- [x] 7. Apply Random Pose on Intermediate Teleports
   - In OnBlinkDetected(), when currentLives > 1
   - After TeleportTowardCamera() call
   - Call SelectRandomPose() and ApplyPose()
-
-
   - Add debug logging
   - _Properties: P3_
-  - _Requirements: 3.2, 3.5_
+  - _Requirements: 3.2, 3.7_
 
-- [ ] 7. Apply Final Pose at Goal Distance
+- [x] 8. Apply Final Pose at Goal Distance
   - In OnBlinkDetected(), when currentLives == 1
-
   - After TeleportToGoalDistance() call
   - Call ApplyPose(finalPose)
   - Add debug logging
   - _Properties: P4_
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [x] 8. Verify Sprint Animation Override
-
+- [x] 9. Verify Sprint Animation Override
   - Ensure sprint animation still triggers correctly
   - Verify sprint overrides any active pose
   - Test transition from final pose to sprint
   - _Properties: P6_
   - _Requirements: 5.4, 6.2, 6.3_
 
-
-
-
-- [ ] 9. Testing and Validation
-  - Test with various pose counts (1, 5, 10+ poses)
-  - Test with missing pose references
-  - Test with empty randomPoses array
-  - Verify starting pose displays on spawn
-  - Verify random poses during intermediate teleports
-  - Verify final pose at goal distance
-  - Verify sprint animation after final pose
-  - Test rapid blinking for pose changes
-  - _Properties: All_
-  - _Requirements: All_
-
----
 
 ## Implementation Notes
 
@@ -157,7 +136,7 @@ If direct animator.Play() doesn't work well, consider using AnimatorOverrideCont
 
 ## Estimated Effort
 
-- Total Tasks: 9 coding tasks + 4 manual setup tasks
+- Total Tasks: 10 coding tasks + 4 manual setup tasks
 - Estimated Coding Time: 1-2 hours
 - Estimated Setup Time: 30-60 minutes
 - Complexity: Low-Medium

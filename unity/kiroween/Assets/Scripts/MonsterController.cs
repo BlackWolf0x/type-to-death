@@ -35,7 +35,8 @@ public class MonsterController : MonoBehaviour
     private float teleportDistance;
     private bool gameOver = false;
     private bool canBlink = false;
-    private AnimationClip lastRandomPose = null;
+    private System.Collections.Generic.List<AnimationClip> unusedPoses = new();
+    private System.Collections.Generic.List<AnimationClip> validPoses = new();
 
     // ===== Logging =====
     private enum LogType { Log, Warning, Error }
@@ -152,6 +153,9 @@ public class MonsterController : MonoBehaviour
         
         // Validate pose assignments
         ValidatePoses();
+        
+        // Initialize valid poses and unused poses pool
+        InitializeValidPoses();
 
         // Initialize current lives
         currentLives = lives;
@@ -385,17 +389,17 @@ public class MonsterController : MonoBehaviour
     }
     
 
-    private AnimationClip SelectRandomPose()
+    private void InitializeValidPoses()
     {
         // Validate random poses array
         if (randomPoses == null || randomPoses.Length == 0)
         {
-            MonsterLog("Cannot select random pose - randomPoses array is empty.", LogType.Warning);
-            return null;
+            MonsterLog("Cannot initialize poses - randomPoses array is empty.", LogType.Warning);
+            return;
         }
         
-        // Filter out null elements
-        System.Collections.Generic.List<AnimationClip> validPoses = new();
+        // Filter out null elements and populate validPoses list
+        validPoses.Clear();
         for (int i = 0; i < randomPoses.Length; i++)
         {
             if (randomPoses[i] != null)
@@ -407,36 +411,55 @@ public class MonsterController : MonoBehaviour
         // Check if we have any valid poses
         if (validPoses.Count == 0)
         {
-            MonsterLog("Cannot select random pose - all elements in randomPoses are null.", LogType.Warning);
+            MonsterLog("Cannot initialize poses - all elements in randomPoses are null.", LogType.Warning);
+            return;
+        }
+        
+        // Initialize unused poses with all valid poses
+        ResetUnusedPoses();
+        
+        MonsterLog($"Initialized {validPoses.Count} valid poses for random selection.");
+    }
+    
+    private void ResetUnusedPoses()
+    {
+        // Refill unused poses with all valid poses
+        unusedPoses.Clear();
+        unusedPoses.AddRange(validPoses);
+        
+        MonsterLog($"Reset unused poses pool - {unusedPoses.Count} poses available.");
+    }
+    
+    private AnimationClip SelectRandomPose()
+    {
+        // Check if we have any valid poses
+        if (validPoses.Count == 0)
+        {
+            MonsterLog("Cannot select random pose - no valid poses available.", LogType.Warning);
             return null;
         }
         
         // If only one pose available, return it
         if (validPoses.Count == 1)
         {
-            lastRandomPose = validPoses[0];
-            MonsterLog($"Selected only available pose '{lastRandomPose.name}'");
-            return lastRandomPose;
+            MonsterLog($"Selected only available pose '{validPoses[0].name}'");
+            return validPoses[0];
         }
         
-        // Filter out the last pose to avoid repetition
-        System.Collections.Generic.List<AnimationClip> availablePoses = new();
-        for (int i = 0; i < validPoses.Count; i++)
+        // If all poses have been used, reset the pool
+        if (unusedPoses.Count == 0)
         {
-            if (validPoses[i] != lastRandomPose)
-            {
-                availablePoses.Add(validPoses[i]);
-            }
+            ResetUnusedPoses();
         }
         
-        // Select random index from available poses (excluding last pose)
-        int randomIndex = Random.Range(0, availablePoses.Count);
-        AnimationClip selectedPose = availablePoses[randomIndex];
+        // Select random index from unused poses
+        int randomIndex = Random.Range(0, unusedPoses.Count);
+        AnimationClip selectedPose = unusedPoses[randomIndex];
         
-        // Store for next time
-        lastRandomPose = selectedPose;
+        // Remove selected pose from unused pool
+        unusedPoses.RemoveAt(randomIndex);
         
-        MonsterLog($"Selected random pose '{selectedPose.name}' (index {randomIndex} of {availablePoses.Count} available poses, excluding last)");
+        MonsterLog($"Selected random pose '{selectedPose.name}' ({unusedPoses.Count} poses remaining in pool)");
         
         return selectedPose;
     }

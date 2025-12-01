@@ -48,9 +48,11 @@ This feature adds dynamic pose variation to the monster's teleportation behavior
 
 1. WHEN the monster teleports AND currentLives is greater than 1, THE MonsterController SHALL select a random pose from the random pose list
 2. THE MonsterController SHALL apply the selected random pose immediately after teleportation
-3. THE random pose selection SHALL use uniform random distribution
-4. THE same pose MAY be selected multiple times in succession
-5. THE random pose SHALL be played at time 0 and normalized time 0
+3. THE random pose selection SHALL use uniform random distribution from the pool of unused poses
+4. THE MonsterController SHALL track which poses have been used
+5. WHEN all poses have been used, THE MonsterController SHALL reset the pool and make all poses available again
+6. THE same pose SHALL NOT be selected until all other poses have been used
+7. THE random pose SHALL be played at time 0 and normalized time 0
 
 ### Requirement 4: Final Pose Display
 
