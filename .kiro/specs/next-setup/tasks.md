@@ -32,3 +32,12 @@
   - Use proper TypeScript types for page components
   - _Properties: P2_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [x] 4. Create home page with banner
+  - Update `app/(home)/page.tsx` to use client component
+  - Create `components/home-banner.tsx` with shadcn button
+  - Add "Start Game" button that navigates to `/main-menu`
+  - Use Next.js `useRouter` for navigation
+  - Style banner with Tailwind CSS for centered layout
+  - _Properties: P2_
+  - _Requirements: 4.1, 4.5_

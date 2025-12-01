@@ -1,9 +1,9 @@
-import { AuthModal } from "@/components/modals/AuthModal";
+import { HomeBanner } from "@/components/home-banner";
 
 export default function Home() {
 	return (
-		<>
-			<AuthModal />
-		</>
+		<div className="min-h-screen bg-black">
+			<HomeBanner />
+		</div>
 	);
 }
