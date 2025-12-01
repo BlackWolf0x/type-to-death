@@ -41,3 +41,15 @@
   - Style banner with Tailwind CSS for centered layout
   - _Properties: P2_
   - _Requirements: 4.1, 4.5_
+
+- [x] 5. Style calibration page with horror theme
+  - Add operating room background image with low opacity
+  - Create VHSStatic component with film grain effect using SVG filters
+  - Enhance Card component with red corner brackets
+  - Add CardRain component for animated red rain background
+  - Implement shake animation in globals.css
+  - Apply conditional shake animation when webcam is not connected
+  - Update card border to red with transparency
+  - Ensure proper z-index layering for all visual effects
+  - _Properties: P2_
+  - _Requirements: 4.3_

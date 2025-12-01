@@ -70,3 +70,32 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+@keyframes shake {
+
+	0%,
+	100% {
+		transform: translate(0, 0);
+	}
+
+	10%,
+	30%,
+	50%,
+	70%,
+	90% {
+		transform: translate(-1px, -1px);
+	}
+
+	20%,
+	40%,
+	60%,
+	80% {
+		transform: translate(1px, 1px);
+	}
+}
+
+@layer utilities {
+	.animate-shake {
+		animation: shake 0.5s ease-in-out infinite;
+	}
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useWebcam, WebcamErrorCode, type WebcamError } from '@/hooks/useWebcam';
 import {
@@ -26,7 +27,9 @@ import {
     CheckCircle2,
     RefreshCw,
     Play,
+    Webcam,
 } from 'lucide-react';
+import { VHSStatic } from '@/components/vhs-static';
 
 // ============================================================================
 // Types
@@ -211,19 +214,30 @@ export default function CalibrationPage() {
     const blinkErrorUI = blink.error ? getBlinkErrorUI(blink.error) : null;
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 font-sans dark:bg-black">
-            <Card className="w-full max-w-2xl">
+        <div className="relative flex min-h-screen items-center justify-center p-4 font-sans bg-black">
+            {/* Operating room background */}
+            <Image
+                src="/operating-room.png"
+                alt="Operating room"
+                fill
+                className="object-cover opacity-10 sepia"
+                priority
+            />
+
+            {/* Film grain overlay */}
+            <VHSStatic />
+
+            <Card className={`relative z-10 w-full max-w-2xl ${!webcam.isStreaming ? 'animate-shake' : ''}`}>
                 {/* WEBCAM PERMISSION STATE */}
                 {pageState === 'webcam' && (
                     <>
                         <CardHeader className="text-center">
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                                <Camera className="h-6 w-6" />
-                                Camera Access Required
+                            <CardTitle className="flex items-center justify-center gap-2 text-4xl text-red-500">
+                                <Webcam />
+                                Webcam Access Required
                             </CardTitle>
                             <CardDescription className="text-base">
-                                This game uses your camera to detect blinks.
-                                Your feed stays on your device.
+                                This game uses your webcam to detect blinks.
                             </CardDescription>
                         </CardHeader>
 
@@ -245,17 +259,17 @@ export default function CalibrationPage() {
 
                             {!webcam.isStreaming && !webcam.isLoading && (
                                 <div className="flex flex-col items-center gap-6 py-8">
-                                    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                                        <Camera className="h-16 w-16 text-zinc-400" />
-                                    </div>
+                                    <Image src="/eyes.gif" width={400} height={320} alt='Calibration' className="mix-blend-screen" />
+
                                     <Button
                                         onClick={handleRequestCamera}
-                                        size="lg"
+                                        size="xl"
+                                        variant="outlineRed"
                                         className="gap-2"
                                         disabled={webcamErrorUI?.canRetry === false}
                                     >
-                                        <Camera className="h-5 w-5" />
-                                        {webcam.error ? 'Try Again' : 'Grant Camera Access'}
+                                        <Webcam className="h-5 w-5" />
+                                        {webcam.error ? 'Try Again' : 'Grant Webcam Access'}
                                     </Button>
                                 </div>
                             )}
