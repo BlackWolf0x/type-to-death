@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Skull } from "lucide-react";
+import { Award, MoveRight, Skull } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 export function HomeBanner() {
@@ -17,6 +17,12 @@ export function HomeBanner() {
 
     return (
         <section className="relative select-none flex min-h-screen flex-col items-center justify-center overflow-hidden px-4">
+
+            {/* Borders */}
+            <div className="absolute inset-0 z-10 animate-pulse top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-1 w-[calc(100vw-70px)] h-[calc(100vh-70px)] border border-red-500 rounded-3xl" />
+            <div className="absolute inset-0 z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-1 w-[calc(100vw-80px)] h-[calc(100vh-80px)] border border-red-500 rounded-3xl" />
+
+
             {/* Background effects */}
             <div className="absolute z-10 inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-red-950/20 via-transparent to-transparent" />
             <div className="absolute z-10 top-1/4 left-1/4 h-96 w-96 animate-pulse rounded-full bg-red-900/10 blur-3xl" />
@@ -63,20 +69,27 @@ export function HomeBanner() {
                     and the shadows hunger for the living. Every keystroke is a heartbeat. Every blink brings them closer.
                 </p>
 
-                <p className="mb-8 text-xl font-semibold text-red-500 text-shadow-xs text-shadow-black drop-shadow-[0_0_10px_rgba(239,68,68,0.6)] md:text-2xl">
+                <p className="mb-14 text-xl font-semibold text-red-500 text-shadow-xs text-shadow-black drop-shadow-[0_0_10px_rgba(239,68,68,0.6)] md:text-2xl">
                     Don&apos;t blink. Don&apos;t stop typing. Don&apos;t become the next story.
                 </p>
 
                 <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-
                     <Button variant="outlineRed" size="xl" asChild>
                         <Link href="/play">
                             <Skull />
                             Play Now
+                            <MoveRight className="ml-2 translate-y-0.5" />
                         </Link>
                     </Button>
 
-                    <Link href="/play">
+                    <Button variant="outline" size="xl" asChild>
+                        <Link href="/play">
+                            <Award />
+                            Leaderboard
+                        </Link>
+                    </Button>
+
+                    {/* <Link href="/play">
                         <Button
                             size="lg"
                             className="bg-red-600 px-8 py-6 text-lg font-semibold hover:bg-red-700"
@@ -84,7 +97,7 @@ export function HomeBanner() {
                             <Skull className="mr-2 h-5 w-5" />
                             Play Now
                         </Button>
-                    </Link>
+                    </Link> */}
                 </div>
             </div>
         </section>
