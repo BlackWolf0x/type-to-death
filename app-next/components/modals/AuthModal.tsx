@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { User } from "lucide-react";
 
 
 
@@ -62,8 +63,9 @@ export function AuthModal() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    Sign In / Register
+                <Button size="lg" className="fixed z-40 bottom-18 left-1/2 -translate-x-1/2 shadow-sm shadow-red-500">
+                    <User />
+                    Login / Sign Up
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">

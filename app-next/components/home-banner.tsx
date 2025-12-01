@@ -64,16 +64,16 @@ export function HomeBanner() {
                     Type To Death
                 </h1>
 
-                <p className="mb-6 text-2xl font-light text-shadow-sm text-shadow-black">
+                <p className="mb-6 text-2xl font-light text-shadow-lg text-shadow-black">
                     Welcome to Latham Asylum, where the walls whisper forgotten names
                     and the shadows hunger for the living. Every keystroke is a heartbeat. Every blink brings them closer.
                 </p>
 
-                <p className="mb-14 text-xl font-semibold text-red-500 text-shadow-xs text-shadow-black drop-shadow-[0_0_10px_rgba(239,68,68,0.6)] md:text-2xl">
+                <p className="mb-10 text-xl font-semibold text-red-500 text-shadow-xs text-shadow-black drop-shadow-[0_0_10px_rgba(239,68,68,0.6)] md:text-2xl">
                     Don&apos;t blink. Don&apos;t stop typing. Don&apos;t become the next story.
                 </p>
 
-                <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                     <Button variant="outlineRed" size="xl" className="relative" asChild>
                         <Link href="/play">
                             <div className="absolute -bottom-2 w-3/4 h-px rotate-2 bg-red-500" />
@@ -90,17 +90,11 @@ export function HomeBanner() {
                             Leaderboard
                         </Link>
                     </Button>
-
-                    {/* <Link href="/play">
-                        <Button
-                            size="lg"
-                            className="bg-red-600 px-8 py-6 text-lg font-semibold hover:bg-red-700"
-                        >
-                            <Skull className="mr-2 h-5 w-5" />
-                            Play Now
-                        </Button>
-                    </Link> */}
                 </div>
+
+                <p className="text-base font-light text-shadow-sm text-shadow-black">
+                    New typing challenge generated every day!
+                </p>
             </div>
         </section>
     );
