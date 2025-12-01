@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
     
     [Header("FMOD Events")]
     [SerializeField] private EventReference gameOverRef;
+    [SerializeField] private EventReference introRef;
     
     [Header("Heartbeat System")]
     [SerializeField] private EventReference[] heartbeatIntensities = new EventReference[4];
@@ -17,7 +18,11 @@ public class AudioManager : MonoBehaviour
     [Header("Ambiance")]
     [SerializeField] private EventReference ambianceRef;
     
+    [Header("Timing")]
+    [SerializeField] private float introDelay = 2f;
+    
     public EventInstance gameOverSfx;
+    public EventInstance introSfx;
     private EventInstance[] heartbeatInstances = new EventInstance[4];
     private EventInstance ambianceInstance;
     private int currentHeartbeatIndex = -1;
@@ -25,6 +30,7 @@ public class AudioManager : MonoBehaviour
     
     public static AudioManager Instance => instance;
     public EventInstance GameOverSfx => gameOverSfx;
+    public EventInstance IntroSfx => introSfx;
     
     void Awake()
     {
@@ -61,11 +67,19 @@ public class AudioManager : MonoBehaviour
         
         OnLoseCompletionChanged(0f);
         PlayAmbiance();
+        StartCoroutine(PlayIntroAfterDelay());
+    }
+    
+    IEnumerator PlayIntroAfterDelay()
+    {
+        yield return new WaitForSeconds(introDelay);
+        PlaySfx(introSfx);
     }
     
     void InstantiateSFXs()
     {
         gameOverSfx = RuntimeManager.CreateInstance(gameOverRef);
+        introSfx = RuntimeManager.CreateInstance(introRef);
         
         for (int i = 0; i < heartbeatIntensities.Length; i++)
         {
@@ -114,6 +128,12 @@ public class AudioManager : MonoBehaviour
         {
             ambianceInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
             ambianceInstance.release();
+        }
+        
+        if (introSfx.isValid())
+        {
+            introSfx.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            introSfx.release();
         }
     }
     

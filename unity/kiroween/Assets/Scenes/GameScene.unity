@@ -3238,6 +3238,13 @@ MonoBehaviour:
       Data3: 18014122
       Data4: 1064353656
     Path: event:/Impact Blood 3
+  introRef:
+    Guid:
+      Data1: 2007764205
+      Data2: 1214930685
+      Data3: -711861616
+      Data4: 1348516235
+    Path: event:/Monster Intro
   heartbeatIntensities:
   - Guid:
       Data1: -423609030
@@ -3270,6 +3277,7 @@ MonoBehaviour:
       Data3: 1908412344
       Data4: -847091137
     Path: event:/Ambiance
+  introDelay: 1.2
 --- !u!1 &1245970627 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5117866742631320587, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
