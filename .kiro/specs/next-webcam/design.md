@@ -747,6 +747,69 @@ export default function PermissionPage() {
 3. Test multiple cameras (if available)
 4. Test browser permission denial and retry
 
+### 6. Visual Styling Components
+
+**VHSStatic Component**
+
+**File:** `app-next/components/vhs-static.tsx`
+
+**Responsibilities:**
+- Render film grain overlay effect using SVG filter
+- Provide atmospheric horror aesthetic
+- Use GPU-accelerated CSS for performance
+
+**Technical Implementation:**
+- Uses SVG `feTurbulence` filter with `baseFrequency="0.65"` and `numOctaves="3"`
+- Applied via inline SVG data URL
+- Uses `mix-blend-multiply` for authentic film grain blending
+- Default opacity of 70%
+
+**CardRain Component**
+
+**File:** `app-next/components/ui/card-rain.tsx`
+
+**Responsibilities:**
+- Render animated red rain effect within cards
+- Use canvas-based animation for performance
+- Automatically resize with card dimensions
+
+**Technical Implementation:**
+- 50 red raindrops with varying opacity (0.3-0.8)
+- Speed range: 2-5 units per frame
+- Length range: 10-30 pixels
+- Uses `ResizeObserver` for responsive sizing
+- Positioned at 20% opacity within cards
+
+**Enhanced Card Component**
+
+**File:** `app-next/components/ui/card.tsx`
+
+**Enhancements:**
+- Red corner brackets (top-left, top-right, bottom-left, bottom-right)
+- Red border (`border-red-500/30`)
+- Integrated CardRain background
+- `overflow-hidden` to contain rain animation
+
+## Correctness Properties
+
+### Property 13: Background Image Cycling
+
+*For any* blink detected during the ready state, the system should cycle to the next horror image in the sequence.
+
+**Validates: Requirements 10.2**
+
+### Property 14: Visual Effects Rendering
+
+*For any* calibration page load, the system should render film grain overlay, and when the card is visible, it should display red corner brackets and rain animation.
+
+**Validates: Requirements 10.3, 10.5, 10.6**
+
+### Property 15: Shake Animation Conditional Display
+
+*For any* state where the webcam is not streaming, the calibration card should display a shake animation. *For any* state where the webcam is streaming, the shake animation should stop.
+
+**Validates: Requirements 10.4**
+
 ## Future Enhancements
 
 - Device selection UI for multiple cameras
@@ -756,3 +819,8 @@ export default function PermissionPage() {
 - Performance monitoring and optimization
 - Accessibility improvements (keyboard navigation, screen reader support)
 - Mobile device support and testing
+- Animated film grain (seed animation)
+- Adjustable rain intensity based on game state
+- Glitch effects during critical moments
+- Scanline overlay for CRT monitor effect
+- Vignette effect around card edges

@@ -172,8 +172,34 @@
   - _Properties: P11, P12_
   - _Requirements: 9.9, 9.10, 9.11, 9.12_
 
+- [x] 14. Implement horror-themed visual styling for calibration page
+  - Add background image cycling system with horror images
+  - Implement default operating room background at 10% opacity
+  - Create array of 10 horror images that cycle on each blink
+  - Add VHSStatic component for film grain overlay effect
+  - Implement SVG-based film grain using feTurbulence filter
+  - Configure film grain with baseFrequency="0.65" and numOctaves="3"
+  - Apply mix-blend-multiply for authentic grain blending at 70% opacity
+  - Create CardRain component for red rain animation effect
+  - Implement canvas-based rain with 50 red raindrops
+  - Configure rain with speed range 2-5 units, length 10-30 pixels
+  - Add ResizeObserver for responsive rain sizing
+  - Enhance Card component with red corner brackets
+  - Add red border styling (border-red-500/30)
+  - Integrate CardRain background at 20% opacity
+  - Implement shake animation in globals.css
+  - Apply shake animation conditionally when webcam is not streaming
+  - Configure 1px diagonal jitter with 0.5s duration
+  - Track current image index with state (-1 for default, 0-9 for horror images)
+  - Increment image index on blink count change in ready state
+  - Reset to default image when camera stops
+  - Apply sepia filter to background images
+  - Adjust background opacity based on blink state (opacity-5 when blinking, opacity-100 when open)
+  - _Properties: P13, P14, P15_
+  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
+
 ## Estimated Effort
 
-- Total Tasks: 13
-- Completed: 13
+- Total Tasks: 14
+- Completed: 14
 - Status: ✅ Complete

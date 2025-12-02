@@ -19,7 +19,6 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
-    Camera,
     Eye,
     EyeOff,
     Loader2,
@@ -127,10 +126,27 @@ function getBlinkErrorUI(error: BlinkDetectorError) {
 const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
 const RIGHT_EYE_INDICES = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398];
 
+// Horror images that cycle on blink
+const HORROR_IMAGES = [
+    '/horror-images/horror1.jpg',
+    '/horror-images/horror2.jpg',
+    '/horror-images/horror3.jpg',
+    '/horror-images/horror4.jpg',
+    '/horror-images/horror5.jpg',
+    '/horror-images/horror6.jpg',
+    '/horror-images/horror7.jpg',
+    '/horror-images/horror8.jpg',
+    '/horror-images/horror9.jpg',
+    '/horror-images/horror10.jpg',
+];
+const DEFAULT_IMAGE = '/operating-room.png';
+
 export default function CalibrationPage() {
     const router = useRouter();
     const [pageState, setPageState] = useState<PageState>('webcam');
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 = default image
+    const prevBlinkCountRef = useRef(0);
 
     // Webcam hook
     const webcam = useWebcam();
@@ -156,6 +172,23 @@ export default function CalibrationPage() {
             setPageState('ready');
         }
     }, [blink.isCalibrated, pageState]);
+
+    // Cycle horror images on each blink (only in ready state)
+    useEffect(() => {
+        if (pageState === 'ready' && blink.blinkCount > prevBlinkCountRef.current) {
+            setCurrentImageIndex(prev => (prev + 1) % HORROR_IMAGES.length);
+        }
+        prevBlinkCountRef.current = blink.blinkCount;
+    }, [blink.blinkCount, pageState]);
+
+    // Reset to default image when camera stops
+    useEffect(() => {
+        if (!webcam.isStreaming) {
+            setCurrentImageIndex(-1);
+        }
+    }, [webcam.isStreaming]);
+
+
 
     // Draw eye landmarks on canvas
     useEffect(() => {
@@ -215,19 +248,24 @@ export default function CalibrationPage() {
 
     return (
         <div className="relative flex min-h-screen items-center justify-center p-4 font-sans bg-black">
-            {/* Operating room background */}
+            {/* Background image - cycles through horror images on blink */}
             <Image
-                src="/operating-room.png"
-                alt="Operating room"
+                src={currentImageIndex === -1 ? DEFAULT_IMAGE : HORROR_IMAGES[currentImageIndex]}
+                alt="Background"
                 fill
-                className="object-cover opacity-10 sepia"
+                className={`object-cover sepia ${!webcam.isStreaming
+                    ? 'opacity-10'
+                    : pageState === 'ready'
+                        ? (blink.isBlinking ? 'opacity-5' : 'opacity-100')
+                        : 'opacity-100'
+                    }`}
                 priority
             />
 
             {/* Film grain overlay */}
             <VHSStatic />
 
-            <Card className={`relative z-10 w-full max-w-2xl ${!webcam.isStreaming ? 'animate-shake' : ''}`}>
+            <Card className={`relative z-10 w-full max-w-2xl shadow-2xl shadow-red-500/50 ${!webcam.isStreaming ? 'animate-shake' : ''}`}>
                 {/* WEBCAM PERMISSION STATE */}
                 {pageState === 'webcam' && (
                     <>
@@ -243,7 +281,7 @@ export default function CalibrationPage() {
 
                         <CardContent className="space-y-6">
                             {webcam.error && webcamErrorUI && (
-                                <Alert variant="destructive">
+                                <Alert variant="destructive" className='mt-8'>
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>{webcamErrorUI.title}</AlertTitle>
                                     <AlertDescription>{webcamErrorUI.description}</AlertDescription>

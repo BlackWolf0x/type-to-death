@@ -186,6 +186,19 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 - Webcam stream persists across page navigation
 - All pages handle webcam errors gracefully
 
+### Requirement 10: Horror-Themed Visual Styling
+
+**User Story:** As a player, I want the calibration page to have a horror-themed aesthetic, so that I feel immersed in the game's atmosphere before gameplay begins.
+
+#### Acceptance Criteria
+
+1. WHEN the calibration page loads THEN the system SHALL display a background image with horror theme
+2. WHEN the user blinks during the ready state THEN the system SHALL cycle through horror-themed background images
+3. WHEN the calibration page is visible THEN the system SHALL display a film grain overlay effect
+4. WHEN the webcam is not streaming THEN the calibration card SHALL display a shake animation
+5. WHEN the calibration card is rendered THEN the system SHALL display red corner brackets for visual emphasis
+6. WHEN the calibration card is rendered THEN the system SHALL display a subtle red rain animation effect
+
 ## Out of Scope
 
 - Webcam device selection UI (can use default device for MVP)
