@@ -69,25 +69,28 @@ export default function PlayPage() {
         };
     }, [addEventListener, removeEventListener, handleGameIsReady, handleGameLost]);
 
-    // Show intro when requirements are ready (but only if not seen yet)
+    // Show intro when game is fully loaded (but only if not seen yet)
     useEffect(() => {
-        if (isReady && !introSeen && !showIntro) {
-            setShowIntro(true);
+        if (isReady && unityReady && !introSeen && !showIntro) {
+            // Fade out loading screen first
+            setTextVisible(false);
+            setTimeout(() => {
+                setLoadingVisible(false);
+                // Show intro after loading screen fades
+                setTimeout(() => {
+                    setShowIntro(true);
+                }, 300);
+            }, 600);
         }
-    }, [isReady, introSeen, showIntro]);
+    }, [isReady, unityReady, introSeen, showIntro]);
 
-    // Auto-start game when Unity is ready AND intro has been seen
+    // Start game when intro has been seen (called by Begin button)
     useEffect(() => {
         if (unityReady && introSeen && !gameStarted && !gameLost && !gameWon) {
             sendMessage("MainMenuManager", "GoToGameScene");
             setGameStarted(true);
             resetStats();
             startTimer();
-            // Fade out text immediately, then overlay after delay
-            setTextVisible(false);
-            setTimeout(() => {
-                setLoadingVisible(false);
-            }, 600);
         }
     }, [unityReady, introSeen, gameStarted, gameLost, gameWon, sendMessage, resetStats, startTimer]);
 

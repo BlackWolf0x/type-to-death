@@ -240,6 +240,18 @@ Unity C# scripts must implement:
   - _Properties: P8, P9_
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
 
+- [x] 12. Update Intro Screen to Display After Game Loads
+  - Modify intro screen display logic to wait for both isReady AND unityReady
+  - Update useEffect to show intro only after Unity is fully loaded
+  - Add smooth transition: loading screen fades out, then intro fades in
+  - Move GoToGameScene call to trigger only when "Begin" button is clicked
+  - Separate game start logic from intro display logic
+  - Ensure intro screen still skips on restart (introSeen persists)
+  - Loading screen fades out with text disappearing first (600ms), then overlay (300ms delay)
+  - Intro screen appears 300ms after loading screen starts fading
+  - _Properties: P8_
+  - _Requirements: 8.1, 8.7, 8.11, 8.12_
+
 ## Implementation Notes
 
 - Unity build files must be placed in `/public/game/` directory
@@ -277,6 +289,6 @@ Unity C# scripts must implement:
 
 ## Estimated Effort
 
-- Total Tasks: 11
-- Completed: 11
+- Total Tasks: 12
+- Completed: 12
 - Status: ✅ Complete

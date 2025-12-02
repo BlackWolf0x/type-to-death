@@ -44,20 +44,22 @@ The game requires real-time communication between React (blink detection) and Un
 
 ### Requirement 8: Story Introduction Screen
 
-**User Story:** As a player, I want to see the story introduction before the game starts, so that I understand the context and setting of the game.
+**User Story:** As a player, I want to see the story introduction after the game loads, so that I understand the context and setting before gameplay begins.
 
 #### Acceptance Criteria
 
-1. WHEN requirements are checked and ready THEN the system SHALL display the intro screen
+1. WHEN requirements are checked and Unity is fully loaded THEN the system SHALL display the intro screen
 2. WHEN the intro screen appears THEN it SHALL show the story title in red text
 3. WHEN the intro screen appears THEN it SHALL show the story introduction text
 4. THE introduction text SHALL be scrollable if it exceeds viewport height
 5. WHEN the intro screen appears THEN a "Begin" button SHALL be visible
 6. WHEN the "Begin" button is clicked THEN the intro screen SHALL fade out
-7. WHEN the intro screen fades out THEN Unity SHALL start loading
+7. WHEN the "Begin" button is clicked THEN Unity SHALL transition to the game scene
 8. WHEN the player restarts the game THEN the intro screen SHALL NOT appear again
 9. THE intro screen SHALL only appear on the first play session
 10. THE intro screen SHALL use story data from data.ts
+11. THE loading screen SHALL fade out before the intro screen appears
+12. THE intro screen SHALL appear after both requirements check and Unity loading are complete
 
 ### Requirement 2: Blink Detection Integration
 

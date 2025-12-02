@@ -58,14 +58,17 @@ export default function PlayPage() {
 1. Component mounts
 2. Webcam and calibration checks run
 3. Requirements ready (isReady = true)
-4. Intro screen displays (if not seen before)
-5. User clicks "Begin" button
-6. introSeen state set to true
-7. useUnityContext initializes with build URLs
-8. Unity starts loading (loadingProgression updates)
-9. Loading screen displays progress
-10. Unity finishes loading (isLoaded = true)
-11. Game canvas becomes visible
+4. useUnityContext initializes with build URLs
+5. Unity starts loading (loadingProgression updates)
+6. Loading screen displays progress
+7. Unity finishes loading (isLoaded = true)
+8. Unity sends "GameIsReady" event (unityReady = true)
+9. Loading screen fades out
+10. Intro screen displays (if not seen before)
+11. User clicks "Begin" button
+12. introSeen state set to true
+13. Unity transitions to game scene (GoToGameScene)
+14. Game canvas becomes visible and interactive
 ```
 
 ### Blink Detection Flow
@@ -241,9 +244,9 @@ export function UnityGame() {
 
 ### P8: Intro Screen Display Logic
 
-*For any* first-time play session, the intro screen should display after requirements are ready and before Unity loads. *For any* restart, the intro screen should be skipped.
+*For any* first-time play session, the intro screen should display after both requirements are ready and Unity is fully loaded. *For any* restart, the intro screen should be skipped.
 
-**Validates: Requirements 8.1, 8.8, 8.9**
+**Validates: Requirements 8.1, 8.8, 8.9, 8.11, 8.12**
 
 ### P9: Intro Content Accuracy
 
