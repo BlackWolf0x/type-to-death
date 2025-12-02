@@ -60,6 +60,11 @@ The game requires real-time communication between React (blink detection) and Un
 10. THE intro screen SHALL use story data from data.ts
 11. THE loading screen SHALL fade out before the intro screen appears
 12. THE intro screen SHALL appear after both requirements check and Unity loading are complete
+13. WHEN the intro screen appears THEN it SHALL display gameplay tips (blink warning, headphones, fullscreen)
+14. WHEN the intro screen appears THEN it SHALL provide a fullscreen toggle button
+15. WHEN the fullscreen button is clicked THEN the browser SHALL enter or exit fullscreen mode
+16. WHEN in fullscreen mode THEN the button text SHALL change to "Exit Fullscreen"
+17. WHEN not in fullscreen mode THEN the button text SHALL show "Enter Fullscreen"
 
 ### Requirement 2: Blink Detection Integration
 

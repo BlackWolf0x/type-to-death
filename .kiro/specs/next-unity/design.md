@@ -248,6 +248,12 @@ export function UnityGame() {
 
 **Validates: Requirements 8.1, 8.8, 8.9, 8.11, 8.12**
 
+### P13: Fullscreen Toggle Functionality
+
+*For any* fullscreen button click, the browser should enter fullscreen mode if not already in fullscreen, or exit fullscreen mode if currently in fullscreen. *For any* fullscreen state change (including ESC key), the button text should update to reflect the current state.
+
+**Validates: Requirements 8.14, 8.15, 8.16, 8.17**
+
 ### P9: Intro Content Accuracy
 
 *For any* intro screen display, the title and introduction text should match the story data from data.ts exactly.
@@ -275,20 +281,30 @@ export function UnityGame() {
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                                                          │
-│                                                          │
-│              The Archivist's Descent                    │
-│                    (red title)                          │
-│                                                          │
 │         ┌────────────────────────────────┐             │
+│         │  The Archivist's Descent       │             │
+│         │      (red title in card)       │             │
+│         │                                 │             │
 │         │  Story introduction text...    │             │
 │         │  (scrollable if needed)        │             │
-│         │                                 │             │
 │         └────────────────────────────────┘             │
 │                                                          │
-│                    [Begin]                              │
+│  [👁️ Do not blink]  [🎧 Headphones]  [⛶ Fullscreen]  │
+│                                      [Enter Fullscreen] │
+│                                                          │
+│                [Start Challenge →]                      │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**Intro Screen Features:**
+- Story title and introduction wrapped in Card component (without rain effect)
+- Three gameplay tip cards with icons:
+  - Eye icon: "Do not blink, Do not look down"
+  - Headphones icon: "Headphones Recommended"
+  - Fullscreen icon: "Fullscreen Recommended" with toggle button
+- Fullscreen toggle button that changes text based on state
+- "Start Challenge" button to begin gameplay
 
 ## Edge Cases
 

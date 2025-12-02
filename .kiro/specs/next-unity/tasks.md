@@ -287,8 +287,21 @@ Unity C# scripts must implement:
 5. **GameManager.RestartScene()** - Method to restart the game scene
 6. **GameManager.GameWon()** - Method to receive win notification from React
 
+- [x] 13. Enhance intro screen UI with gameplay tips and fullscreen toggle
+  - Add Eye icon with "Do not blink, Do not look down" tip card
+  - Add Headphones icon with "Headphones Recommended" tip card
+  - Add Fullscreen icon with "Fullscreen Recommended" tip card
+  - Implement fullscreen toggle button with Enter/Exit states
+  - Add toggleFullscreen handler using Fullscreen API
+  - Add fullscreen change event listener to track state
+  - Update button text dynamically based on fullscreen state
+  - Wrap story title and introduction in Card component with disableRain prop
+  - Adjust spacing and icon sizes for better visual balance
+  - Remove unused useRef import
+  - _Requirements: 8.2, 8.3, 8.5_
+
 ## Estimated Effort
 
-- Total Tasks: 12
-- Completed: 12
+- Total Tasks: 13
+- Completed: 13
 - Status: ✅ Complete

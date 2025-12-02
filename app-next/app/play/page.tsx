@@ -8,7 +8,8 @@ import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
-import { Loader2, MoveRight } from "lucide-react";
+import { Eye, Fullscreen, Headphones, Loader2, MoveRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
@@ -21,7 +22,7 @@ export default function PlayPage() {
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
     const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1 });
-    const introScrollRef = useRef<HTMLDivElement>(null);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     // Fetch story from Convex backend
     const story = useQuery(api.stories.getLatestStory);
@@ -145,6 +146,33 @@ export default function PlayPage() {
         setGameStarted(true);
     }, [sendMessage, resetTypingGame, reloadStory, resetStats, startTimer]);
 
+    // Fullscreen toggle handler
+    const toggleFullscreen = useCallback(async () => {
+        try {
+            if (!document.fullscreenElement) {
+                await document.documentElement.requestFullscreen();
+                setIsFullscreen(true);
+            } else {
+                await document.exitFullscreen();
+                setIsFullscreen(false);
+            }
+        } catch (error) {
+            console.error('Error toggling fullscreen:', error);
+        }
+    }, []);
+
+    // Listen for fullscreen changes
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
     // Determine loading screen state (only show when intro is not visible and game not ready)
     const showLoading = (!isReady || !unityReady || !story) && !showIntro;
     const loadingText = !isReady ? "Checking requirements..." : !story ? "Loading story..." : "Loading game...";
@@ -179,18 +207,46 @@ export default function PlayPage() {
                     : 'opacity-0 pointer-events-none'
                     }`}
             >
-                <div className="max-w-6xl mx-auto px-8 flex flex-col items-center gap-14">
-                    <h1 className="text-6xl font-bold font-metalMania text-center tracking-wide text-red-500 animate-in">
-                        {story?.title}
-                    </h1>
-                    <div
-                        ref={introScrollRef}
-                        className="overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
-                    >
-                        <p className="min-h-120 text-xl leading-relaxed text-justify text-white/80 whitespace-pre-line">
-                            {story?.introduction.replace(/\\n/g, '\n')}
-                        </p>
+                <div className="max-w-6xl mx-auto px-8 flex flex-col items-center gap-12">
+
+                    <Card disableRain className="pt-10">
+                        <h1 className="mb-2 text-6xl font-bold font-metalMania text-center tracking-wide text-red-500 animate-in">
+                            {story?.title}
+                        </h1>
+                        <CardContent>
+                            <p className="p-4 text-2xl leading-loose text-justify whitespace-pre-line">
+                                {story?.introduction.replace(/\\n/g, '\n')}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <div className="flex items-center gap-6">
+                        <div className="border py-4 px-6 rounded-xl flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Eye size={20} />
+                            </div>
+                            Do not blink,<br />
+                            Do not look down
+                        </div>
+
+                        <div className="border py-4 px-6 rounded-xl flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Headphones size={20} />
+                            </div>
+                            Headphones<br />Recommended
+                        </div>
+
+                        <div className="border py-4 px-6 rounded-xl flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Fullscreen size={20} />
+                            </div>
+                            Fullscreen <br />Recommended
+                            <Button size="sm" className="ml-6" onClick={toggleFullscreen}>
+                                {isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                            </Button>
+                        </div>
                     </div>
+
                     <Button
                         onClick={handleStartGame}
                         variant="outlineRed"

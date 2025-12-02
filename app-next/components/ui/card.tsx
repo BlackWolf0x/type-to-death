@@ -3,7 +3,11 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { CardRain } from "./card-rain"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+interface CardProps extends React.ComponentProps<"div"> {
+  disableRain?: boolean;
+}
+
+function Card({ className, disableRain = false, ...props }: CardProps) {
   return (
     <div
       data-slot="card"
@@ -14,9 +18,11 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       {...props}
     >
       {/* Rain background */}
-      <div className="pointer-events-none absolute inset-0 opacity-50">
-        <CardRain />
-      </div>
+      {!disableRain && (
+        <div className="pointer-events-none absolute inset-0 opacity-50">
+          <CardRain />
+        </div>
+      )}
 
       {/* Red corners */}
       <div className="pointer-events-none absolute left-1 top-1 z-10 size-10 rounded-tl-lg border-l-2 border-t-2 border-red-600" />
