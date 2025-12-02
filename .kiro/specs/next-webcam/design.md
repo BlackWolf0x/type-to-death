@@ -85,7 +85,7 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 
 ### 4. GameWebcam Component
 
-**File:** `app-next/components/game/GameWebcam.tsx`
+**File:** `app-next/components/game-webcam.tsx`
 
 **Responsibilities:**
 - Check for stored calibration data in localStorage

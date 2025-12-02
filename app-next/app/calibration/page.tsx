@@ -259,7 +259,7 @@ export default function CalibrationPage() {
 
                             {!webcam.isStreaming && !webcam.isLoading && (
                                 <div className="flex flex-col items-center gap-6 py-8">
-                                    <Image src="/eyes.gif" width={400} height={320} alt='Calibration' className="mix-blend-screen" />
+                                    <Image src="/eyes.gif" width={400} height={320} alt='Calibration' unoptimized className="mix-blend-screen" />
 
                                     <Button
                                         onClick={handleRequestCamera}

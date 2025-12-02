@@ -109,7 +109,7 @@
 - Eye landmarks are drawn on a canvas overlay for real-time visual feedback
 
 - [x] 10. Create GameWebcam component for Play Page
-  - Created `app-next/components/game/GameWebcam.tsx`
+  - Created `app-next/components/game-webcam.tsx`
   - Checks for stored calibration data in localStorage
   - Checks camera permission via Permissions API (without prompting)
   - Redirects to /calibration if either check fails

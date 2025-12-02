@@ -18,7 +18,7 @@ import { User } from "lucide-react";
 
 
 
-export function AuthModal() {
+export function ModalAuth() {
     const { signIn } = useAuthActions();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

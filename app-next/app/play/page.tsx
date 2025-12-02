@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
-import { GameWebcam } from "@/components/game/GameWebcam";
+import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
