@@ -6,7 +6,7 @@ import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, MoveRight } from "lucide-react";
 import { story } from "@/typing-game/data";
 
 export default function PlayPage() {
@@ -173,25 +173,25 @@ export default function PlayPage() {
                     : 'opacity-0 pointer-events-none'
                     }`}
             >
-                <div className="max-w-2xl mx-auto px-8 flex flex-col items-center gap-8">
-                    <h1 className="text-4xl font-bold text-center tracking-wide text-red-500">
+                <div className="max-w-4xl mx-auto px-8 flex flex-col items-center gap-8">
+                    <h1 className="text-6xl font-bold font-metalMania text-center tracking-wide text-red-500 animate-in">
                         {story.title}
                     </h1>
                     <div
                         ref={introScrollRef}
-                        className="max-h-[50vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+                        className="overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
                     >
-                        <p className="text-lg leading-relaxed text-white/80 whitespace-pre-line">
+                        <p className="text-xl leading-relaxed text-justify text-white/80 whitespace-pre-line">
                             {story.introduction}
                         </p>
                     </div>
                     <Button
                         onClick={handleStartGame}
-                        variant="outline"
-                        size="lg"
-                        className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                        variant="outlineRed"
+                        size="xl"
                     >
-                        Begin
+                        Start Challenge
+                        <MoveRight className="ml-2 translate-y-0.5" />
                     </Button>
                 </div>
             </div>
