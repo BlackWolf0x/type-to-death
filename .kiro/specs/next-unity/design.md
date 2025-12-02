@@ -392,6 +392,63 @@ export function UnityGame() {
 3. Test rapid blinking
 4. Test Unity load failure (remove build files)
 
+## Unity Cleanup on Navigation
+
+### Cleanup Flow
+
+When the user navigates away from the play page (e.g., clicking "Main Menu"):
+
+```
+1. Component unmount triggered
+2. Cleanup effect runs
+3. Attempt to close FMOD audio context
+4. Call unload() to destroy Unity instance
+5. Catch and ignore any errors
+6. Navigation completes
+```
+
+### Implementation
+
+```typescript
+// Cleanup Unity instance on unmount - handle FMOD audio worklet cleanup
+useEffect(() => {
+    return () => {
+        const cleanup = async () => {
+            try {
+                // Try to close Unity's FMOD audio context before unloading
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const unityModule = (window as any).unityInstance;
+                if (unityModule?.Module?.audioContext) {
+                    await unityModule.Module.audioContext.close().catch(() => {});
+                }
+            } catch {
+                // Ignore audio cleanup errors
+            }
+
+            // Unload Unity instance
+            await unload().catch(() => {});
+        };
+
+        cleanup();
+    };
+}, [unload]);
+```
+
+**Key Points:**
+- Cleanup runs on component unmount
+- FMOD audio context is closed before Unity unload
+- All errors are caught and ignored to prevent console errors
+- Uses async cleanup to properly handle promises
+- Prevents "table index is out of bounds" FMOD error
+
+## Correctness Properties
+
+### P14: Unity Cleanup on Unmount
+
+*For any* navigation away from the play page, the Unity instance should be properly unloaded and the FMOD audio context should be closed to prevent errors.
+
+**Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6**
+
 ## Future Enhancements
 
 - Error handling for Unity load failures

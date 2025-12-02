@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,8 +8,10 @@ import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
-import { Eye, Fullscreen, Headphones, Loader2, MoveRight } from "lucide-react";
+import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
@@ -45,7 +47,7 @@ export default function PlayPage() {
     const wpm = calculateWPM(charactersTyped, elapsedTime);
     const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
 
-    const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener } = useUnityContext({
+    const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener, unload } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
         dataUrl: "/game/build.data",
         frameworkUrl: "/game/build.framework.js",
@@ -74,6 +76,29 @@ export default function PlayPage() {
             removeEventListener("GameLost", handleGameLost);
         };
     }, [addEventListener, removeEventListener, handleGameIsReady, handleGameLost]);
+
+    // Cleanup Unity instance on unmount - handle FMOD audio worklet cleanup
+    useEffect(() => {
+        return () => {
+            const cleanup = async () => {
+                try {
+                    // Try to close Unity's FMOD audio context before unloading
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const unityModule = (window as any).unityInstance;
+                    if (unityModule?.Module?.audioContext) {
+                        await unityModule.Module.audioContext.close().catch(() => { });
+                    }
+                } catch {
+                    // Ignore audio cleanup errors
+                }
+
+                // Unload Unity instance
+                await unload().catch(() => { });
+            };
+
+            cleanup();
+        };
+    }, [unload]);
 
     // Show intro when game is fully loaded (but only if not seen yet)
     useEffect(() => {
@@ -260,26 +285,59 @@ export default function PlayPage() {
 
             {/* Game Over overlay */}
             <div
-                className={`fixed inset-0 flex flex-col items-center justify-center gap-8 bg-black/90 z-30 transition-opacity duration-700 ${gameLost
+                className={`fixed inset-0 flex flex-col items-center justify-center gap-12 bg-black/90 z-30 transition-opacity duration-700 ${gameLost
                     ? 'opacity-100'
                     : 'opacity-0 pointer-events-none'
                     }`}
             >
-                <h1 className="text-6xl font-bold text-red-600 tracking-wider">You Died</h1>
-                <div className="flex items-center gap-6 text-white/80 text-lg">
-                    <span>Time: {formatTime(elapsedTime)}</span>
-                    <span>•</span>
-                    <span>{wpm} WPM</span>
-                    <span>•</span>
-                    <span>{accuracy}% Accuracy</span>
+                <h1 className="text-8xl font-metalMania font-bold text-red-600 tracking-wider">You Died</h1>
+
+                <div className="flex items-center gap-6 border rounded-xl">
+                    <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                        <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                            <Clock size={20} />
+                        </div>
+                        Time: {formatTime(elapsedTime)}
+                    </div>
+
+                    <Separator orientation="vertical" className="h-8!" />
+
+                    <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                        <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                            <Keyboard size={20} />
+                        </div>
+                        {wpm} WPM
+                    </div>
+
+                    <Separator orientation="vertical" className="h-8!" />
+
+                    <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                        <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                            <Target size={20} />
+                        </div>
+                        {accuracy}% Accuracy
+                    </div>
                 </div>
-                <Button
-                    onClick={handleRestartGame}
-                    variant="outline"
-                    size="lg"
-                >
-                    Try Again
-                </Button>
+
+                <div className="space-x-6">
+                    <Button
+                        variant="secondary"
+                        size="xl"
+                        asChild
+                    >
+                        <a href="/">
+                            Main Menu
+                        </a>
+                    </Button>
+
+                    <Button
+                        onClick={handleRestartGame}
+                        variant="outlineRed"
+                        size="xl"
+                    >
+                        Try Again
+                    </Button>
+                </div>
             </div>
 
             {/* Win overlay - no dark background, just centered content */}

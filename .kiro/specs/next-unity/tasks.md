@@ -300,8 +300,21 @@ Unity C# scripts must implement:
   - Remove unused useRef import
   - _Requirements: 8.2, 8.3, 8.5_
 
+- [x] 14. Implement Unity cleanup on navigation
+  - Add unload to useUnityContext destructuring
+  - Create cleanup effect that runs on component unmount
+  - Attempt to close FMOD audio context before unloading Unity
+  - Access Unity's audio context via window.unityInstance.Module.audioContext
+  - Call audioContext.close() with error catching
+  - Call unload() to destroy Unity instance
+  - Wrap all cleanup in try-catch to silently handle errors
+  - Use async cleanup function to properly handle promises
+  - Prevent "table index is out of bounds" FMOD error on navigation
+  - _Properties: P14_
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
+
 ## Estimated Effort
 
-- Total Tasks: 13
-- Completed: 13
+- Total Tasks: 14
+- Completed: 14
 - Status: ✅ Complete

@@ -195,6 +195,19 @@ The integration SHALL work on all browsers that support WebGL and MediaDevices A
 - Webcam feed is hidden but functional
 - Game maintains smooth performance
 
+### Requirement 9: Unity Instance Cleanup
+
+**User Story:** As a user, I want the Unity game to properly clean up when I navigate away, so that I don't encounter errors or memory leaks.
+
+#### Acceptance Criteria
+
+1. WHEN the user navigates away from the play page THEN the Unity instance SHALL be unloaded
+2. WHEN Unity is being unloaded THEN the FMOD audio context SHALL be closed before unloading
+3. WHEN audio cleanup fails THEN the error SHALL be silently caught and ignored
+4. WHEN Unity unload fails THEN the error SHALL be silently caught and ignored
+5. THE cleanup SHALL happen automatically on component unmount
+6. THE cleanup SHALL prevent FMOD audio worklet errors after navigation
+
 ## Out of Scope
 
 - Unity game logic implementation (separate Unity spec)
