@@ -199,6 +199,18 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 5. WHEN the calibration card is rendered THEN the system SHALL display red corner brackets for visual emphasis
 6. WHEN the calibration card is rendered THEN the system SHALL display a subtle red rain animation effect
 
+### Requirement 11: Background Segmentation and Visual Effects
+
+**User Story:** As a player, I want the webcam video to have atmospheric visual effects that separate me from the background, so that the calibration experience feels more immersive and horror-themed.
+
+#### Acceptance Criteria
+
+1. WHEN the calibration page displays webcam video THEN the system SHALL initialize MediaPipe Image Segmenter for person detection
+2. WHEN the video is processing THEN the system SHALL segment the person from the background using confidence masks
+3. WHEN background segmentation is active THEN the system SHALL darken the background while keeping the person at full brightness
+4. WHEN VHS effects are enabled THEN the system SHALL apply chromatic aberration, random noise, and rolling bar effects to the video
+5. WHEN ghost effects are enabled THEN the system SHALL desaturate the person to create a pale, ghostly appearance
+
 ## Out of Scope
 
 - Webcam device selection UI (can use default device for MVP)

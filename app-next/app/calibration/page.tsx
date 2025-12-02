@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { VHSStatic } from '@/components/vhs-static';
 import { CalibrationCard } from '@/components/calibration-card';
+import { useBackgroundSegmentation } from '@/hooks/useBackgroundSegmentation';
 
 // ============================================================================
 // Types
@@ -144,7 +145,8 @@ const DEFAULT_IMAGE = '/operating-room.png';
 export default function CalibrationPage() {
     const router = useRouter();
     const [pageState, setPageState] = useState<PageState>('webcam');
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const eyeCanvasRef = useRef<HTMLCanvasElement>(null);
+    const segmentCanvasRef = useRef<HTMLCanvasElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 = default image
     const prevBlinkCountRef = useRef(0);
 
@@ -153,6 +155,16 @@ export default function CalibrationPage() {
 
     // Blink detector
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+
+    // Background segmentation (darken background, highlight person) - only after calibration
+    useBackgroundSegmentation({
+        videoRef: webcam.videoRef,
+        canvasRef: segmentCanvasRef,
+        enabled: webcam.isStreaming && pageState === 'ready',
+        backgroundDarkness: 0.95,
+        vhsEffect: true,
+        ghostEffect: true,
+    });
 
     // Auto-advance to calibration when webcam starts
     useEffect(() => {
@@ -192,7 +204,7 @@ export default function CalibrationPage() {
 
     // Draw eye landmarks on canvas
     useEffect(() => {
-        const canvas = canvasRef.current;
+        const canvas = eyeCanvasRef.current;
         const video = webcam.videoRef.current;
         if (!canvas || !video || !webcam.isStreaming || !blink.faceLandmarks) return;
 
@@ -345,7 +357,7 @@ export default function CalibrationPage() {
 
                             {blink.isInitialized && (
                                 <>
-                                    {/* Video Preview */}
+                                    {/* Video Preview - show raw video during calibration */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                         <video
                                             ref={webcam.setVideoRef}
@@ -355,7 +367,7 @@ export default function CalibrationPage() {
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <canvas
-                                            ref={canvasRef}
+                                            ref={eyeCanvasRef}
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
@@ -435,10 +447,14 @@ export default function CalibrationPage() {
                                     autoPlay
                                     playsInline
                                     muted
+                                    className="absolute inset-0 h-full w-full object-cover opacity-0"
+                                />
+                                <canvas
+                                    ref={segmentCanvasRef}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                                 <canvas
-                                    ref={canvasRef}
+                                    ref={eyeCanvasRef}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                                 <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-sm text-white">

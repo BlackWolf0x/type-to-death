@@ -199,8 +199,6 @@
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
 - [x] 15. Simplify calibration UI and improve blink detection reliability
-
-
   - Create reusable CalibrationCard component in `app-next/components/calibration-card.tsx`
   - Component accepts step number, title, description, icon, completion state, and recording state
   - Component displays checkmark when complete, step number badge when incomplete
@@ -220,8 +218,31 @@
   - _Properties: P6, P7, P8_
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4_
 
+- [x] 16. Implement background segmentation and visual effects
+  - Create `useBackgroundSegmentation` hook in `app-next/hooks/useBackgroundSegmentation.ts`
+  - Initialize MediaPipe Image Segmenter with GPU delegate for performance
+  - Load selfie segmentation model from CDN
+  - Accept options: videoRef, canvasRef, enabled, backgroundDarkness, vhsEffect, ghostEffect
+  - Process video frames at 60fps using requestAnimationFrame
+  - Generate confidence masks (0 = background, 1 = person)
+  - Implement background darkening: multiply background pixels by (1 - confidence * darkness)
+  - Default backgroundDarkness to 0.7 (70% darker)
+  - Implement VHS effects when enabled:
+    - Chromatic aberration: shift red channel 6 pixels horizontally
+    - Random noise: add ±15 brightness variation per pixel
+    - Rolling bar: vertical brightness wave scrolling at 8 units/second with 30px height
+  - Implement ghost effect when enabled:
+    - Calculate luminance: grey = r * 0.299 + g * 0.587 + b * 0.114
+    - Desaturate person pixels by 70% for confidence > 0.3
+    - Blend original color with grey based on confidence
+  - Use `willReadFrequently: true` context option for pixel manipulation
+  - Cancel animation frame on cleanup
+  - Integrate hook into calibration page with backgroundDarkness=0.95, vhsEffect=true, ghostEffect=true
+  - _Properties: P16, P17, P18, P19_
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
 ## Estimated Effort
 
-- Total Tasks: 15
-- Completed: 15
+- Total Tasks: 16
+- Completed: 16
 - Status: ✅ Complete

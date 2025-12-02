@@ -788,6 +788,67 @@ export default function PermissionPage() {
 - Red corner brackets (top-left, top-right, bottom-left, bottom-right)
 - Red border (`border-red-500/30`)
 - Integrated CardRain background
+
+### 7. useBackgroundSegmentation Hook
+
+**File:** `app-next/hooks/useBackgroundSegmentation.ts`
+
+**Responsibilities:**
+- Initialize MediaPipe Image Segmenter for person detection
+- Segment person from background using confidence masks
+- Apply background darkening effect
+- Apply VHS-style effects (chromatic aberration, noise, rolling bar)
+- Apply ghost effect (person desaturation)
+- Process video frames in real-time using requestAnimationFrame
+
+**Interface:**
+```typescript
+interface UseBackgroundSegmentationOptions {
+    videoRef: RefObject<HTMLVideoElement | null>;
+    canvasRef: RefObject<HTMLCanvasElement | null>;
+    enabled?: boolean;
+    backgroundDarkness?: number; // 0-1, how dark the background should be
+    vhsEffect?: boolean; // Enable VHS-style effects
+    ghostEffect?: boolean; // Make the person look like a ghost
+}
+
+interface UseBackgroundSegmentationReturn {
+    isInitialized: boolean;
+    isProcessing: boolean;
+    error: Error | null;
+}
+```
+
+**Technical Implementation:**
+- Uses MediaPipe Image Segmenter with GPU delegate for performance
+- Loads selfie segmentation model from CDN
+- Outputs confidence masks (0 = background, 1 = person)
+- Processes video frames at 60fps using requestAnimationFrame
+- Applies effects pixel-by-pixel based on confidence values
+
+**Background Darkening:**
+- Multiplies background pixels by (1 - confidence * backgroundDarkness)
+- Default darkness: 0.7 (70% darker)
+- Smooth blending at person edges using confidence values
+
+**VHS Effects:**
+- **Chromatic Aberration**: Shifts red channel 6 pixels horizontally
+- **Random Noise**: Adds ±15 brightness variation per pixel
+- **Rolling Bar**: Vertical brightness wave that scrolls slowly (8 units/second)
+- Bar height: 30 pixels with sine wave brightness modulation (±6%)
+
+**Ghost Effect:**
+- Desaturates person pixels to create pale, ghostly appearance
+- Calculates luminance: `grey = r * 0.299 + g * 0.587 + b * 0.114`
+- Blends original color with grey based on confidence
+- Strength: 70% desaturation for high-confidence person pixels
+- Only applies to pixels with confidence > 0.3
+
+**Performance Optimizations:**
+- Uses `willReadFrequently: true` context option for pixel manipulation
+- Processes entire frame in single pass
+- Reuses Float32Array for mask data
+- Cancels animation frame on cleanupnd
 - `overflow-hidden` to contain rain animation
 
 ## Correctness Properties
@@ -809,6 +870,30 @@ export default function PermissionPage() {
 *For any* state where the webcam is not streaming, the calibration card should display a shake animation. *For any* state where the webcam is streaming, the shake animation should stop.
 
 **Validates: Requirements 10.4**
+
+### Property 16: Background Segmentation Initialization
+
+*For any* calibration page load with background segmentation enabled, the system should initialize MediaPipe Image Segmenter and begin processing video frames when the video element is ready.
+
+**Validates: Requirements 11.1, 11.2**
+
+### Property 17: Background Darkening Effect
+
+*For any* video frame processed with background segmentation, pixels with low person confidence (< 0.3) should be darkened by the configured backgroundDarkness amount, while person pixels remain at full brightness.
+
+**Validates: Requirements 11.3**
+
+### Property 18: VHS Effects Application
+
+*For any* video frame processed with vhsEffect enabled, the system should apply chromatic aberration (red channel shift), random noise, and a rolling brightness bar effect.
+
+**Validates: Requirements 11.4**
+
+### Property 19: Ghost Effect Application
+
+*For any* video frame processed with ghostEffect enabled, pixels with high person confidence (> 0.3) should be desaturated by 70% to create a pale, ghostly appearance.
+
+**Validates: Requirements 11.5**
 
 ## Future Enhancements
 
