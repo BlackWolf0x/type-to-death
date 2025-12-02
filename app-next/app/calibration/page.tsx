@@ -30,6 +30,7 @@ import {
 import { VHSStatic } from '@/components/vhs-static';
 import { CalibrationCard } from '@/components/calibration-card';
 import { useBackgroundSegmentation } from '@/hooks/useBackgroundSegmentation';
+import { useFaceOverlay } from '@/hooks/useFaceOverlay';
 
 // ============================================================================
 // Types
@@ -123,10 +124,6 @@ function getBlinkErrorUI(error: BlinkDetectorError) {
 // Calibration Page
 // ============================================================================
 
-// Eye landmark indices for drawing
-const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
-const RIGHT_EYE_INDICES = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398];
-
 // Horror images that cycle on blink
 const HORROR_IMAGES = [
     '/horror-images/horror1.jpg',
@@ -165,6 +162,17 @@ export default function CalibrationPage() {
         vhsEffect: true,
     });
 
+    // Face overlay (eyes + demon horns) - only in ready state
+    useFaceOverlay({
+        canvasRef: eyeCanvasRef,
+        videoRef: webcam.videoRef,
+        faceLandmarks: blink.faceLandmarks,
+        isBlinking: blink.isBlinking,
+        enabled: webcam.isStreaming && pageState === 'ready',
+        showEyes: true,
+        showHorns: true,
+    });
+
     // Auto-advance to calibration when webcam starts
     useEffect(() => {
         if (webcam.isStreaming && pageState === 'webcam') {
@@ -201,44 +209,16 @@ export default function CalibrationPage() {
 
 
 
-    // Draw eye landmarks on canvas
-    useEffect(() => {
-        const canvas = eyeCanvasRef.current;
-        const video = webcam.videoRef.current;
-        if (!canvas || !video || !webcam.isStreaming || !blink.faceLandmarks) return;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const w = video.videoWidth || 640;
-        const h = video.videoHeight || 480;
-        canvas.width = w;
-        canvas.height = h;
-
-        ctx.clearRect(0, 0, w, h);
-
-        const landmarks = blink.faceLandmarks;
-
-        const drawEyeOutline = (eyeIndices: number[], color: string) => {
-            ctx.beginPath();
-            eyeIndices.forEach((idx, i) => {
-                const point = landmarks[idx];
-                if (!point) return;
-                const x = point.x * w;
-                const y = point.y * h;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.closePath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        };
-
-        const eyeColor = blink.isBlinking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
-        drawEyeOutline(LEFT_EYE_INDICES, eyeColor);
-        drawEyeOutline(RIGHT_EYE_INDICES, eyeColor);
-    }, [blink.faceLandmarks, webcam.isStreaming, webcam.videoRef, blink.isBlinking]);
+    // Draw eye landmarks on canvas during calibration (eyes only, no horns)
+    useFaceOverlay({
+        canvasRef: eyeCanvasRef,
+        videoRef: webcam.videoRef,
+        faceLandmarks: blink.faceLandmarks,
+        isBlinking: blink.isBlinking,
+        enabled: webcam.isStreaming && pageState === 'calibration',
+        showEyes: true,
+        showHorns: false,
+    });
 
     const handleRequestCamera = async () => {
         webcam.clearError();

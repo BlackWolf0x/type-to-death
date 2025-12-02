@@ -264,8 +264,32 @@
   - _Properties: P16, P17, P18, P19_
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
+- [x] 18. Create reusable face overlay hook with demon features
+  - Create `app-next/hooks/useFaceOverlay.ts` for centralized face overlay rendering
+  - Extract eye landmark drawing logic from components into reusable hook
+  - Add demon horns drawing using forehead landmarks (10, 67, 297)
+  - Implement curved horn shapes with quadratic bezier curves
+  - Add dark red gradient fill for horns (maroon to blood red)
+  - Horns scale dynamically based on head width
+  - Add demon teeth/fangs drawing using mouth landmarks
+  - Use 11 upper lip landmarks and 11 lower lip landmarks for curved teeth placement
+  - Teeth follow natural mouth curve shape (not straight line)
+  - Implement full mouth of teeth (10 upper, 8 lower)
+  - Prominent vampire fangs at canine positions (28% of mouth width)
+  - Front incisors (16% of mouth width) and side teeth (12% of mouth width)
+  - Lower teeth smaller than upper (16%, 12%, 8% respectively)
+  - Teeth scale dynamically with mouth openness
+  - Sharp pointed fangs vs rounded regular teeth
+  - White-to-gray/yellow gradient for demon tooth appearance
+  - Configurable options: showEyes, showHorns, showTeeth, enabled
+  - Reverse eye color logic: red by default, green when blinking
+  - Update GameWebcam component to use useFaceOverlay hook
+  - Update calibration page to use useFaceOverlay hook (eyes only during calibration, full features in ready state)
+  - _Properties: P20_
+  - _Requirements: 12.1, 12.2, 12.3_
+
 ## Estimated Effort
 
-- Total Tasks: 17
-- Completed: 17
+- Total Tasks: 18
+- Completed: 18
 - Status: ✅ Complete

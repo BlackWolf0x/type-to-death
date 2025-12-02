@@ -883,7 +883,7 @@ interface UseBackgroundSegmentationReturn {
 
 ### Property 18: VHS Effects Application
 
-*For any* video frame processed with vhsEffect enabled, the system should apply chromatic aberration (red channel shift), random noise, and a rolling brightness bar effect.
+*For any* video frame processed with vhsEffect enabled, the system should apply chromatic aberration (red channel shift) and random noise effects.
 
 **Validates: Requirements 11.4**
 
@@ -892,6 +892,12 @@ interface UseBackgroundSegmentationReturn {
 *For any* video frame processing loop, the system should throttle frame processing to approximately 30fps (every 33ms) to maintain optimal performance and prevent CPU/memory issues.
 
 **Validates: Requirements 11.5**
+
+### Property 20: Demon Face Overlay Rendering
+
+*For any* face with detected landmarks, the system should render demon horns on the forehead using forehead landmark positions, and when the mouth is open, render demon teeth and fangs that follow the curved shape of the mouth using lip landmark positions.
+
+**Validates: Requirements 12.1, 12.2, 12.3**
 
 ## Future Enhancements
 

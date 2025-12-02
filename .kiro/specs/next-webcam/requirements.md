@@ -208,8 +208,18 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 1. WHEN the calibration page displays webcam video THEN the system SHALL initialize MediaPipe Image Segmenter for person detection
 2. WHEN the video is processing THEN the system SHALL segment the person from the background using confidence masks
 3. WHEN background segmentation is active THEN the system SHALL darken the background while keeping the person at full brightness
-4. WHEN VHS effects are enabled THEN the system SHALL apply chromatic aberration, random noise, and rolling bar effects to the video
+4. WHEN VHS effects are enabled THEN the system SHALL apply chromatic aberration and random noise to the video
 5. WHEN processing video frames THEN the system SHALL throttle to 30fps to maintain performance and prevent CPU/memory issues
+
+### Requirement 12: Demon Face Overlay Features
+
+**User Story:** As a player, I want to see demon features overlaid on my face during gameplay, so that I feel transformed into a demon character and immersed in the horror theme.
+
+#### Acceptance Criteria
+
+1. WHEN face landmarks are detected THEN the system SHALL draw demon horns on the forehead using forehead landmark positions
+2. WHEN the mouth is open THEN the system SHALL draw demon teeth and fangs that follow the curved shape of the mouth
+3. WHEN face overlay features are rendered THEN the system SHALL provide a reusable hook that can be used across multiple components
 
 ## Out of Scope
 
