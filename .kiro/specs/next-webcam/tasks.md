@@ -222,22 +222,26 @@
   - Create `useBackgroundSegmentation` hook in `app-next/hooks/useBackgroundSegmentation.ts`
   - Initialize MediaPipe Image Segmenter with GPU delegate for performance
   - Load selfie segmentation model from CDN
-  - Accept options: videoRef, canvasRef, enabled, backgroundDarkness, vhsEffect, ghostEffect
-  - Process video frames at 60fps using requestAnimationFrame
+  - Accept options: videoRef, canvasRef, enabled, backgroundDarkness, vhsEffect
+  - Throttle frame processing to ~30fps (every 33ms) for optimal performance
   - Generate confidence masks (0 = background, 1 = person)
   - Implement background darkening: multiply background pixels by (1 - confidence * darkness)
   - Default backgroundDarkness to 0.7 (70% darker)
   - Implement VHS effects when enabled:
-    - Chromatic aberration: shift red channel 6 pixels horizontally
-    - Random noise: add ±15 brightness variation per pixel
+    - Chromatic aberration: shift red channel 4 pixels horizontally with 70/30 blend
+    - Random noise: pre-generate buffer of 10,000 noise values (±10 brightness), cycle through
     - Rolling bar: vertical brightness wave scrolling at 8 units/second with 30px height
-  - Implement ghost effect when enabled:
-    - Calculate luminance: grey = r * 0.299 + g * 0.587 + b * 0.114
-    - Desaturate person pixels by 70% for confidence > 0.3
-    - Blend original color with grey based on confidence
+  - Performance optimizations:
+    - Use bit shift operations (`i << 2`) for index calculations
+    - Cache local variables to avoid repeated property lookups
+    - Inline clamping with ternary operators instead of Math.max/min
+    - Process chromatic aberration in scanlines for cache efficiency
+    - Use mounted ref to prevent state updates after unmount
+    - Silence frame processing errors to avoid console spam
+    - Only resize canvas when dimensions change
   - Use `willReadFrequently: true` context option for pixel manipulation
   - Cancel animation frame on cleanup
-  - Integrate hook into calibration page with backgroundDarkness=0.95, vhsEffect=true, ghostEffect=true
+  - Integrate hook into calibration page with backgroundDarkness=0.95, vhsEffect=true
   - _Properties: P16, P17, P18, P19_
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 

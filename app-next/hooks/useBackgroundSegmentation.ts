@@ -11,7 +11,6 @@ export interface UseBackgroundSegmentationOptions {
     enabled?: boolean;
     backgroundDarkness?: number; // 0-1, how dark the background should be
     vhsEffect?: boolean; // Enable VHS-style effects (chromatic aberration, noise)
-    ghostEffect?: boolean; // Make the person look like a ghost (pale, desaturated, eerie)
 }
 
 export interface UseBackgroundSegmentationReturn {
@@ -27,35 +26,41 @@ export interface UseBackgroundSegmentationReturn {
 const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
 const SEGMENTATION_MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
 
+// VHS effect constants - pre-calculated for performance
+const CHROMATIC_OFFSET = 4;
+const NOISE_INTENSITY = 20;
+const BAR_HEIGHT = 30;
+const BAR_SPEED = 8;
+const BAR_BRIGHTNESS = 0.05;
+
 // ============================================================================
 // Hook
 // ============================================================================
 
 export function useBackgroundSegmentation(options: UseBackgroundSegmentationOptions): UseBackgroundSegmentationReturn {
-    const { videoRef, canvasRef, enabled = true, backgroundDarkness = 0.7, vhsEffect = false, ghostEffect = false } = options;
+    const { videoRef, canvasRef, enabled = true, backgroundDarkness = 0.7, vhsEffect = false } = options;
 
     const [isInitialized, setIsInitialized] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     const segmenterRef = useRef<ImageSegmenter | null>(null);
-    const processingRef = useRef(false);
     const animationFrameRef = useRef<number | null>(null);
+    const lastFrameTimeRef = useRef<number>(0);
+    const mountedRef = useRef(true);
 
-    // Ghost trail effect - store previous person silhouettes
-    const ghostFramesRef = useRef<{ data: Uint8ClampedArray; mask: Float32Array; timestamp: number }[]>([]);
-    const activeGhostRef = useRef<{ data: Uint8ClampedArray; mask: Float32Array; offsetX: number; opacity: number; startTime: number } | null>(null);
+    // Pre-allocated buffers for performance - avoid GC pressure
+    const noiseBufferRef = useRef<Float32Array | null>(null);
+    const noiseIndexRef = useRef(0);
 
     // Initialize MediaPipe Image Segmenter
     useEffect(() => {
         if (!enabled) return;
 
-        let mounted = true;
+        mountedRef.current = true;
 
         async function init() {
             try {
-                console.log('Initializing MediaPipe Image Segmenter...');
-
                 const filesetResolver = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
 
                 const segmenter = await ImageSegmenter.createFromOptions(filesetResolver, {
@@ -68,14 +73,13 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
                     outputConfidenceMasks: true,
                 });
 
-                if (mounted) {
+                if (mountedRef.current) {
                     segmenterRef.current = segmenter;
                     setIsInitialized(true);
-                    console.log('Background segmentation initialized successfully');
                 }
             } catch (err) {
                 console.error('Failed to initialize background segmentation:', err);
-                if (mounted) {
+                if (mountedRef.current) {
                     setError(err instanceof Error ? err : new Error('Failed to initialize segmentation'));
                 }
             }
@@ -84,7 +88,7 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
         init();
 
         return () => {
-            mounted = false;
+            mountedRef.current = false;
             if (segmenterRef.current) {
                 segmenterRef.current.close();
                 segmenterRef.current = null;
@@ -92,9 +96,22 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
         };
     }, [enabled]);
 
+    // Pre-generate noise buffer for VHS effect (avoids Math.random() per pixel)
+    useEffect(() => {
+        if (vhsEffect && !noiseBufferRef.current) {
+            // Pre-generate 10000 random noise values
+            const buffer = new Float32Array(10000);
+            for (let i = 0; i < buffer.length; i++) {
+                buffer[i] = (Math.random() - 0.5) * NOISE_INTENSITY;
+            }
+            noiseBufferRef.current = buffer;
+        }
+    }, [vhsEffect]);
 
     // Process video frames with segmentation
-    const processFrame = useCallback(() => {
+    const processFrame = useCallback((timestamp: number) => {
+        if (!mountedRef.current) return;
+
         const video = videoRef.current;
         const canvas = canvasRef.current;
         const segmenter = segmenterRef.current;
@@ -109,21 +126,30 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
             return;
         }
 
+        // Throttle to ~30fps for performance (every ~33ms)
+        if (timestamp - lastFrameTimeRef.current < 33) {
+            animationFrameRef.current = requestAnimationFrame(processFrame);
+            return;
+        }
+        lastFrameTimeRef.current = timestamp;
+
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
             animationFrameRef.current = requestAnimationFrame(processFrame);
             return;
         }
 
-        // Set canvas size to match video
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+        // Set canvas size to match video (only when changed)
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        if (canvas.width !== videoWidth || canvas.height !== videoHeight) {
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
         }
 
         try {
             // Get segmentation result
-            const result = segmenter.segmentForVideo(video, performance.now());
+            const result = segmenter.segmentForVideo(video, timestamp);
             const confidenceMasks = result.confidenceMasks;
 
             if (confidenceMasks && confidenceMasks.length > 0) {
@@ -133,98 +159,75 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
                 ctx.drawImage(video, 0, 0);
 
                 // Get image data
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const imageData = ctx.getImageData(0, 0, videoWidth, videoHeight);
                 const pixels = imageData.data;
                 const maskData = mask.getAsFloat32Array();
+                const pixelCount = maskData.length;
 
-                const width = canvas.width;
-                const height = canvas.height;
-
-                const now = performance.now();
-
-                // Store current frame for ghost trail (every 500ms, keep last 5)
-                if (ghostEffect && (ghostFramesRef.current.length === 0 || now - ghostFramesRef.current[ghostFramesRef.current.length - 1].timestamp > 500)) {
-                    ghostFramesRef.current.push({
-                        data: new Uint8ClampedArray(pixels),
-                        mask: new Float32Array(maskData),
-                        timestamp: now,
-                    });
-                    if (ghostFramesRef.current.length > 5) {
-                        ghostFramesRef.current.shift();
-                    }
-                }
-
-                // Occasionally spawn a ghost trail (higher chance, more frequent)
-                if (ghostEffect && !activeGhostRef.current && ghostFramesRef.current.length >= 2 && Math.random() < 0.02) {
-                    const oldFrame = ghostFramesRef.current[Math.floor(Math.random() * ghostFramesRef.current.length)];
-                    activeGhostRef.current = {
-                        data: oldFrame.data,
-                        mask: oldFrame.mask,
-                        offsetX: (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 50),
-                        opacity: 0.6,
-                        startTime: now,
-                    };
-                }
-
-                // Apply effects based on confidence (0 = background, 1 = person)
-                for (let i = 0; i < maskData.length; i++) {
-                    const pixelIndex = i * 4;
+                // Apply background darkening in a single pass
+                // Optimized: avoid function calls, use local variables
+                const darkness = backgroundDarkness;
+                for (let i = 0; i < pixelCount; i++) {
+                    const idx = i << 2; // i * 4 using bit shift
                     const personConfidence = maskData[i];
+                    const darkenFactor = 1 - (1 - personConfidence) * darkness;
 
-                    let r = pixels[pixelIndex];
-                    let g = pixels[pixelIndex + 1];
-                    let b = pixels[pixelIndex + 2];
-
-                    if (personConfidence > 0.3 && ghostEffect) {
-                        // Ghost effect: desaturate the person
-                        const grey = r * 0.299 + g * 0.587 + b * 0.114;
-                        const ghostStrength = Math.min(1, (personConfidence - 0.3) / 0.5);
-                        r = r * (1 - ghostStrength * 0.7) + grey * (ghostStrength * 0.7);
-                        g = g * (1 - ghostStrength * 0.7) + grey * (ghostStrength * 0.7);
-                        b = b * (1 - ghostStrength * 0.7) + grey * (ghostStrength * 0.7);
-                    }
-
-                    // Darken background
-                    const darkenAmount = (1 - personConfidence) * backgroundDarkness;
-                    pixels[pixelIndex] = r * (1 - darkenAmount);
-                    pixels[pixelIndex + 1] = g * (1 - darkenAmount);
-                    pixels[pixelIndex + 2] = b * (1 - darkenAmount);
+                    pixels[idx] = pixels[idx] * darkenFactor;
+                    pixels[idx + 1] = pixels[idx + 1] * darkenFactor;
+                    pixels[idx + 2] = pixels[idx + 2] * darkenFactor;
                 }
 
-                // Apply VHS effects if enabled
+                // Apply VHS effects if enabled (optimized)
                 if (vhsEffect) {
-                    const time = performance.now() * 0.001;
+                    const time = timestamp * 0.001;
+                    const noiseBuffer = noiseBufferRef.current;
+                    let noiseIdx = noiseIndexRef.current;
 
-                    for (let y = 0; y < height; y++) {
-                        for (let x = 0; x < width; x++) {
-                            const i = (y * width + x) * 4;
-
-                            // Chromatic aberration - shift red channel slightly
-                            const aberrationOffset = 6;
-                            if (x + aberrationOffset < width) {
-                                const sourceIdx = (y * width + x + aberrationOffset) * 4;
-                                pixels[i] = pixels[sourceIdx] * 0.8 + pixels[i] * 0.2;
-                            }
-
-                            // Random noise (subtle)
-                            const noise = (Math.random() - 0.5) * 30;
-                            pixels[i] = Math.max(0, Math.min(255, pixels[i] + noise));
-                            pixels[i + 1] = Math.max(0, Math.min(255, pixels[i + 1] + noise));
-                            pixels[i + 2] = Math.max(0, Math.min(255, pixels[i + 2] + noise));
+                    // Chromatic aberration - process in scanlines for cache efficiency
+                    for (let y = 0; y < videoHeight; y++) {
+                        const rowStart = y * videoWidth;
+                        for (let x = 0; x < videoWidth - CHROMATIC_OFFSET; x++) {
+                            const idx = (rowStart + x) << 2;
+                            const sourceIdx = (rowStart + x + CHROMATIC_OFFSET) << 2;
+                            // Blend red channel from offset position
+                            pixels[idx] = (pixels[sourceIdx] * 0.7 + pixels[idx] * 0.3) | 0;
                         }
                     }
 
-                    // Vertical rolling bar effect (slow and subtle)
-                    const barY = Math.floor((time * 8) % height);
-                    const barHeight = 30;
-                    for (let by = 0; by < barHeight; by++) {
-                        const y = (barY + by) % height;
-                        for (let x = 0; x < width; x++) {
-                            const i = (y * width + x) * 4;
-                            const brightness = 1 + (Math.sin(by / barHeight * Math.PI) * 0.06);
-                            pixels[i] = Math.min(255, pixels[i] * brightness);
-                            pixels[i + 1] = Math.min(255, pixels[i + 1] * brightness);
-                            pixels[i + 2] = Math.min(255, pixels[i + 2] * brightness);
+                    // Add noise using pre-generated buffer
+                    if (noiseBuffer) {
+                        const bufferLen = noiseBuffer.length;
+                        for (let i = 0; i < pixelCount; i++) {
+                            const idx = i << 2;
+                            const noise = noiseBuffer[noiseIdx];
+                            noiseIdx = (noiseIdx + 1) % bufferLen;
+
+                            // Clamp values inline
+                            let r = pixels[idx] + noise;
+                            let g = pixels[idx + 1] + noise;
+                            let b = pixels[idx + 2] + noise;
+                            pixels[idx] = r < 0 ? 0 : r > 255 ? 255 : r;
+                            pixels[idx + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+                            pixels[idx + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+                        }
+                        noiseIndexRef.current = noiseIdx;
+                    }
+
+                    // Rolling bar effect (only process affected rows)
+                    const barY = ((time * BAR_SPEED) | 0) % videoHeight;
+                    const piOverHeight = Math.PI / BAR_HEIGHT;
+                    for (let by = 0; by < BAR_HEIGHT; by++) {
+                        const y = (barY + by) % videoHeight;
+                        const brightness = 1 + Math.sin(by * piOverHeight) * BAR_BRIGHTNESS;
+                        const rowStart = y * videoWidth;
+                        for (let x = 0; x < videoWidth; x++) {
+                            const idx = (rowStart + x) << 2;
+                            let r = pixels[idx] * brightness;
+                            let g = pixels[idx + 1] * brightness;
+                            let b = pixels[idx + 2] * brightness;
+                            pixels[idx] = r > 255 ? 255 : r;
+                            pixels[idx + 1] = g > 255 ? 255 : g;
+                            pixels[idx + 2] = b > 255 ? 255 : b;
                         }
                     }
                 }
@@ -233,29 +236,30 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
                 mask.close();
             }
 
-            if (!isProcessing) setIsProcessing(true);
-        } catch (err) {
-            // Silently handle frame processing errors
-            console.error('Segmentation frame error:', err);
+            if (!isProcessing && mountedRef.current) {
+                setIsProcessing(true);
+            }
+        } catch {
+            // Silently handle frame processing errors - don't spam console
         }
 
         animationFrameRef.current = requestAnimationFrame(processFrame);
-    }, [videoRef, canvasRef, enabled, backgroundDarkness, isProcessing]);
+    }, [videoRef, canvasRef, enabled, backgroundDarkness, vhsEffect, isProcessing]);
 
     // Start/stop processing loop
     useEffect(() => {
         if (!isInitialized || !enabled) return;
 
-        processingRef.current = true;
         animationFrameRef.current = requestAnimationFrame(processFrame);
 
         return () => {
-            processingRef.current = false;
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
                 animationFrameRef.current = null;
             }
-            setIsProcessing(false);
+            if (mountedRef.current) {
+                setIsProcessing(false);
+            }
         };
     }, [isInitialized, enabled, processFrame]);
 

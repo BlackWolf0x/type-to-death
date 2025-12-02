@@ -163,7 +163,6 @@ export default function CalibrationPage() {
         enabled: webcam.isStreaming && pageState === 'ready',
         backgroundDarkness: 0.95,
         vhsEffect: true,
-        ghostEffect: true,
     });
 
     // Auto-advance to calibration when webcam starts

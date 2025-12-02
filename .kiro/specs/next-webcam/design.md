@@ -798,8 +798,7 @@ export default function PermissionPage() {
 - Segment person from background using confidence masks
 - Apply background darkening effect
 - Apply VHS-style effects (chromatic aberration, noise, rolling bar)
-- Apply ghost effect (person desaturation)
-- Process video frames in real-time using requestAnimationFrame
+- Process video frames efficiently using requestAnimationFrame
 
 **Interface:**
 ```typescript
@@ -809,7 +808,6 @@ interface UseBackgroundSegmentationOptions {
     enabled?: boolean;
     backgroundDarkness?: number; // 0-1, how dark the background should be
     vhsEffect?: boolean; // Enable VHS-style effects
-    ghostEffect?: boolean; // Make the person look like a ghost
 }
 
 interface UseBackgroundSegmentationReturn {
@@ -823,32 +821,32 @@ interface UseBackgroundSegmentationReturn {
 - Uses MediaPipe Image Segmenter with GPU delegate for performance
 - Loads selfie segmentation model from CDN
 - Outputs confidence masks (0 = background, 1 = person)
-- Processes video frames at 60fps using requestAnimationFrame
+- Throttles processing to ~30fps for optimal performance
 - Applies effects pixel-by-pixel based on confidence values
 
 **Background Darkening:**
 - Multiplies background pixels by (1 - confidence * backgroundDarkness)
 - Default darkness: 0.7 (70% darker)
 - Smooth blending at person edges using confidence values
+- Single-pass processing for efficiency
 
 **VHS Effects:**
-- **Chromatic Aberration**: Shifts red channel 6 pixels horizontally
-- **Random Noise**: Adds ±15 brightness variation per pixel
-- **Rolling Bar**: Vertical brightness wave that scrolls slowly (8 units/second)
-- Bar height: 30 pixels with sine wave brightness modulation (±6%)
-
-**Ghost Effect:**
-- Desaturates person pixels to create pale, ghostly appearance
-- Calculates luminance: `grey = r * 0.299 + g * 0.587 + b * 0.114`
-- Blends original color with grey based on confidence
-- Strength: 70% desaturation for high-confidence person pixels
-- Only applies to pixels with confidence > 0.3
+- **Chromatic Aberration**: Shifts red channel 4 pixels horizontally with 70/30 blend
+- **Random Noise**: Pre-generated buffer of 10,000 noise values (±10 brightness) cycled through
+- **Rolling Bar**: Vertical brightness wave scrolling at 8 units/second
+- Bar height: 30 pixels with sine wave brightness modulation (±5%)
 
 **Performance Optimizations:**
-- Uses `willReadFrequently: true` context option for pixel manipulation
-- Processes entire frame in single pass
-- Reuses Float32Array for mask data
-- Cancels animation frame on cleanupnd
+1. **Frame Throttling**: Processes at ~30fps (every 33ms) instead of 60fps
+2. **Pre-generated Noise**: 10,000 random values generated once, cycled through to avoid `Math.random()` per pixel
+3. **Bit Shift Operations**: Uses `i << 2` instead of `i * 4` for faster index calculations
+4. **Local Variable Caching**: Avoids repeated property lookups in hot loops
+5. **Inline Clamping**: Removes `Math.max/Math.min` calls, uses ternary operators
+6. **Scanline Processing**: Processes chromatic aberration row-by-row for better cache efficiency
+7. **Mounted Ref**: Prevents state updates after component unmount
+8. **Reduced Logging**: Silences frame processing errors to avoid console spam
+9. **Canvas Size Check**: Only resizes canvas when dimensions change
+10. **Single Pass Effects**: Applies background darkening in one loop before VHS effectsnd
 - `overflow-hidden` to contain rain animation
 
 ## Correctness Properties
@@ -889,9 +887,9 @@ interface UseBackgroundSegmentationReturn {
 
 **Validates: Requirements 11.4**
 
-### Property 19: Ghost Effect Application
+### Property 19: Performance Throttling
 
-*For any* video frame processed with ghostEffect enabled, pixels with high person confidence (> 0.3) should be desaturated by 70% to create a pale, ghostly appearance.
+*For any* video frame processing loop, the system should throttle frame processing to approximately 30fps (every 33ms) to maintain optimal performance and prevent CPU/memory issues.
 
 **Validates: Requirements 11.5**
 
