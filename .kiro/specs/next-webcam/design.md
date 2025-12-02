@@ -233,9 +233,9 @@ States: open → closing → closed → opening → open (blink counted!)
 4. **opening → open**: Eyes remain open for REOPEN_FRAMES (2 frames) → **Blink counted**
 
 **Parameters:**
-- `MIN_BLINK_FRAMES = 2`: Minimum frames eyes must be closed (~33ms at 60fps)
-- `MAX_BLINK_FRAMES = 15`: Maximum frames for valid blink (~250ms at 60fps)
-- `REOPEN_FRAMES = 2`: Frames eyes must reopen to confirm blink completed
+- `MIN_BLINK_FRAMES = 1`: Minimum frames eyes must be closed (~17ms at 60fps)
+- `MAX_BLINK_FRAMES = 30`: Maximum frames for valid blink (~500ms at 60fps)
+- `REOPEN_FRAMES = 1`: Frames eyes must reopen to confirm blink completed
 
 **Benefits:**
 - Filters out noise and partial blinks
@@ -248,12 +248,12 @@ States: open → closing → closed → opening → open (blink counted!)
 After manual calibration, the threshold is calculated as:
 
 ```
-threshold = eyesClosedEAR + (gap * 0.3)
+threshold = eyesClosedEAR + (gap * 0.5)
 ```
 
 Where `gap = eyesOpenEAR - eyesClosedEAR`
 
-This means the system triggers when eyes are approximately 30% closed from their open state, providing a good balance between sensitivity and false positive prevention.
+This means the system triggers at the midpoint (50%) between closed and open states, providing a balanced and forgiving threshold for reliable blink detection.
 
 **Calibration Quality Check:**
 - If `gap < 0.1`, a warning is logged suggesting the user close their eyes more firmly during calibration
@@ -411,7 +411,7 @@ const getErrorUI = (error: WebcamError) => {
 
 ### Property 6: Manual Calibration Flow
 
-*For any* calibration session, the user must complete two steps: (1) record eyes-open EAR, (2) record eyes-closed EAR. The threshold is calculated as eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6.
+*For any* calibration session, the user completes two steps: (1) click Record for eyes-open (auto-saves after 1.5s), (2) click Record for eyes-closed (auto-saves after 1.5s). The threshold is calculated as eyesClosedEAR + (gap * 0.5) where gap = eyesOpenEAR - eyesClosedEAR.
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 

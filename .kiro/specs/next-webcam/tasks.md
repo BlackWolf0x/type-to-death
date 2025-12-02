@@ -198,8 +198,30 @@
   - _Properties: P13, P14, P15_
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
+- [x] 15. Simplify calibration UI and improve blink detection reliability
+
+
+  - Create reusable CalibrationCard component in `app-next/components/calibration-card.tsx`
+  - Component accepts step number, title, description, icon, completion state, and recording state
+  - Component displays checkmark when complete, step number badge when incomplete
+  - Component shows disabled state (opacity-20) when prerequisites not met
+  - Component displays recording message in amber text replacing description during recording
+  - Component shows loading spinner in Record button during recording
+  - Simplify calibration flow from 2-step (Record → Save) to 1-step (Record auto-saves)
+  - Add `calibrateOpen()` and `calibrateClosed()` functions that auto-save after 1.5 seconds
+  - Remove separate `startCalibrateOpen/saveCalibrateOpen` and `startCalibrateClosed/saveCalibrateClosed` functions
+  - Add `eyesOpenEARRef` to track eyes open value for reliable access in timeout callbacks
+  - Update threshold calculation from 30% to 50% between closed and open (more forgiving midpoint)
+  - Reduce `REOPEN_FRAMES` from 2 to 1 for faster blink registration
+  - Increase `MAX_BLINK_FRAMES` from 15 to 30 to allow slightly longer blinks
+  - Update CalibrationPage to use CalibrationCard component for both steps
+  - Step 2 (Eyes Closed) greys out until Step 1 (Eyes Open) completes
+  - Recording message displays in description area to prevent container height changes
+  - _Properties: P6, P7, P8_
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4_
+
 ## Estimated Effort
 
-- Total Tasks: 14
-- Completed: 14
+- Total Tasks: 15
+- Completed: 15
 - Status: ✅ Complete

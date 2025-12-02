@@ -79,10 +79,8 @@ export interface UseBlinkDetectorReturn {
     clearError: () => void;
 
     // Calibration controls
-    startCalibrateOpen: () => void;
-    saveCalibrateOpen: () => void;
-    startCalibrateClosed: () => void;
-    saveCalibrateClosed: () => void;
+    calibrateOpen: () => void;
+    calibrateClosed: () => void;
     resetCalibration: () => void;
 }
 
@@ -163,8 +161,8 @@ const RIGHT_EYE_INDICES = {
 
 // Blink detection parameters
 const MIN_BLINK_FRAMES = 1;      // Minimum frames eyes must be closed (prevents noise)
-const MAX_BLINK_FRAMES = 15;     // Maximum frames for a blink (~250ms at 60fps) - longer = drowsiness, not blink
-const REOPEN_FRAMES = 2;         // Frames eyes must be open to confirm blink completed
+const MAX_BLINK_FRAMES = 30;     // Maximum frames for a blink (~500ms at 60fps) - longer = drowsiness, not blink
+const REOPEN_FRAMES = 1;         // Frames eyes must be open to confirm blink completed
 
 // ============================================================================
 // Utility Functions
@@ -255,6 +253,7 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
     // Refs
     const detectionRunningRef = useRef(false);
     const calibrationSamplesRef = useRef<number[]>([]);
+    const eyesOpenEARRef = useRef<number | null>(eyesOpenEAR);
 
     // Blink state machine refs
     const blinkStateRef = useRef<'open' | 'closing' | 'closed' | 'opening'>('open');
@@ -455,75 +454,81 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
     // Calibration Controls
     // ========================================================================
 
-    const startCalibrateOpen = useCallback(() => {
+    const CALIBRATION_DURATION_MS = 1500; // Collect samples for 1.5 seconds
+
+    const calibrateOpen = useCallback(() => {
         calibrationSamplesRef.current = [];
         setCalibrationState('open');
-    }, []);
 
-    const saveCalibrateOpen = useCallback(() => {
-        if (calibrationSamplesRef.current.length === 0) {
-            setError({
-                code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
-                message: 'No samples collected. Keep your eyes open and face visible.',
-            });
-            return;
-        }
-
-        const avgOpen = calibrationSamplesRef.current.reduce((a, b) => a + b, 0) / calibrationSamplesRef.current.length;
-        setEyesOpenEAR(avgOpen);
-        setCalibrationState('none');
-        calibrationSamplesRef.current = [];
-
-        console.log(`Eyes open EAR saved: ${avgOpen.toFixed(3)}`);
-    }, []);
-
-    const startCalibrateClosed = useCallback(() => {
-        calibrationSamplesRef.current = [];
-        setCalibrationState('closed');
-    }, []);
-
-    const saveCalibrateClosed = useCallback(() => {
-        if (calibrationSamplesRef.current.length === 0) {
-            setError({
-                code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
-                message: 'No samples collected. Keep your eyes closed and face visible.',
-            });
-            return;
-        }
-
-        const avgClosed = calibrationSamplesRef.current.reduce((a, b) => a + b, 0) / calibrationSamplesRef.current.length;
-        setEyesClosedEAR(avgClosed);
-        setCalibrationState('none');
-        calibrationSamplesRef.current = [];
-
-        console.log(`Eyes closed EAR saved: ${avgClosed.toFixed(3)}`);
-
-        // Calculate threshold if we have both values
-        if (eyesOpenEAR !== null) {
-            const gap = eyesOpenEAR - avgClosed;
-
-            // Warn if calibration seems off
-            if (gap < 0.1) {
-                console.warn(`Calibration warning: Gap between open (${eyesOpenEAR.toFixed(3)}) and closed (${avgClosed.toFixed(3)}) is small (${gap.toFixed(3)}). Try closing eyes more firmly during calibration.`);
+        // Auto-save after collecting samples
+        setTimeout(() => {
+            if (calibrationSamplesRef.current.length === 0) {
+                setError({
+                    code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
+                    message: 'No samples collected. Keep your eyes open and face visible.',
+                });
+                setCalibrationState('none');
+                return;
             }
 
-            // Threshold at 70% from closed toward open
-            // This means we trigger when eyes are 30% closed
-            // More forgiving than 60/40 split
-            const threshold = avgClosed + (gap * 0.3);
-            setEarThreshold(threshold);
-            setIsCalibrated(true);
+            const avgOpen = calibrationSamplesRef.current.reduce((a, b) => a + b, 0) / calibrationSamplesRef.current.length;
+            setEyesOpenEAR(avgOpen);
+            eyesOpenEARRef.current = avgOpen;
+            setCalibrationState('none');
+            calibrationSamplesRef.current = [];
 
-            // Save to localStorage
-            saveCalibration({
-                eyesOpenEAR,
-                eyesClosedEAR: avgClosed,
-                threshold,
-            });
+            console.log(`Eyes open EAR saved: ${avgOpen.toFixed(3)}`);
+        }, CALIBRATION_DURATION_MS);
+    }, []);
 
-            console.log(`Calibration complete! Open: ${eyesOpenEAR.toFixed(3)}, Closed: ${avgClosed.toFixed(3)}, Gap: ${gap.toFixed(3)}, Threshold: ${threshold.toFixed(3)}`);
-        }
-    }, [eyesOpenEAR]);
+    const calibrateClosed = useCallback(() => {
+        calibrationSamplesRef.current = [];
+        setCalibrationState('closed');
+
+        // Auto-save after collecting samples
+        setTimeout(() => {
+            if (calibrationSamplesRef.current.length === 0) {
+                setError({
+                    code: BlinkDetectorErrorCode.CALIBRATION_NO_SAMPLES,
+                    message: 'No samples collected. Keep your eyes closed and face visible.',
+                });
+                setCalibrationState('none');
+                return;
+            }
+
+            const avgClosed = calibrationSamplesRef.current.reduce((a, b) => a + b, 0) / calibrationSamplesRef.current.length;
+            setEyesClosedEAR(avgClosed);
+            setCalibrationState('none');
+            calibrationSamplesRef.current = [];
+
+            console.log(`Eyes closed EAR saved: ${avgClosed.toFixed(3)}`);
+
+            // Calculate threshold if we have both values
+            const currentOpenEAR = eyesOpenEARRef.current;
+            if (currentOpenEAR !== null) {
+                const gap = currentOpenEAR - avgClosed;
+
+                // Warn if calibration seems off
+                if (gap < 0.1) {
+                    console.warn(`Calibration warning: Gap between open (${currentOpenEAR.toFixed(3)}) and closed (${avgClosed.toFixed(3)}) is small (${gap.toFixed(3)}). Try closing eyes more firmly during calibration.`);
+                }
+
+                // Threshold at 50% between closed and open (midpoint)
+                const threshold = avgClosed + (gap * 0.5);
+                setEarThreshold(threshold);
+                setIsCalibrated(true);
+
+                // Save to localStorage
+                saveCalibration({
+                    eyesOpenEAR: currentOpenEAR,
+                    eyesClosedEAR: avgClosed,
+                    threshold,
+                });
+
+                console.log(`Calibration complete! Open: ${currentOpenEAR.toFixed(3)}, Closed: ${avgClosed.toFixed(3)}, Gap: ${gap.toFixed(3)}, Threshold: ${threshold.toFixed(3)}`);
+            }
+        }, CALIBRATION_DURATION_MS);
+    }, []);
 
     const resetCalibration = useCallback(() => {
         setIsCalibrated(false);
@@ -532,6 +537,7 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
         setEyesClosedEAR(null);
         setEarThreshold(0.18);
         calibrationSamplesRef.current = [];
+        eyesOpenEARRef.current = null;
         blinkStateRef.current = 'open';
         closedFramesRef.current = 0;
         openFramesRef.current = 0;
@@ -576,10 +582,8 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
         clearError,
 
         // Calibration controls
-        startCalibrateOpen,
-        saveCalibrateOpen,
-        startCalibrateClosed,
-        saveCalibrateClosed,
+        calibrateOpen,
+        calibrateClosed,
         resetCalibration,
     };
 }
