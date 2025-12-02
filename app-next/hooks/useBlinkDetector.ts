@@ -513,8 +513,8 @@ export function useBlinkDetector(options: UseBlinkDetectorOptions): UseBlinkDete
                     console.warn(`Calibration warning: Gap between open (${currentOpenEAR.toFixed(3)}) and closed (${avgClosed.toFixed(3)}) is small (${gap.toFixed(3)}). Try closing eyes more firmly during calibration.`);
                 }
 
-                // Threshold at 50% between closed and open (midpoint)
-                const threshold = avgClosed + (gap * 0.5);
+                // Threshold at 60% between closed and open (more sensitive - triggers earlier)
+                const threshold = avgClosed + (gap * 0.6);
                 setEarThreshold(threshold);
                 setIsCalibrated(true);
 

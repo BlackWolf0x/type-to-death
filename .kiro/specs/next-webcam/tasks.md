@@ -209,7 +209,7 @@
   - Add `calibrateOpen()` and `calibrateClosed()` functions that auto-save after 1.5 seconds
   - Remove separate `startCalibrateOpen/saveCalibrateOpen` and `startCalibrateClosed/saveCalibrateClosed` functions
   - Add `eyesOpenEARRef` to track eyes open value for reliable access in timeout callbacks
-  - Update threshold calculation from 30% to 50% between closed and open (more forgiving midpoint)
+  - Update threshold calculation to 60% between closed and open (more sensitive - triggers at 40% closed)
   - Reduce `REOPEN_FRAMES` from 2 to 1 for faster blink registration
   - Increase `MAX_BLINK_FRAMES` from 15 to 30 to allow slightly longer blinks
   - Update CalibrationPage to use CalibrationCard component for both steps

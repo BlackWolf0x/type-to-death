@@ -248,12 +248,12 @@ States: open → closing → closed → opening → open (blink counted!)
 After manual calibration, the threshold is calculated as:
 
 ```
-threshold = eyesClosedEAR + (gap * 0.5)
+threshold = eyesClosedEAR + (gap * 0.6)
 ```
 
 Where `gap = eyesOpenEAR - eyesClosedEAR`
 
-This means the system triggers at the midpoint (50%) between closed and open states, providing a balanced and forgiving threshold for reliable blink detection.
+This means the system triggers at 60% of the way from closed to open (or 40% closed), providing more sensitive blink detection that triggers earlier in the blink motion.
 
 **Calibration Quality Check:**
 - If `gap < 0.1`, a warning is logged suggesting the user close their eyes more firmly during calibration
@@ -411,7 +411,7 @@ const getErrorUI = (error: WebcamError) => {
 
 ### Property 6: Manual Calibration Flow
 
-*For any* calibration session, the user completes two steps: (1) click Record for eyes-open (auto-saves after 1.5s), (2) click Record for eyes-closed (auto-saves after 1.5s). The threshold is calculated as eyesClosedEAR + (gap * 0.5) where gap = eyesOpenEAR - eyesClosedEAR.
+*For any* calibration session, the user completes two steps: (1) click Record for eyes-open (auto-saves after 1.5s), (2) click Record for eyes-closed (auto-saves after 1.5s). The threshold is calculated as eyesClosedEAR + (gap * 0.6) where gap = eyesOpenEAR - eyesClosedEAR.
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 
