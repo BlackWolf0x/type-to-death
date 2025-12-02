@@ -36,8 +36,8 @@ public class GameManager : MonoBehaviour
         }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-        // restartButton.SetActive(false);
-        // menuButton.SetActive(false);
+        restartButton.SetActive(false);
+        menuButton.SetActive(false);
 #endif
     }
 

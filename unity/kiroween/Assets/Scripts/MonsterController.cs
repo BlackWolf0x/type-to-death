@@ -65,8 +65,8 @@ public class MonsterController : MonoBehaviour
     private AnimatorOverrideController overrideController;
     
 #if UNITY_EDITOR
-#endif
     private InputAction testBlinkAction;
+#endif
 
     void Awake()
     {
@@ -119,32 +119,32 @@ public class MonsterController : MonoBehaviour
         
         // Set up editor testing input (New Input System)
 #if UNITY_EDITOR
-#endif
         testBlinkAction = new InputAction("TestBlink", binding: "<Keyboard>/space");
         testBlinkAction.performed += OnTestBlinkPerformed;
+#endif
     }
     
     void OnEnable()
     {
         #if UNITY_EDITOR
-        #endif
         testBlinkAction?.Enable();
+        #endif
     }
     
     void OnDisable()
     {
         #if UNITY_EDITOR
-        #endif
         testBlinkAction?.Disable();
+        #endif
     }
     
     #if UNITY_EDITOR
-    #endif
     private void OnTestBlinkPerformed(InputAction.CallbackContext context)
     {
         MonsterLog("[EDITOR] Spacebar pressed - simulating blink event.");
         OnBlinkDetected();
     }
+    #endif
 
     void Start()
     {
