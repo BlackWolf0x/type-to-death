@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from "react";
 import { useTypingGameStore } from "./store";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { TextDisplay } from "./components/TextDisplay";
@@ -20,7 +19,6 @@ interface TypingGameProps {
 }
 
 export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
-    const loadStory = useTypingGameStore((state) => state.loadStory);
     const currentChapterIndex = useTypingGameStore((state) => state.currentChapterIndex);
     const totalChapters = useTypingGameStore((state) => state.totalChapters);
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
@@ -29,10 +27,6 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
     const correctKeystrokes = useGameStatsStore((state) => state.correctKeystrokes);
     const wpm = calculateWPM(charactersTyped, elapsedTime);
     const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
-
-    useEffect(() => {
-        loadStory();
-    }, [loadStory]);
 
     return (
         <div

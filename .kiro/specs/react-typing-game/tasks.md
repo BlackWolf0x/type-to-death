@@ -337,8 +337,23 @@
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
   - _Properties: P17_
 
+- [x] 27. Integrate Convex backend story fetching
+  - Update typing game store to accept Story parameter in loadStory action
+  - Remove static story import from store.ts
+  - Add loadedStory state to store for restart functionality
+  - Add reloadStory action that reloads the cached story
+  - Update play page to fetch story using useQuery(api.stories.getLatestStory)
+  - Pass fetched story to loadStory when game starts
+  - Update loading screen to show "Loading story..." state while fetching
+  - Update intro screen to display story title and introduction from fetched data
+  - Replace escaped newlines (\n) with actual line breaks in introduction display
+  - Update restart handler to use reloadStory instead of loadStory
+  - Remove auto-load useEffect from TypingGame component
+  - Remove unused useEffect import from TypingGame component
+  - _Requirements: 1.2, 7.1, 7.2, 8.1_
+
 ## Estimated Effort
 
-- Total Tasks: 26
-- Completed: 26
+- Total Tasks: 27
+- Completed: 27
 - Status: ✅ Complete
