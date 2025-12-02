@@ -245,8 +245,27 @@
   - _Properties: P16, P17, P18, P19_
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
 
+- [x] 17. Polish GameWebcam component with visual effects
+  - Update `app-next/components/game-webcam.tsx` to match calibration page design
+  - Add canvas-based rendering with background segmentation
+  - Integrate `useBackgroundSegmentation` hook with backgroundDarkness=0.95, vhsEffect=true
+  - Add eye landmark drawing overlay (green when open, red when blinking)
+  - Implement rounded corners with `rounded-lg` styling
+  - Add red shadow glow effect (`shadow-lg shadow-red-500/30`)
+  - Add border styling (`border border-zinc-800`)
+  - Position webcam feed in bottom-right corner (`fixed z-50 bottom-4 right-4`)
+  - Set webcam size to `w-64 aspect-video` (256px width, 16:9 aspect ratio)
+  - Remove blink status and face detection indicators (keep UI minimal)
+  - Use hidden video element with visible canvas layers for effects
+  - Apply same VHS effects as calibration page (chromatic aberration, noise)
+  - Remove rolling bar effect from background segmentation hook
+  - Update constants: remove BAR_HEIGHT, BAR_SPEED, BAR_BRIGHTNESS
+  - Remove rolling bar processing code from processFrame callback
+  - _Properties: P16, P17, P18, P19_
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
 ## Estimated Effort
 
-- Total Tasks: 16
-- Completed: 16
+- Total Tasks: 17
+- Completed: 17
 - Status: ✅ Complete

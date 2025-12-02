@@ -27,11 +27,8 @@ const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision
 const SEGMENTATION_MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite';
 
 // VHS effect constants - pre-calculated for performance
-const CHROMATIC_OFFSET = 4;
-const NOISE_INTENSITY = 20;
-const BAR_HEIGHT = 30;
-const BAR_SPEED = 8;
-const BAR_BRIGHTNESS = 0.05;
+const CHROMATIC_OFFSET = 10;
+const NOISE_INTENSITY = 30;
 
 // ============================================================================
 // Hook
@@ -213,23 +210,7 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
                         noiseIndexRef.current = noiseIdx;
                     }
 
-                    // Rolling bar effect (only process affected rows)
-                    const barY = ((time * BAR_SPEED) | 0) % videoHeight;
-                    const piOverHeight = Math.PI / BAR_HEIGHT;
-                    for (let by = 0; by < BAR_HEIGHT; by++) {
-                        const y = (barY + by) % videoHeight;
-                        const brightness = 1 + Math.sin(by * piOverHeight) * BAR_BRIGHTNESS;
-                        const rowStart = y * videoWidth;
-                        for (let x = 0; x < videoWidth; x++) {
-                            const idx = (rowStart + x) << 2;
-                            let r = pixels[idx] * brightness;
-                            let g = pixels[idx + 1] * brightness;
-                            let b = pixels[idx + 2] * brightness;
-                            pixels[idx] = r > 255 ? 255 : r;
-                            pixels[idx + 1] = g > 255 ? 255 : g;
-                            pixels[idx + 2] = b > 255 ? 255 : b;
-                        }
-                    }
+
                 }
 
                 ctx.putImageData(imageData, 0, 0);

@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useWebcam } from "@/hooks/useWebcam";
 import { useBlinkDetector } from "@/hooks/useBlinkDetector";
+import { useBackgroundSegmentation } from "@/hooks/useBackgroundSegmentation";
+
 
 // Check if calibration exists in localStorage
 function hasStoredCalibration(): boolean {
@@ -26,6 +28,10 @@ async function checkCameraPermission(): Promise<'granted' | 'denied' | 'prompt'>
     }
 }
 
+// Eye landmark indices for drawing
+const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+const RIGHT_EYE_INDICES = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398];
+
 export interface BlinkData {
     isBlinking: boolean;
     blinkCount: number;
@@ -42,10 +48,21 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
     const router = useRouter();
     const hasRedirected = useRef(false);
     const hasSignaledReady = useRef(false);
+    const segmentCanvasRef = useRef<HTMLCanvasElement>(null);
+    const eyeCanvasRef = useRef<HTMLCanvasElement>(null);
 
     // Don't auto-start webcam until we verify everything
     const webcam = useWebcam({ autoStart: false });
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+
+    // Background segmentation with VHS effects (same as calibration ready state)
+    useBackgroundSegmentation({
+        videoRef: webcam.videoRef,
+        canvasRef: segmentCanvasRef,
+        enabled: webcam.isStreaming,
+        backgroundDarkness: 0.95,
+        vhsEffect: true,
+    });
 
     // Check calibration and permission on mount
     useEffect(() => {
@@ -116,14 +133,69 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
         });
     }, [blink.isBlinking, blink.blinkCount, gameStarted, onBlinkDataChange]);
 
+    // Draw eye landmarks on canvas
+    useEffect(() => {
+        const canvas = eyeCanvasRef.current;
+        const video = webcam.videoRef.current;
+        if (!canvas || !video || !webcam.isStreaming || !blink.faceLandmarks) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const w = video.videoWidth || 640;
+        const h = video.videoHeight || 480;
+        canvas.width = w;
+        canvas.height = h;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const landmarks = blink.faceLandmarks;
+
+        const drawEyeOutline = (eyeIndices: number[], color: string) => {
+            ctx.beginPath();
+            eyeIndices.forEach((idx, i) => {
+                const point = landmarks[idx];
+                if (!point) return;
+                const x = point.x * w;
+                const y = point.y * h;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.closePath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        };
+
+        const eyeColor = blink.isBlinking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
+        drawEyeOutline(LEFT_EYE_INDICES, eyeColor);
+        drawEyeOutline(RIGHT_EYE_INDICES, eyeColor);
+    }, [blink.faceLandmarks, webcam.isStreaming, webcam.videoRef, blink.isBlinking]);
+
     return (
-        /* Hidden webcam video for blink detection */
-        <video
-            ref={webcam.setVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="hidden"
-        />
+        <div className="fixed z-50 bottom-6 right-6">
+            {/* Webcam container with rounded corners and shadow */}
+            <div className="relative w-64 aspect-video overflow-hidden rounded-lg bg-black shadow-lg shadow-red-500/30 border border-zinc-800">
+                {/* Hidden video element for processing */}
+                <video
+                    ref={webcam.setVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="absolute inset-0 h-full w-full object-cover opacity-0"
+                />
+                {/* Segmented canvas with VHS effects */}
+                <canvas
+                    ref={segmentCanvasRef}
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+                {/* Eye tracking overlay */}
+                <canvas
+                    ref={eyeCanvasRef}
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+
+            </div>
+        </div>
     );
 }
