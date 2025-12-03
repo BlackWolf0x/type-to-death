@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { GameWebcam } from "@/components/game-webcam";
+import { GameWebcamSimple } from "@/components/game-webcam-simple";
 import { FaceDetectionWarning } from "@/components/face-detection-warning";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
@@ -267,8 +267,8 @@ export default function PlayPage() {
 
     return (
         <>
-            {/* GameWebcam handles calibration/permission checks and signals when ready */}
-            <GameWebcam
+            {/* Simple webcam - blink detection only, no visual effects */}
+            <GameWebcamSimple
                 onBlink={handleBlink}
                 onReady={handleReady}
                 onBlinkDataChange={setBlinkData}

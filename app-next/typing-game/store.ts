@@ -135,6 +135,11 @@ export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
         set((state) => {
             const currentWord = state.words[state.currentWordIndex];
 
+            // Guard against undefined currentWord (game ended or invalid state)
+            if (!currentWord) {
+                return state;
+            }
+
             if (value === '') {
                 return {
                     inputValue: '',
@@ -144,12 +149,16 @@ export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
             }
 
             // Record keystroke if a new character was typed (not backspace)
+            // Defer to next microtask to avoid blocking the main thread during typing
             if (value.length > state.inputValue.length) {
                 const newCharPos = value.length - 1;
                 const typedChar = value[newCharPos];
                 const expectedChar = currentWord[newCharPos];
                 const isCorrect = typedChar === expectedChar;
-                useGameStatsStore.getState().recordKeystroke(isCorrect);
+                // Use queueMicrotask to batch this update separately from the typing state
+                queueMicrotask(() => {
+                    useGameStatsStore.getState().recordKeystroke(isCorrect);
+                });
             }
 
             let hasAnyError = false;
