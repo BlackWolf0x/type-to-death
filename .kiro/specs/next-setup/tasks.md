@@ -32,3 +32,33 @@
   - Use proper TypeScript types for page components
   - _Properties: P2_
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [x] 4. Create home page with banner
+  - Update `app/(home)/page.tsx` to use client component
+  - Create `components/home-banner.tsx` with shadcn button
+  - Add "Start Game" button that navigates to `/main-menu`
+  - Use Next.js `useRouter` for navigation
+  - Style banner with Tailwind CSS for centered layout
+  - _Properties: P2_
+  - _Requirements: 4.1, 4.5_
+
+- [x] 5. Style calibration page with horror theme
+  - Add operating room background image with low opacity
+  - Create VHSStatic component with film grain effect using SVG filters
+  - Enhance Card component with red corner brackets
+  - Add CardRain component for animated red rain background
+  - Implement shake animation in globals.css
+  - Apply conditional shake animation when webcam is not connected
+  - Update card border to red with transparency
+  - Ensure proper z-index layering for all visual effects
+  - _Properties: P2_
+  - _Requirements: 4.3_
+
+- [x] 6. Configure custom branding and typography
+  - Add Metal Mania font from Google Fonts to layout.tsx
+  - Configure font variable for horror-themed typography
+  - Update favicon.ico with custom game icon
+  - Add favicon.png to public directory
+  - Update metadata title and description for game branding
+  - _Properties: P1_
+  - _Requirements: 1.1, 1.2_

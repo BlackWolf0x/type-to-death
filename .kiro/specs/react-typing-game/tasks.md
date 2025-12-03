@@ -314,8 +314,46 @@
   - Format stats as "Time: MM:SS • XX WPM"
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 11.7, 11.8, 11.9, 11.10_
 
+- [x] 25. Add accuracy tracking to game statistics
+  - Update gameStatsStore to track totalKeystrokes and correctKeystrokes
+  - Add recordKeystroke action that increments totalKeystrokes and conditionally increments correctKeystrokes
+  - Export calculateAccuracy helper function (correctKeystrokes / totalKeystrokes * 100)
+  - Integrate keystroke tracking in typing game store's setInputValue
+  - Record keystroke when new character is typed (not on backspace)
+  - Compare typed character against expected character to determine if correct
+  - Display accuracy percentage in typing game stats bar
+  - Reset keystroke counters when game restarts
+  - _Requirements: 11.11, 11.12_
+  - _Properties: P16_
+
+- [x] 26. Add chapter progress indicator to typing game UI
+  - Import BookOpen icon from lucide-react
+  - Subscribe to currentChapterIndex and totalChapters from typing game store
+  - Add chapter indicator component in stats bar (left side, before blink data)
+  - Display format "Chapter X/Y" where X is currentChapterIndex + 1
+  - Style with BookOpen icon (orange color) and black background
+  - Show only when totalChapters > 0
+  - Update in real-time as player progresses through chapters
+  - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
+  - _Properties: P17_
+
+- [x] 27. Integrate Convex backend story fetching
+  - Update typing game store to accept Story parameter in loadStory action
+  - Remove static story import from store.ts
+  - Add loadedStory state to store for restart functionality
+  - Add reloadStory action that reloads the cached story
+  - Update play page to fetch story using useQuery(api.stories.getLatestStory)
+  - Pass fetched story to loadStory when game starts
+  - Update loading screen to show "Loading story..." state while fetching
+  - Update intro screen to display story title and introduction from fetched data
+  - Replace escaped newlines (\n) with actual line breaks in introduction display
+  - Update restart handler to use reloadStory instead of loadStory
+  - Remove auto-load useEffect from TypingGame component
+  - Remove unused useEffect import from TypingGame component
+  - _Requirements: 1.2, 7.1, 7.2, 8.1_
+
 ## Estimated Effort
 
-- Total Tasks: 24
-- Completed: 24
+- Total Tasks: 27
+- Completed: 27
 - Status: ✅ Complete

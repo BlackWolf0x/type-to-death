@@ -38,7 +38,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 backdrop-blur-xl bg-black/50",
         className
       )}
       {...props}
@@ -60,11 +60,17 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-xl border border-red-500/20 p-8 shadow-2xl shadow-red-500/50 duration-200 sm:max-w-lg",
           className
         )}
         {...props}
       >
+        {/* Red corners */}
+        <div className="pointer-events-none absolute left-1 top-1 z-10 size-10 rounded-tl-lg border-l-2 border-t-2 border-red-600" />
+        <div className="pointer-events-none absolute right-1 top-1 z-10 size-10 rounded-tr-lg border-r-2 border-t-2 border-red-600" />
+        <div className="pointer-events-none absolute bottom-1 left-1 z-10 size-10 rounded-bl-lg border-b-2 border-l-2 border-red-600" />
+        <div className="pointer-events-none absolute bottom-1 right-1 z-10 size-10 rounded-br-lg border-b-2 border-r-2 border-red-600" />
+
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

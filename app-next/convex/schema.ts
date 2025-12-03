@@ -9,7 +9,9 @@ const schema = defineSchema({
         username: v.optional(v.string()),
         email: v.optional(v.string()),
         emailVerificationTime: v.optional(v.number()),
-    }).index("email", ["email"]),
+    })
+        .index("email", ["email"])
+        .index("username", ["username"]),
 
     stories: defineTable({
         title: v.string(),

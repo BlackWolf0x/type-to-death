@@ -56,11 +56,19 @@ export default function PlayPage() {
 
 ```
 1. Component mounts
-2. useUnityContext initializes with build URLs
-3. Unity starts loading (loadingProgression updates)
-4. Loading screen displays progress
-5. Unity finishes loading (isLoaded = true)
-6. Game canvas becomes visible
+2. Webcam and calibration checks run
+3. Requirements ready (isReady = true)
+4. useUnityContext initializes with build URLs
+5. Unity starts loading (loadingProgression updates)
+6. Loading screen displays progress
+7. Unity finishes loading (isLoaded = true)
+8. Unity sends "GameIsReady" event (unityReady = true)
+9. Loading screen fades out
+10. Intro screen displays (if not seen before)
+11. User clicks "Begin" button
+12. introSeen state set to true
+13. Unity transitions to game scene (GoToGameScene)
+14. Game canvas becomes visible and interactive
 ```
 
 ### Blink Detection Flow
@@ -234,8 +242,27 @@ export function UnityGame() {
 
 **Validates: Requirements 5.1, 5.3**
 
+### P8: Intro Screen Display Logic
+
+*For any* first-time play session, the intro screen should display after both requirements are ready and Unity is fully loaded. *For any* restart, the intro screen should be skipped.
+
+**Validates: Requirements 8.1, 8.8, 8.9, 8.11, 8.12**
+
+### P13: Fullscreen Toggle Functionality
+
+*For any* fullscreen button click, the browser should enter fullscreen mode if not already in fullscreen, or exit fullscreen mode if currently in fullscreen. *For any* fullscreen state change (including ESC key), the button text should update to reflect the current state.
+
+**Validates: Requirements 8.14, 8.15, 8.16, 8.17**
+
+### P9: Intro Content Accuracy
+
+*For any* intro screen display, the title and introduction text should match the story data from data.ts exactly.
+
+**Validates: Requirements 8.2, 8.3, 8.10**
+
 ## UI Layout
 
+### Game Screen
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  [Start] [Manual Blink]  ← Debug controls (top-left)   │
@@ -249,6 +276,35 @@ export function UnityGame() {
 │                          [👁️ Blinks: 5] ← Indicator    │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Intro Screen
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                          │
+│         ┌────────────────────────────────┐             │
+│         │  The Archivist's Descent       │             │
+│         │      (red title in card)       │             │
+│         │                                 │             │
+│         │  Story introduction text...    │             │
+│         │  (scrollable if needed)        │             │
+│         └────────────────────────────────┘             │
+│                                                          │
+│  [👁️ Do not blink]  [🎧 Headphones]  [⛶ Fullscreen]  │
+│                                      [Enter Fullscreen] │
+│                                                          │
+│                [Start Challenge →]                      │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Intro Screen Features:**
+- Story title and introduction wrapped in Card component (without rain effect)
+- Three gameplay tip cards with icons:
+  - Eye icon: "Do not blink, Do not look down"
+  - Headphones icon: "Headphones Recommended"
+  - Fullscreen icon: "Fullscreen Recommended" with toggle button
+- Fullscreen toggle button that changes text based on state
+- "Start Challenge" button to begin gameplay
 
 ## Edge Cases
 
@@ -288,6 +344,15 @@ export function UnityGame() {
 - Unity handles multiple rapid calls
 - Blink counter increments correctly
 
+### E5: User Refreshes Page During Gameplay
+
+**Scenario:** User refreshes the browser during gameplay
+
+**Handling:**
+- Intro screen will show again (introSeen state is lost)
+- Game restarts from beginning
+- Future: Consider persisting introSeen to localStorage
+
 ## Performance Considerations
 
 1. **Unity + Blink Detection** - Both run in parallel without blocking
@@ -326,6 +391,63 @@ export function UnityGame() {
 2. Test with webcam permission denied
 3. Test rapid blinking
 4. Test Unity load failure (remove build files)
+
+## Unity Cleanup on Navigation
+
+### Cleanup Flow
+
+When the user navigates away from the play page (e.g., clicking "Main Menu"):
+
+```
+1. Component unmount triggered
+2. Cleanup effect runs
+3. Attempt to close FMOD audio context
+4. Call unload() to destroy Unity instance
+5. Catch and ignore any errors
+6. Navigation completes
+```
+
+### Implementation
+
+```typescript
+// Cleanup Unity instance on unmount - handle FMOD audio worklet cleanup
+useEffect(() => {
+    return () => {
+        const cleanup = async () => {
+            try {
+                // Try to close Unity's FMOD audio context before unloading
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const unityModule = (window as any).unityInstance;
+                if (unityModule?.Module?.audioContext) {
+                    await unityModule.Module.audioContext.close().catch(() => {});
+                }
+            } catch {
+                // Ignore audio cleanup errors
+            }
+
+            // Unload Unity instance
+            await unload().catch(() => {});
+        };
+
+        cleanup();
+    };
+}, [unload]);
+```
+
+**Key Points:**
+- Cleanup runs on component unmount
+- FMOD audio context is closed before Unity unload
+- All errors are caught and ignored to prevent console errors
+- Uses async cleanup to properly handle promises
+- Prevents "table index is out of bounds" FMOD error
+
+## Correctness Properties
+
+### P14: Unity Cleanup on Unmount
+
+*For any* navigation away from the play page, the Unity instance should be properly unloaded and the FMOD audio context should be closed to prevent errors.
+
+**Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5, 9.6**
 
 ## Future Enhancements
 

@@ -85,7 +85,7 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 
 ### 4. GameWebcam Component
 
-**File:** `app-next/components/game/GameWebcam.tsx`
+**File:** `app-next/components/game-webcam.tsx`
 
 **Responsibilities:**
 - Check for stored calibration data in localStorage
@@ -233,9 +233,9 @@ States: open → closing → closed → opening → open (blink counted!)
 4. **opening → open**: Eyes remain open for REOPEN_FRAMES (2 frames) → **Blink counted**
 
 **Parameters:**
-- `MIN_BLINK_FRAMES = 2`: Minimum frames eyes must be closed (~33ms at 60fps)
-- `MAX_BLINK_FRAMES = 15`: Maximum frames for valid blink (~250ms at 60fps)
-- `REOPEN_FRAMES = 2`: Frames eyes must reopen to confirm blink completed
+- `MIN_BLINK_FRAMES = 1`: Minimum frames eyes must be closed (~17ms at 60fps)
+- `MAX_BLINK_FRAMES = 30`: Maximum frames for valid blink (~500ms at 60fps)
+- `REOPEN_FRAMES = 1`: Frames eyes must reopen to confirm blink completed
 
 **Benefits:**
 - Filters out noise and partial blinks
@@ -248,12 +248,12 @@ States: open → closing → closed → opening → open (blink counted!)
 After manual calibration, the threshold is calculated as:
 
 ```
-threshold = eyesClosedEAR + (gap * 0.3)
+threshold = eyesClosedEAR + (gap * 0.6)
 ```
 
 Where `gap = eyesOpenEAR - eyesClosedEAR`
 
-This means the system triggers when eyes are approximately 30% closed from their open state, providing a good balance between sensitivity and false positive prevention.
+This means the system triggers at 60% of the way from closed to open (or 40% closed), providing more sensitive blink detection that triggers earlier in the blink motion.
 
 **Calibration Quality Check:**
 - If `gap < 0.1`, a warning is logged suggesting the user close their eyes more firmly during calibration
@@ -411,7 +411,7 @@ const getErrorUI = (error: WebcamError) => {
 
 ### Property 6: Manual Calibration Flow
 
-*For any* calibration session, the user must complete two steps: (1) record eyes-open EAR, (2) record eyes-closed EAR. The threshold is calculated as eyesOpenEAR * 0.4 + eyesClosedEAR * 0.6.
+*For any* calibration session, the user completes two steps: (1) click Record for eyes-open (auto-saves after 1.5s), (2) click Record for eyes-closed (auto-saves after 1.5s). The threshold is calculated as eyesClosedEAR + (gap * 0.6) where gap = eyesOpenEAR - eyesClosedEAR.
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 
@@ -747,6 +747,158 @@ export default function PermissionPage() {
 3. Test multiple cameras (if available)
 4. Test browser permission denial and retry
 
+### 6. Visual Styling Components
+
+**VHSStatic Component**
+
+**File:** `app-next/components/vhs-static.tsx`
+
+**Responsibilities:**
+- Render film grain overlay effect using SVG filter
+- Provide atmospheric horror aesthetic
+- Use GPU-accelerated CSS for performance
+
+**Technical Implementation:**
+- Uses SVG `feTurbulence` filter with `baseFrequency="0.65"` and `numOctaves="3"`
+- Applied via inline SVG data URL
+- Uses `mix-blend-multiply` for authentic film grain blending
+- Default opacity of 70%
+
+**CardRain Component**
+
+**File:** `app-next/components/ui/card-rain.tsx`
+
+**Responsibilities:**
+- Render animated red rain effect within cards
+- Use canvas-based animation for performance
+- Automatically resize with card dimensions
+
+**Technical Implementation:**
+- 50 red raindrops with varying opacity (0.3-0.8)
+- Speed range: 2-5 units per frame
+- Length range: 10-30 pixels
+- Uses `ResizeObserver` for responsive sizing
+- Positioned at 20% opacity within cards
+
+**Enhanced Card Component**
+
+**File:** `app-next/components/ui/card.tsx`
+
+**Enhancements:**
+- Red corner brackets (top-left, top-right, bottom-left, bottom-right)
+- Red border (`border-red-500/30`)
+- Integrated CardRain background
+
+### 7. useBackgroundSegmentation Hook
+
+**File:** `app-next/hooks/useBackgroundSegmentation.ts`
+
+**Responsibilities:**
+- Initialize MediaPipe Image Segmenter for person detection
+- Segment person from background using confidence masks
+- Apply background darkening effect
+- Apply VHS-style effects (chromatic aberration, noise, rolling bar)
+- Process video frames efficiently using requestAnimationFrame
+
+**Interface:**
+```typescript
+interface UseBackgroundSegmentationOptions {
+    videoRef: RefObject<HTMLVideoElement | null>;
+    canvasRef: RefObject<HTMLCanvasElement | null>;
+    enabled?: boolean;
+    backgroundDarkness?: number; // 0-1, how dark the background should be
+    vhsEffect?: boolean; // Enable VHS-style effects
+}
+
+interface UseBackgroundSegmentationReturn {
+    isInitialized: boolean;
+    isProcessing: boolean;
+    error: Error | null;
+}
+```
+
+**Technical Implementation:**
+- Uses MediaPipe Image Segmenter with GPU delegate for performance
+- Loads selfie segmentation model from CDN
+- Outputs confidence masks (0 = background, 1 = person)
+- Throttles processing to ~30fps for optimal performance
+- Applies effects pixel-by-pixel based on confidence values
+
+**Background Darkening:**
+- Multiplies background pixels by (1 - confidence * backgroundDarkness)
+- Default darkness: 0.7 (70% darker)
+- Smooth blending at person edges using confidence values
+- Single-pass processing for efficiency
+
+**VHS Effects:**
+- **Chromatic Aberration**: Shifts red channel 4 pixels horizontally with 70/30 blend
+- **Random Noise**: Pre-generated buffer of 10,000 noise values (±10 brightness) cycled through
+- **Rolling Bar**: Vertical brightness wave scrolling at 8 units/second
+- Bar height: 30 pixels with sine wave brightness modulation (±5%)
+
+**Performance Optimizations:**
+1. **Frame Throttling**: Processes at ~30fps (every 33ms) instead of 60fps
+2. **Pre-generated Noise**: 10,000 random values generated once, cycled through to avoid `Math.random()` per pixel
+3. **Bit Shift Operations**: Uses `i << 2` instead of `i * 4` for faster index calculations
+4. **Local Variable Caching**: Avoids repeated property lookups in hot loops
+5. **Inline Clamping**: Removes `Math.max/Math.min` calls, uses ternary operators
+6. **Scanline Processing**: Processes chromatic aberration row-by-row for better cache efficiency
+7. **Mounted Ref**: Prevents state updates after component unmount
+8. **Reduced Logging**: Silences frame processing errors to avoid console spam
+9. **Canvas Size Check**: Only resizes canvas when dimensions change
+10. **Single Pass Effects**: Applies background darkening in one loop before VHS effectsnd
+- `overflow-hidden` to contain rain animation
+
+## Correctness Properties
+
+### Property 13: Background Image Cycling
+
+*For any* blink detected during the ready state, the system should cycle to the next horror image in the sequence.
+
+**Validates: Requirements 10.2**
+
+### Property 14: Visual Effects Rendering
+
+*For any* calibration page load, the system should render film grain overlay, and when the card is visible, it should display red corner brackets and rain animation.
+
+**Validates: Requirements 10.3, 10.5, 10.6**
+
+### Property 15: Shake Animation Conditional Display
+
+*For any* state where the webcam is not streaming, the calibration card should display a shake animation. *For any* state where the webcam is streaming, the shake animation should stop.
+
+**Validates: Requirements 10.4**
+
+### Property 16: Background Segmentation Initialization
+
+*For any* calibration page load with background segmentation enabled, the system should initialize MediaPipe Image Segmenter and begin processing video frames when the video element is ready.
+
+**Validates: Requirements 11.1, 11.2**
+
+### Property 17: Background Darkening Effect
+
+*For any* video frame processed with background segmentation, pixels with low person confidence (< 0.3) should be darkened by the configured backgroundDarkness amount, while person pixels remain at full brightness.
+
+**Validates: Requirements 11.3**
+
+### Property 18: VHS Effects Application
+
+*For any* video frame processed with vhsEffect enabled, the system should apply chromatic aberration (red channel shift) and random noise effects.
+
+**Validates: Requirements 11.4**
+
+### Property 19: Performance Throttling
+
+*For any* video frame processing loop, the system should throttle frame processing to approximately 30fps (every 33ms) to maintain optimal performance and prevent CPU/memory issues.
+
+**Validates: Requirements 11.5**
+
+### Property 20: Demon Face Overlay Rendering
+
+*For any* face with detected landmarks, the system should render demon horns on the forehead using forehead landmark positions, and when the mouth is open, render demon teeth and fangs that follow the curved shape of the mouth using lip landmark positions.
+
+**Validates: Requirements 12.1, 12.2, 12.3**
+
 ## Future Enhancements
 
 - Device selection UI for multiple cameras
@@ -756,3 +908,8 @@ export default function PermissionPage() {
 - Performance monitoring and optimization
 - Accessibility improvements (keyboard navigation, screen reader support)
 - Mobile device support and testing
+- Animated film grain (seed animation)
+- Adjustable rain intensity based on game state
+- Glitch effects during critical moments
+- Scanline overlay for CRT monitor effect
+- Vignette effect around card edges

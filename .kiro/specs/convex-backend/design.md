@@ -31,7 +31,108 @@ The Convex integration consists of three main layers:
 }
 ```
 
-### 2. ConvexClientProvider Component
+### 2. Convex Functions for Username Management
+
+Location: `app-next/convex/users.ts`
+
+```typescript
+// Query to get current user with username
+export const getCurrentUser = query({
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", identity.email))
+      .first();
+    
+    return user;
+  },
+});
+
+// Query to check if username is taken
+export const isUsernameTaken = query({
+  args: { username: v.string() },
+  handler: async (ctx, { username }) => {
+    const existing = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("username"), username.toLowerCase()))
+      .first();
+    return !!existing;
+  },
+});
+
+// Mutation to set username
+export const setUsername = mutation({
+  args: { username: v.string() },
+  handler: async (ctx, { username }) => {
+    // Validation and save logic
+  },
+});
+```
+
+**Responsibilities:**
+- Query current user's profile including username
+- Check username availability across all users
+- Save username to user's profile with validation
+
+### 3. ModalSetUsername Component
+
+Location: `app-next/components/modal-set-username.tsx`
+
+```typescript
+"use client";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface ModalSetUsernameProps {
+  isOpen: boolean;
+}
+
+export function ModalSetUsername({ isOpen }: ModalSetUsernameProps) {
+  // Uses shadcn Dialog with onOpenChange returning early to prevent closing
+  // No DialogClose or X button rendered
+  return (
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="[&>button]:hidden">
+        <DialogHeader>
+          <DialogTitle>Set Your Username</DialogTitle>
+          <DialogDescription>
+            Choose a unique username to continue.
+          </DialogDescription>
+        </DialogHeader>
+        {/* Form with Input, validation feedback, and Button */}
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+**Responsibilities:**
+- Display forced modal when user has no username (uses shadcn Dialog)
+- Validate username format (3-20 chars, alphanumeric + underscore)
+- Check username availability via Convex query
+- Submit username via Convex mutation (uses shadcn Button)
+- Form input using shadcn Input and Label components
+- Close only after successful username save
+
+**shadcn Components Used:**
+- `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` from `@/components/ui/dialog`
+- `Button` from `@/components/ui/button`
+- `Input` from `@/components/ui/input`
+- `Label` from `@/components/ui/label`
+
+### 4. ConvexClientProvider Component
 
 Location: `app-next/app/ConvexClientProvider.tsx`
 
@@ -53,7 +154,7 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
 - Provide Convex context to all child components
 - Must be a client component ("use client")
 
-### 3. Root Layout Integration
+### 5. Root Layout Integration
 
 Location: `app-next/app/layout.tsx`
 
@@ -77,7 +178,7 @@ export default function RootLayout({ children }) {
 - Wrap entire app with ConvexClientProvider
 - Ensure all pages have access to Convex client
 
-### 4. Environment Configuration
+### 6. Environment Configuration
 
 Location: `app-next/.env.local`
 
@@ -89,7 +190,7 @@ NEXT_PUBLIC_CONVEX_URL=<deployment-url>
 - Store Convex deployment URL
 - Automatically populated by `convex dev`
 
-### 5. Convex Configuration
+### 7. Convex Configuration
 
 Location: `app-next/convex.json`
 
@@ -121,6 +222,35 @@ convex: ConvexReactClient
 // Provider props
 interface ConvexClientProviderProps {
   children: ReactNode;
+}
+```
+
+### Username Data Model
+
+```typescript
+// User schema (already exists in convex/schema.ts)
+users: defineTable({
+  username: v.optional(v.string()),
+  email: v.optional(v.string()),
+  emailVerificationTime: v.optional(v.number()),
+}).index("email", ["email"])
+  .index("username", ["username"]), // Add index for username lookups
+
+// Username validation constants
+const USERNAME_MIN_LENGTH = 3;
+const USERNAME_MAX_LENGTH = 20;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
+```
+
+### Username Modal State
+
+```typescript
+interface UsernameModalState {
+  username: string;
+  isChecking: boolean;
+  isSaving: boolean;
+  error: string | null;
+  isAvailable: boolean | null;
 }
 ```
 
@@ -161,6 +291,56 @@ interface ConvexClientProviderProps {
 4. Provide real-time sync feedback
 ```
 
+### 4. Username Setup Flow
+
+```
+1. User signs in successfully
+2. App queries getCurrentUser to check if username exists
+3. IF username is null/undefined:
+   - Display UsernameSetupModal (forced, non-dismissible)
+   - User enters desired username
+4. On username input change (debounced):
+   - Validate format (3-20 chars, alphanumeric + underscore)
+   - IF valid format, query isUsernameTaken
+   - Display availability status
+5. On submit:
+   - Call setUsername mutation
+   - IF success, close modal
+   - IF error (race condition - taken), show error
+```
+
+### 5. Username Validation Algorithm
+
+```
+validateUsername(username: string):
+  1. Trim whitespace
+  2. Check length >= 3 AND <= 20
+  3. Check matches pattern /^[a-zA-Z0-9_]+$/
+  4. Return { valid: boolean, error?: string }
+```
+
+### 6. Username Uniqueness Check
+
+```
+isUsernameTaken(username: string):
+  1. Convert username to lowercase for case-insensitive check
+  2. Query users table for matching username
+  3. Return true if found, false otherwise
+```
+
+### 7. Set Username Mutation
+
+```
+setUsername(username: string):
+  1. Get authenticated user identity
+  2. Validate username format
+  3. Check username not already taken (race condition protection)
+  4. Get user document by email
+  5. Check user doesn't already have a username
+  6. Update user document with lowercase username
+  7. Return success
+```
+
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
@@ -185,6 +365,26 @@ interface ConvexClientProviderProps {
 **Verification:** ConvexReactClient initializes without throwing errors and can communicate with backend
 **Covers:** Requirements 2.2, 2.3
 
+### P5: Username Dialog Visibility
+**Property:** *For any* authenticated user, the username setup dialog is displayed if and only if the user has no username set
+**Verification:** Query user, check username field, verify dialog visibility matches (username === null/undefined)
+**Covers:** Requirements 3.1, 3.2
+
+### P6: Username Validation Rules
+**Property:** *For any* string input, the username validation passes if and only if the string is 3-20 characters long and contains only alphanumeric characters and underscores
+**Verification:** Test with strings of various lengths and character sets, verify validation result matches expected
+**Covers:** Requirements 3.8, 3.9
+
+### P7: Username Uniqueness Enforcement
+**Property:** *For any* username that already exists in the database, attempting to set that username for another user should fail with an appropriate error
+**Verification:** Create user with username, attempt to set same username for different user, verify error is returned
+**Covers:** Requirements 3.4, 3.5
+
+### P8: Username Save Success
+**Property:** *For any* valid and available username, calling setUsername should successfully save the username to the user's profile
+**Verification:** Call setUsername with valid available username, query user, verify username is saved
+**Covers:** Requirements 3.6, 3.7
+
 ## Integration Points
 
 ### Existing Next.js App Structure
@@ -205,13 +405,18 @@ The Convex integration modifies:
 ```
 app-next/
 ├── app/
-│   ├── ConvexClientProvider.tsx (NEW)
-│   └── layout.tsx (MODIFIED)
-├── convex/ (NEW)
-│   └── (Convex functions will go here)
-├── .env.local (NEW, gitignored)
-├── convex.json (NEW)
-└── package.json (MODIFIED)
+│   ├── ConvexClientProvider.tsx
+│   └── layout.tsx
+├── components/
+│   ├── modal-auth.tsx
+│   └── modal-set-username.tsx (NEW)
+├── convex/
+│   ├── auth.ts
+│   ├── schema.ts (MODIFIED - add username index)
+│   └── users.ts (NEW)
+├── .env.local (gitignored)
+├── convex.json
+└── package.json
 ```
 
 ## Edge Cases
@@ -231,6 +436,22 @@ app-next/
 ### E4: Bun Compatibility
 **Scenario:** Convex CLI might expect npm/pnpm/yarn
 **Handling:** Use `bunx` instead of `npx` for running Convex commands
+
+### E5: Username Race Condition
+**Scenario:** Two users try to claim the same username simultaneously
+**Handling:** The setUsername mutation performs a final uniqueness check before saving. Second user receives error message.
+
+### E6: Username Case Sensitivity
+**Scenario:** User tries "JohnDoe" when "johndoe" already exists
+**Handling:** Usernames are stored and compared in lowercase to prevent case-based duplicates
+
+### E7: User Already Has Username
+**Scenario:** User with existing username somehow triggers the username setup flow
+**Handling:** setUsername mutation checks if user already has a username and rejects if so
+
+### E8: Unauthenticated Username Attempt
+**Scenario:** Unauthenticated request tries to set username
+**Handling:** Convex auth middleware rejects the request before mutation executes
 
 ## Performance Considerations
 
@@ -281,11 +502,43 @@ app-next/
    - Start app
    - Verify connection error is handled gracefully
 
+### Username Feature Testing
+
+1. **New User Flow Test**
+   - Sign up with new account
+   - Verify username dialog appears immediately
+   - Verify dialog cannot be closed (no X button, clicking outside doesn't close)
+   - Enter valid username
+   - Verify dialog closes after save
+
+2. **Existing User Flow Test**
+   - Sign in with account that has username
+   - Verify username dialog does NOT appear
+   - Verify user can proceed normally
+
+3. **Username Validation Test**
+   - Enter username with < 3 characters → error shown
+   - Enter username with > 20 characters → error shown
+   - Enter username with special characters → error shown
+   - Enter valid username → no validation error
+
+4. **Username Availability Test**
+   - Enter username that exists → "username taken" error
+   - Enter unique username → "available" indicator
+   - Verify debounced checking (not on every keystroke)
+
+5. **Race Condition Test**
+   - Open two browser windows with new accounts
+   - Enter same username in both
+   - Submit both simultaneously
+   - Verify one succeeds, one fails with appropriate error
+
 ## Future Enhancements (Out of Scope)
 
-- Database schema definitions
 - Convex functions for game logic (scores, leaderboards)
-- Authentication with Convex Auth
 - File storage integration
 - Production deployment configuration
 - Monitoring and analytics setup
+- Username change functionality
+- Profile picture/avatar selection
+- Username display name (separate from unique username)

@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as mock from "../mock.js";
 import type * as prompt from "../prompt.js";
 import type * as stories from "../stories.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   mock: typeof mock;
   prompt: typeof prompt;
   stories: typeof stories;
+  users: typeof users;
 }>;
 
 /**
