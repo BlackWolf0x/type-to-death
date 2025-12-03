@@ -350,7 +350,7 @@ export default function PlayPage() {
                     }`}
             >
                 <div className="bg-black/80 px-12 py-8 rounded-2xl flex flex-col items-center gap-6">
-                    <h1 className="text-5xl font-bold text-green-500 tracking-wider">You Survived!</h1>
+                    <h1 className="text-6xl font-metalMania font-bold text-green-500 tracking-wider">You Survived!</h1>
 
                     <div className="flex items-center gap-6 border rounded-xl">
                         <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
@@ -395,7 +395,7 @@ export default function PlayPage() {
                             variant="outlineRed"
                             size="xl"
                         >
-                            Try Again
+                            Restart Game
                         </Button>
                     </div>
                 </div>
