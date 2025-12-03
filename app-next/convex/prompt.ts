@@ -49,7 +49,7 @@ INTRODUCTION:
 DIFFICULTY CRITERIA FOR CHAPTERS:
 
 EASY (Chapters 1-4 - Story Beginning):
-- 30-50 words in length (quick to type, 15-25 seconds for average typist)
+- 30-50 words in length
 - Very simple sentence structures (subject-verb-object)
 - Common, everyday vocabulary only
 - Short words (average 3-5 letters)
@@ -59,7 +59,7 @@ EASY (Chapters 1-4 - Story Beginning):
 - Story function: Establish protagonist, setting, initial curiosity or unease
 
 MEDIUM (Chapters 5-8 - Story Development):
-- 50-70 words in length (30-40 seconds for average typist)
+- 50-70 words in length
 - Mix of simple, compound, and some complex sentences
 - More varied vocabulary with descriptive and atmospheric terms
 - Mix of short and medium-length words (average 5-7 letters)
@@ -69,7 +69,7 @@ MEDIUM (Chapters 5-8 - Story Development):
 - Story function: Deepen the mystery, escalate danger, reveal disturbing details
 
 HARD (Chapters 9-10 - Story Climax/Resolution):
-- 70-90 words in length (40-50 seconds for average typist)
+- 70-90 words in length 
 - Complex, literary sentence structures with multiple clauses
 - Advanced vocabulary, uncommon words, horror-specific terminology
 - Longer, challenging words (average 6-9+ letters)
@@ -104,31 +104,6 @@ CONTENT GUIDELINES:
 - The story should feel complete by chapter 10, ending with why they're now at Latham Asylum
 - By the end, it should be clear why no one believed them and why they were sent to Latham Asylum
 - Remember: Latham Asylum specializes in patients who have been victims of horror incidents and unexplainable phenomena
+- Do not use the examples given literally, create your own based on them.
 
-OUTPUT FORMAT:
-Return ONLY a valid JSON object with this exact structure:
-{
-  "title": "Your Story Title Here",
-  "introduction": "Your atmospheric introduction here. Can span multiple paragraphs.\\n\\nSecond paragraph if needed.\\n\\nThird paragraph if needed.",
-  "chapters": [
-    {
-      "text": "Chapter 1 text as one continuous paragraph...",
-      "difficulty": "easy"
-    },
-    {
-      "text": "Chapter 2 text as one continuous paragraph...",
-      "difficulty": "easy"
-    }
-  ]
-}
-
-Generate exactly 10 chapters in this order:
-- Chapters 1-4: "easy"
-- Chapters 5-8: "medium"  
-- Chapters 9-10: "hard"
-
-Ensure the JSON is properly formatted with escaped quotes and special characters where necessary.
-Each chapter text must be a single continuous paragraph with no line breaks.
-The introduction can have line breaks (\\n\\n) between paragraphs for readability.
-Do not use the examples given literally, create your own based on them.
-Do not include any explanatory text outside the JSON object, only return the JSON.`;
+`;
