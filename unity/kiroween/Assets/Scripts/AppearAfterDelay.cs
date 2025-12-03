@@ -17,7 +17,7 @@ public class AppearAfterDelay : MonoBehaviour
             return;
         }
 
-        Debug.Log($"StartAnimationAfterDelay: disabling '{this.gameObject.name}' for {offDurationSeconds} seconds.");
+        // Debug.Log($"StartAnimationAfterDelay: disabling '{this.gameObject.name}' for {offDurationSeconds} seconds.");
 
         // Always operate on this GameObject. Use a helper so the coroutine survives while
         // this GameObject is inactive.

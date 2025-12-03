@@ -220,6 +220,21 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 1. WHEN face landmarks are detected THEN the system SHALL draw demon horns on the forehead using forehead landmark positions
 2. WHEN the mouth is open THEN the system SHALL draw demon teeth and fangs that follow the curved shape of the mouth
 3. WHEN face overlay features are rendered THEN the system SHALL provide a reusable hook that can be used across multiple components
+4. WHEN calibration is not complete on the calibration page THEN the system SHALL only display eye overlays without horns or teeth
+5. WHEN calibration is complete on the calibration page THEN the system SHALL display all demon features including eyes, horns, and teeth
+
+### Requirement 13: Face Detection Warning During Gameplay
+
+**User Story:** As a player, I want to be warned when my face is not detected during gameplay, so that I cannot cheat by hiding my face from the camera and I am redirected to recalibrate if I don't fix the issue.
+
+#### Acceptance Criteria
+
+1. WHEN the webcam is active during gameplay AND no face is detected THEN the system SHALL display a warning notice in the center of the screen
+2. WHEN no face is detected THEN the warning notice SHALL display a countdown timer starting from 20 seconds
+3. WHEN the countdown reaches zero AND face is still not detected THEN the system SHALL redirect the user to the /calibration page
+4. WHEN face detection resumes before the countdown reaches zero THEN the system SHALL cancel the countdown and hide the warning notice
+5. WHEN the warning notice is displayed THEN the system SHALL show a clear message explaining that face detection is required
+6. WHEN the countdown is active THEN the system SHALL update the countdown display every second
 
 ## Out of Scope
 

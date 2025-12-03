@@ -2,11 +2,11 @@
 
 ## Introduction
 
-This feature implements a backend leaderboard system for the Type to Death game using Convex. Players compete on an all-time leaderboard based on their typing performance scores. The system tracks high scores per user per story and provides a sorted leaderboard query.
+This feature implements a complete leaderboard system for the Type to Death game, including both the Convex backend and a frontend modal component. Players compete on an all-time leaderboard based on their typing performance scores. The system tracks high scores per user per story and provides a sorted leaderboard display.
 
 ## Context
 
-The Type to Death game requires a competitive element where players can see how their typing performance compares to others. The leaderboard tracks metrics including words per minute (WPM), accuracy, and time taken, combining them into a single score using a defined formula. Each user maintains only their best score per story.
+The Type to Death game requires a competitive element where players can see how their typing performance compares to others. The leaderboard tracks metrics including words per minute (WPM), accuracy, and time taken, combining them into a single score using a defined formula. Each user maintains only their best score per story. The frontend displays this data in a scrollable modal dialog.
 
 ## Glossary
 
@@ -16,6 +16,7 @@ The Type to Death game requires a competitive element where players can see how 
 - **Score**: Calculated performance metric using the formula: `Score = ((Accuracy² × WPM) / Time) × 1000`
 - **Story**: A typing challenge from the stories table that players complete
 - **User**: An authenticated player in the system
+- **Leaderboard Modal**: A dialog component displaying ranked highscores
 
 ## Requirements
 
@@ -56,6 +57,75 @@ The Type to Death game requires a competitive element where players can see how 
 2. THE system SHALL sort highscore records by score in descending order (highest first)
 3. THE system SHALL return highscore records without pagination
 
+### Requirement 4: Leaderboard Modal Display
+
+**User Story:** As a player, I want to view the leaderboard in a modal dialog, so that I can see rankings without leaving the current page.
+
+#### Acceptance Criteria
+
+1. WHEN a user clicks the leaderboard trigger THEN THE modal SHALL open displaying the leaderboard
+2. THE modal SHALL display a header with the title "Leaderboard"
+3. THE modal SHALL use a scrollable area to display all entries without pagination
+4. WHEN the modal is open THEN THE user SHALL be able to close it via a close button or clicking outside
+
+### Requirement 5: Leaderboard Entry Display
+
+**User Story:** As a player, I want to see detailed information for each leaderboard entry, so that I can understand player performance.
+
+#### Acceptance Criteria
+
+1. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's rank position
+2. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's username
+3. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's score (formatted)
+4. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's WPM
+5. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's accuracy percentage
+6. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's time taken (formatted)
+7. THE leaderboard entries SHALL be displayed in a grid layout for readability
+
+### Requirement 6: Score Calculation Utility
+
+**User Story:** As a developer, I want the score calculation function to be reusable, so that it can be used consistently across the application.
+
+#### Acceptance Criteria
+
+1. THE calculateScore function SHALL be located in the lib folder for reusability
+2. THE calculateScore function SHALL accept accuracy, wordPerMinute, and timeTaken as parameters
+3. THE calculateScore function SHALL return the calculated score using the formula: `((Accuracy² × WPM) / Time) × 1000`
+
+### Requirement 7: Leaderboard Data Enrichment
+
+**User Story:** As a player, I want to see usernames on the leaderboard, so that I can identify other players.
+
+#### Acceptance Criteria
+
+1. WHEN fetching leaderboard data THEN THE system SHALL include user information for each entry
+2. IF a user has no username THEN THE system SHALL display "Anonymous" as the username
+3. THE system SHALL query user data efficiently alongside highscore data
+
+### Requirement 8: Game Win Score Submission
+
+**User Story:** As a player, I want my score automatically submitted when I win the game, so that I can compete on the leaderboard without manual action.
+
+#### Acceptance Criteria
+
+1. WHEN a player completes a story successfully THEN THE system SHALL automatically submit the score
+2. WHILE the score is being submitted THEN THE system SHALL display a loading indicator with "Saving score..."
+3. WHEN the score submission succeeds THEN THE system SHALL display a success message with trophy icon
+4. IF the score submission fails due to authentication THEN THE system SHALL display "Sign in to save your score"
+5. IF the score submission fails for other reasons THEN THE system SHALL display the error message
+6. WHEN the player restarts the game THEN THE system SHALL reset the submission status
+
+### Requirement 9: Data Precision
+
+**User Story:** As a player, I want my performance metrics stored with full precision, so that leaderboard rankings are accurate.
+
+#### Acceptance Criteria
+
+1. WHEN submitting a score THEN THE system SHALL store WPM with full decimal precision (no rounding)
+2. WHEN submitting a score THEN THE system SHALL store accuracy with full decimal precision (no rounding)
+3. WHEN submitting a score THEN THE system SHALL store timeTaken with full decimal precision (no rounding)
+4. WHEN displaying time on the leaderboard THEN THE system SHALL format it in a human-readable format (MM:SS)
+
 ## Non-Functional Requirements
 
 ### NFR1: Data Integrity
@@ -66,12 +136,20 @@ The system SHALL ensure score calculations are consistent and accurate using the
 
 The system SHALL enforce authentication for all score submission operations.
 
+### NFR3: UI Consistency
+
+The leaderboard modal SHALL follow the existing design patterns using shadcn/ui components.
+
+### NFR4: Scrollable Content
+
+The leaderboard modal SHALL handle large numbers of entries gracefully using a scroll area.
+
 ## Constraints
 
-- Backend implementation only (frontend is out of scope)
 - Uses existing Convex authentication via `@convex-dev/auth`
 - Must integrate with existing `stories` and `users` tables
 - No pagination required for leaderboard queries
+- Must use shadcn/ui Dialog and ScrollArea components
 - No test files or testing scripts to be created
 
 ## Dependencies
@@ -80,18 +158,21 @@ The system SHALL enforce authentication for all score submission operations.
 - `@convex-dev/auth` for authentication
 - Existing `stories` table in schema.ts
 - Existing `users` table in schema.ts
+- shadcn/ui Dialog component
+- shadcn/ui ScrollArea component
 
 ## Success Metrics
 
 - Authenticated users can submit scores successfully
 - Scores are calculated correctly using the defined formula
 - Only best scores per user per story are retained
-- Leaderboard returns sorted results
+- Leaderboard returns sorted results with user information
+- Modal displays all entries in a scrollable, readable format
+- calculateScore function is reusable from lib folder
 
 ## Out of Scope
 
-- Frontend UI components
 - Pagination for leaderboard
 - Filtering by story or time period
-- User profile display in leaderboard
+- Real-time leaderboard updates
 - Test files and testing scripts

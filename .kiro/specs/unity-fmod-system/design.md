@@ -8,6 +8,7 @@ The FMOD System consists of an `AudioManager` singleton that:
 3. Creates EventInstances from EventReferences in Awake
 4. Provides PlaySfx() method to play any EventInstance
 5. Integrates with GameManager for game over sound
+6. Plays intro SFX after a configurable delay from game start
 
 This creates centralized FMOD audio management.
 
@@ -21,6 +22,7 @@ This creates centralized FMOD audio management.
 - Store EventInstance fields (public access)
 - Create EventInstances in InstantiateSFXs()
 - Provide PlaySfx() method for playback
+- Play intro SFX after configurable delay
 
 **Dependencies:**
 - FMOD Studio Unity Integration
@@ -35,6 +37,10 @@ This creates centralized FMOD audio management.
 ```csharp
 [Header("FMOD Events")]
 [SerializeField] private EventReference gameOverRef;
+[SerializeField] private EventReference introRef;
+
+[Header("Timing")]
+[SerializeField] private float introDelay = 3f;
 ```
 
 ### Runtime State
@@ -42,6 +48,7 @@ This creates centralized FMOD audio management.
 ```csharp
 private static AudioManager instance;
 public EventInstance gameOverSfx;
+public EventInstance introSfx;
 ```
 
 ### Public Properties
@@ -49,6 +56,7 @@ public EventInstance gameOverSfx;
 ```csharp
 public static AudioManager Instance => instance;
 public EventInstance GameOverSfx => gameOverSfx;
+public EventInstance IntroSfx => introSfx;
 ```
 
 ## Core Algorithms
@@ -71,6 +79,7 @@ On Awake:
 ```
 InstantiateSFXs():
 1. gameOverSfx = RuntimeManager.CreateInstance(gameOverRef)
+2. introSfx = RuntimeManager.CreateInstance(introRef)
 ```
 
 ### 3. SFX Playback
@@ -78,6 +87,17 @@ InstantiateSFXs():
 ```
 PlaySfx(EventInstance sfx):
 1. sfx.start()
+```
+
+### 4. Intro SFX Delayed Playback
+
+```
+On Awake (after InstantiateSFXs):
+1. StartCoroutine(PlayIntroAfterDelay())
+
+PlayIntroAfterDelay():
+1. yield return new WaitForSeconds(introDelay)
+2. PlaySfx(introSfx)
 ```
 
 ## Correctness Properties
@@ -112,6 +132,11 @@ PlaySfx(EventInstance sfx):
 **Verification:** GameManager calls PlaySfx(GameOverSfx)
 **Covers:** AC5.1, AC5.2, AC5.3
 
+### P7: Intro SFX Delayed Playback
+**Property:** For any configured introDelay, the intro SFX plays exactly introDelay seconds after game start
+**Verification:** Coroutine waits introDelay seconds then calls PlaySfx(introSfx)
+**Covers:** AC6.1, AC6.2, AC6.3, AC6.4
+
 ## Implementation Details
 
 ### Singleton Pattern
@@ -135,6 +160,7 @@ void Awake()
     }
     
     InstantiateSFXs();
+    StartCoroutine(PlayIntroAfterDelay());
 }
 ```
 
@@ -144,6 +170,7 @@ void Awake()
 void InstantiateSFXs()
 {
     gameOverSfx = RuntimeManager.CreateInstance(gameOverRef);
+    introSfx = RuntimeManager.CreateInstance(introRef);
 }
 ```
 
@@ -156,15 +183,31 @@ public void PlaySfx(EventInstance sfx)
 }
 ```
 
+### Intro SFX Delayed Playback
+
+```csharp
+IEnumerator PlayIntroAfterDelay()
+{
+    yield return new WaitForSeconds(introDelay);
+    PlaySfx(introSfx);
+}
+```
+
 ### EventReference and EventInstance Fields
 
 ```csharp
 [Header("FMOD Events")]
 [SerializeField] private EventReference gameOverRef;
+[SerializeField] private EventReference introRef;
+
+[Header("Timing")]
+[SerializeField] private float introDelay = 3f;
 
 public EventInstance gameOverSfx;
+public EventInstance introSfx;
 
 public EventInstance GameOverSfx => gameOverSfx;
+public EventInstance IntroSfx => introSfx;
 ```
 
 ## Integration with GameManager
@@ -202,6 +245,10 @@ IEnumerator GameOverSequence()
 **Scenario:** FMOD Studio not properly set up
 **Handling:** RuntimeManager calls may fail, log errors
 
+### E5: Intro Delay Zero or Negative
+**Scenario:** introDelay set to 0 or negative value
+**Handling:** Coroutine still works, plays immediately or after minimal delay
+
 ## Performance Considerations
 
 - **Singleton Access**: O(1) static property access
@@ -218,7 +265,15 @@ IEnumerator GameOverSequence()
 AudioManager.Instance.PlaySfx(AudioManager.Instance.GameOverSfx);
 ```
 
-### Example 2: Add New SFX
+### Example 2: Intro SFX Plays After Delay
+
+```csharp
+// Automatically plays after introDelay seconds from game start
+// No manual triggering needed
+// Configure delay in Inspector
+```
+
+### Example 3: Add New SFX
 
 ```csharp
 // In AudioManager
@@ -228,6 +283,7 @@ public EventInstance newSfx;
 void InstantiateSFXs()
 {
     gameOverSfx = RuntimeManager.CreateInstance(gameOverRef);
+    introSfx = RuntimeManager.CreateInstance(introRef);
     newSfx = RuntimeManager.CreateInstance(newSfxRef);
 }
 

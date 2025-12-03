@@ -52,6 +52,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("GameManager: Monster Object not assigned");
         }
+
+        Debug.Log("Game Started");
     }
 
     void OnEnable()
@@ -110,6 +112,7 @@ public class GameManager : MonoBehaviour
     public void GameWon()
     {
         AudioManager.Instance.StopHeartbeat();
+        AudioManager.Instance.StopHumming();
         AudioManager.Instance.StopAmbiance();
         monsterObject.SetActive(false);
     }

@@ -2,317 +2,237 @@
 
 ## Overview
 
-The leaderboard system consists of two main components:
-
-1. **Schema Extension** - Adds a `highscores` table to the existing Convex schema
-2. **Highscores Module** - Contains mutation and query functions for score management
-
-The system integrates with existing authentication (`@convex-dev/auth`) and references the existing `stories` table.
+The leaderboard system consists of four main parts:
+1. Convex backend for data storage and retrieval (already implemented)
+2. A reusable score calculation utility in the lib folder
+3. A frontend modal component displaying ranked highscores with user information
+4. Game win integration that automatically submits scores with visual feedback
 
 ## Architecture
 
-### Component Responsibilities
-
-1. **Schema (schema.ts)** - Defines the highscores table structure with appropriate indexes
-2. **Highscores Module (highscores.ts)** - Exposes `submitScore` mutation and `getHighscores` query
-3. **Authentication** - Uses existing `@convex-dev/auth` for user verification
-
-### Data Flow
-
-```
-Player completes story
-        ↓
-Frontend calls submitScore mutation
-        ↓
-Mutation verifies authentication
-        ↓
-Mutation calculates score
-        ↓
-Mutation checks for existing highscore
-        ↓
-Insert new or update if better
-        ↓
-getHighscores returns sorted leaderboard
-```
+1. **Backend Layer (Convex)**: Handles data persistence, score submission, and leaderboard queries
+2. **Utility Layer (lib)**: Contains the reusable calculateScore function
+3. **Data Fetching Layer**: Enhanced query to include user information with highscores
+4. **UI Layer**: Modal component using shadcn/ui Dialog and ScrollArea
+5. **Game Integration Layer**: Automatic score submission on game win with status feedback
 
 ## Components and Interfaces
 
-### Schema Extension
+### ModalLeaderboard Component
 
-**File:** `app-next/convex/schema.ts`
-
-**Responsibilities:**
-- Define highscores table with all required fields
-- Create indexes for efficient queries
-
-**Dependencies:**
-- Existing schema with stories and users tables
-
-### Highscores Module
-
-**File:** `app-next/convex/highscores.ts`
+**Location:** `app-next/components/modal-leaderboard.tsx`
 
 **Responsibilities:**
-- `submitScore` mutation: Authenticate, calculate score, insert/update record
-- `getHighscores` query: Return all highscores sorted by score descending
+- Render a dialog trigger button
+- Display leaderboard in a modal dialog
+- Fetch and display highscores with user data
+- Handle loading and empty states
+- Provide scrollable content for many entries
 
 **Dependencies:**
-- `@convex-dev/auth/server` for authentication
-- Generated Convex types
+- shadcn/ui Dialog components
+- shadcn/ui ScrollArea component
+- Convex useQuery hook
+- getHighscoresWithUsers query
 
-## Data Model
+### Score Calculation Utility
 
-### Highscores Table Schema
+**Location:** `app-next/lib/score.ts`
 
+**Responsibilities:**
+- Calculate score using the formula: `((Accuracy² × WPM) / Time) × 1000`
+- Provide consistent score calculation across frontend and backend
+
+### Game Win Score Submission
+
+**Location:** `app-next/app/play/page.tsx`
+
+**Responsibilities:**
+- Automatically submit score when player wins the game
+- Track submission status (idle, submitting, success, error)
+- Display visual feedback for each status state
+- Handle authentication errors with friendly messaging
+- Reset status on game restart
+
+**State Management:**
 ```typescript
-highscores: defineTable({
-    storyId: v.id("stories"),
-    userId: v.id("users"),
-    wordPerMinute: v.number(),
-    accuracy: v.number(),
-    timeTaken: v.number(),
-    score: v.number(),
-    createdAt: v.number(),
-})
-    .index("by_score", ["score"])
-    .index("by_user_story", ["userId", "storyId"])
+const [scoreSubmitStatus, setScoreSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+const [scoreSubmitError, setScoreSubmitError] = useState<string | null>(null);
 ```
 
-### Index Strategy
+## Data Models
 
-- `by_score`: Enables efficient sorting for leaderboard queries
-- `by_user_story`: Enables efficient lookup of existing user scores per story
+### Highscore with User (Frontend Type)
+
+```typescript
+interface HighscoreWithUser {
+  _id: Id<"highscores">;
+  storyId: Id<"stories">;
+  userId: Id<"users">;
+  wordPerMinute: number;
+  accuracy: number;
+  timeTaken: number;
+  score: number;
+  createdAt: number;
+  username: string | null;
+}
+```
+
+### Leaderboard Entry Display
+
+```typescript
+interface LeaderboardEntry {
+  rank: number;
+  username: string;
+  score: number;
+  wpm: number;
+  accuracy: number;
+  timeTaken: number;
+}
+```
 
 ## Core Algorithms
 
 ### 1. Score Calculation
 
 ```
-Input: wordPerMinute (WPM), accuracy (0-100), timeTaken (seconds)
+Input: accuracy (0-100), wordPerMinute (number), timeTaken (seconds)
 Output: score (number)
 
-Formula: Score = ((Accuracy² × WPM) / Time) × 1000
-
-Steps:
-1. Square the accuracy value
-2. Multiply by WPM
-3. Divide by timeTaken
-4. Multiply by 1000
+Formula: score = ((accuracy² × wordPerMinute) / timeTaken) × 1000
 ```
 
-### 2. Input Validation
+### 2. Leaderboard Ranking
 
 ```
-Input: wordPerMinute, accuracy, timeTaken
-Output: void (throws error if invalid)
-
-Validation Rules:
-1. accuracy MUST be between 0 and 100 (inclusive)
-2. wordPerMinute MUST be less than 500
-3. wordPerMinute MUST be greater than 0
-4. timeTaken MUST be greater than 0
+1. Fetch all highscores sorted by score descending
+2. For each highscore, fetch associated user data
+3. Map to display format with rank (index + 1)
+4. Return enriched list
 ```
 
-### 3. Submit Score Logic
 
-```
-Input: storyId, wordPerMinute, accuracy, timeTaken
-Output: void (or error)
-
-Steps:
-1. Get authenticated user identity
-2. IF identity is null THEN throw "Unauthenticated" error
-3. Validate inputs:
-   - IF accuracy < 0 OR accuracy > 100 THEN throw "Invalid accuracy" error
-   - IF wordPerMinute <= 0 OR wordPerMinute >= 500 THEN throw "Invalid WPM" error
-   - IF timeTaken <= 0 THEN throw "Invalid time" error
-4. Get userId from identity
-5. Calculate score using formula
-6. Query existing highscore for (userId, storyId)
-7. IF no existing record THEN
-     Insert new highscore record
-   ELSE IF new score > existing score THEN
-     Update existing record with new values
-   ELSE
-     Do nothing (keep existing better score)
-```
-
-### 4. Get Highscores Logic
-
-```
-Input: none
-Output: Array of highscore records
-
-Steps:
-1. Query highscores table
-2. Use by_score index
-3. Order descending
-4. Collect all results
-5. Return array
-```
 
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
-### P1: Score Calculation Correctness
+### P1: Score Calculation Consistency
+**Property:** *For any* valid accuracy (0-100), wordPerMinute (>0, <500), and timeTaken (>0), the calculateScore function SHALL return `((accuracy² × wordPerMinute) / timeTaken) × 1000`
+**Validates: Requirements 2.3, 6.3**
 
-**Property:** *For any* valid WPM, accuracy, and timeTaken values, the calculated score SHALL equal `((accuracy² × WPM) / timeTaken) × 1000`
+### P2: Best Score Retention
+**Property:** *For any* user and story combination, after multiple score submissions, the stored highscore SHALL be the maximum of all submitted scores
+**Validates: Requirements 2.4, 2.5, 2.6**
 
-**Verification:** Given random valid inputs, compute expected score and compare with function output
+### P3: Leaderboard Sorting
+**Property:** *For any* set of highscores, the getHighscores query SHALL return entries sorted by score in descending order (each entry's score >= next entry's score)
+**Validates: Requirements 3.1, 3.2**
 
-**Validates:** Requirements 2.3
+### P4: User Information Enrichment
+**Property:** *For any* highscore entry in the leaderboard, the returned data SHALL include a username field (either the user's username or "Anonymous" if null)
+**Validates: Requirements 7.1, 7.2**
 
-### P2: New User Score Creation
+### P5: Leaderboard Entry Completeness
+**Property:** *For any* leaderboard entry displayed, the rendered output SHALL contain rank, username, score, WPM, accuracy, and time values
+**Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6**
 
-**Property:** *For any* authenticated user submitting a score for a story they have no existing score for, a new highscore record SHALL be created
+### P7: Data Precision Preservation
+**Property:** *For any* score submission, the stored WPM, accuracy, and timeTaken values SHALL match the submitted values without rounding
+**Validates: Requirements 9.1, 9.2, 9.3**
 
-**Verification:** Submit score for new user/story combination, verify record exists in database
+### P6: Score Submission Feedback
+**Property:** *For any* game win event, the UI SHALL display appropriate feedback based on submission status (loading, success, or error)
+**Validates: Requirements 8.2, 8.3, 8.4, 8.5**
 
-**Validates:** Requirements 2.4
+## Integration Points
 
-### P3: Higher Score Updates Record
+### Backend Query Enhancement
 
-**Property:** *For any* existing highscore record and any new submission with a higher score, the record SHALL be updated with the new values
-
-**Verification:** Submit score higher than existing, verify record reflects new values
-
-**Validates:** Requirements 2.5
-
-### P4: Lower Score Preserves Record
-
-**Property:** *For any* existing highscore record and any new submission with a lower or equal score, the existing record SHALL remain unchanged
-
-**Verification:** Submit score lower than existing, verify record retains original values
-
-**Validates:** Requirements 2.6
-
-### P5: Leaderboard Ordering
-
-**Property:** *For any* set of highscore records, the getHighscores query SHALL return records sorted by score in descending order (each record's score >= next record's score)
-
-**Verification:** Query leaderboard, verify each element has score >= subsequent element
-
-**Validates:** Requirements 3.2
-
-### P6: Leaderboard Completeness
-
-**Property:** *For any* set of highscore records in the database, the getHighscores query SHALL return all records
-
-**Verification:** Count records in database, compare with count of returned records
-
-**Validates:** Requirements 3.1
-
-### P7: Input Validation - Accuracy Range
-
-**Property:** *For any* accuracy value outside the range [0, 100], the submitScore mutation SHALL throw an error
-
-**Verification:** Submit with accuracy < 0 or > 100, verify error is thrown
-
-**Validates:** Requirements 2.3 (implicit validation)
-
-### P8: Input Validation - WPM Range
-
-**Property:** *For any* WPM value <= 0 or >= 500, the submitScore mutation SHALL throw an error
-
-**Verification:** Submit with invalid WPM, verify error is thrown
-
-**Validates:** Requirements 2.3 (implicit validation)
-
-### P9: Input Validation - Time Range
-
-**Property:** *For any* timeTaken value <= 0, the submitScore mutation SHALL throw an error
-
-**Verification:** Submit with timeTaken <= 0, verify error is thrown
-
-**Validates:** Requirements 2.3 (implicit validation)
-
-## Integration with Existing Code
-
-### Schema Integration
-
-The highscores table will be added to the existing schema alongside stories and users:
+The existing `getHighscores` query needs to be enhanced to include user information:
 
 ```typescript
-// In schema.ts - add to existing schema
-highscores: defineTable({
-    storyId: v.id("stories"),
-    userId: v.id("users"),
-    wordPerMinute: v.number(),
-    accuracy: v.number(),
-    timeTaken: v.number(),
-    score: v.number(),
-    createdAt: v.number(),
-})
-    .index("by_score", ["score"])
-    .index("by_user_story", ["userId", "storyId"])
-```
+// Enhanced query to include user data
+export const getHighscoresWithUsers = query({
+  args: {},
+  handler: async (ctx) => {
+    const highscores = await ctx.db
+      .query("highscores")
+      .withIndex("by_score")
+      .order("desc")
+      .collect();
 
-### Authentication Integration
+    // Enrich with user data
+    const enriched = await Promise.all(
+      highscores.map(async (hs) => {
+        const user = await ctx.db.get(hs.userId);
+        return {
+          ...hs,
+          username: user?.username ?? null,
+        };
+      })
+    );
 
-Uses the existing `@convex-dev/auth` setup:
-
-```typescript
-import { getAuthUserId } from "@convex-dev/auth/server";
-
-// In mutation handler
-const userId = await getAuthUserId(ctx);
-if (!userId) {
-    throw new Error("Unauthenticated");
-}
+    return enriched;
+  },
+});
 ```
 
 ## Edge Cases
 
-### E1: Zero or Negative Time Taken
+### E1: Empty Leaderboard
+**Scenario:** No highscores exist in the database
+**Handling:** Display an empty state message in the modal
 
-**Scenario:** User submits with timeTaken <= 0
-**Handling:** Backend validation throws "Invalid time" error. Division by zero/negative is prevented.
+### E2: Missing Username
+**Scenario:** User has no username set
+**Handling:** Display "Anonymous" as the username
 
-### E2: Accuracy Out of Range
+### E3: Large Number of Entries
+**Scenario:** Many highscore entries to display
+**Handling:** ScrollArea component handles overflow with scrolling
 
-**Scenario:** Accuracy value outside 0-100 range
-**Handling:** Backend validation throws "Invalid accuracy" error.
+### E4: Unauthenticated Score Submission
+**Scenario:** Player wins but is not logged in
+**Handling:** Display "Sign in to save your score" error message
 
-### E3: WPM Out of Range
+### E5: Score Submission Network Error
+**Scenario:** Network failure during score submission
+**Handling:** Display the error message to the user
 
-**Scenario:** WPM value <= 0 or >= 500
-**Handling:** Backend validation throws "Invalid WPM" error. 500 WPM is an unrealistic upper bound.
+## Error Handling
 
-### E4: Concurrent Submissions
-
-**Scenario:** Same user submits multiple scores simultaneously
-**Handling:** Convex handles this via optimistic concurrency control. Last write wins, but since we only keep higher scores, the best score will be retained.
-
-## Performance Considerations
-
-- `by_score` index enables O(log n) sorting for leaderboard queries
-- `by_user_story` index enables O(log n) lookup for existing user scores
-- No pagination means all records are returned; acceptable for small-medium leaderboards
-- For large leaderboards (10k+ records), pagination should be considered in future
+- **Loading State:** Show loading indicator while fetching data
+- **Empty State:** Show friendly message when no scores exist
+- **Query Error:** Convex handles errors automatically, component shows undefined state
 
 ## Testing Strategy
 
 ### Manual Testing
 
-1. Submit score as authenticated user - verify record created
-2. Submit higher score - verify record updated
-3. Submit lower score - verify record unchanged
-4. Query leaderboard - verify sorted order
-5. Submit as unauthenticated - verify error thrown
+1. Open leaderboard modal and verify it displays correctly
+2. Submit a score and verify it appears in the leaderboard
+3. Verify scores are sorted highest to lowest
+4. Verify usernames display correctly (or "Anonymous" if missing)
+5. Test scrolling with many entries
 
 ### Edge Case Testing
 
-1. Submit with very high WPM values
-2. Submit with accuracy at boundaries (0, 100)
-3. Submit with very small timeTaken values
-4. Multiple users submitting for same story
+1. Test with empty leaderboard
+2. Test with user who has no username
+3. Test modal open/close functionality
+
+## Performance Considerations
+
+- Query uses `by_score` index for efficient sorting
+- User data fetched in parallel using Promise.all
+- ScrollArea provides virtualization benefits for large lists
+- No pagination needed per requirements
 
 ## Future Enhancements (Out of Scope)
 
-- Pagination for large leaderboards
-- Filtering by story or time period
-- User profile/username display in leaderboard results
-- Per-story leaderboards
-- Weekly/monthly leaderboards
-- Score history tracking
+- Filter by story
+- Filter by time period (daily, weekly, monthly)
+- Real-time updates via subscriptions
+- User avatars in leaderboard
+- Pagination for very large datasets

@@ -4,7 +4,11 @@ import { useEffect, useRef } from "react";
 import { useTypingGameStore } from "../store";
 import { cn } from "@/lib/utils";
 
-export function TypingInput() {
+interface TypingInputProps {
+    disabled?: boolean;
+}
+
+export function TypingInput({ disabled = false }: TypingInputProps) {
     const inputValue = useTypingGameStore((state) => state.inputValue);
     const hasError = useTypingGameStore((state) => state.hasError);
     const errorCount = useTypingGameStore((state) => state.errorCount);
@@ -18,8 +22,10 @@ export function TypingInput() {
     const inputRef = useRef<HTMLInputElement>(null);
     const shakeRef = useRef<HTMLInputElement>(null);
 
-    // Auto-focus on mount and refocus on click anywhere
+    // Auto-focus on mount and refocus on click anywhere (only when not disabled)
     useEffect(() => {
+        if (disabled) return;
+
         inputRef.current?.focus();
 
         const handleClick = () => {
@@ -28,7 +34,7 @@ export function TypingInput() {
 
         document.addEventListener('click', handleClick);
         return () => document.removeEventListener('click', handleClick);
-    }, []);
+    }, [disabled]);
 
     // Retrigger shake animation when errorCount changes
     useEffect(() => {
@@ -82,11 +88,13 @@ export function TypingInput() {
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            disabled={disabled}
             className={cn(
                 "w-full h-9 rounded-md border bg-transparent px-3 py-1 text-base font-mono text-white",
                 "focus:outline-none focus:ring-2 focus:ring-orange-100",
                 "pointer-events-auto",
-                hasError && "border-red-500 focus:ring-red-500"
+                hasError && "border-red-500 focus:ring-red-500",
+                disabled && "opacity-50 cursor-not-allowed"
             )}
         />
     );

@@ -43,6 +43,17 @@
   - _Properties: P6_
   - _Requirements: AC5.1, AC5.2, AC5.3_
 
+- [x] 6. Implement Intro SFX with Delayed Playback
+  - Add [SerializeField] private EventReference introRef field
+  - Add [SerializeField] private float introDelay = 3f field
+  - Add public EventInstance introSfx field
+  - Add public property IntroSfx => introSfx
+  - In InstantiateSFXs(), create introSfx from introRef using RuntimeManager.CreateInstance()
+  - Create PlayIntroAfterDelay() coroutine that waits introDelay seconds then calls PlaySfx(introSfx)
+  - In Awake(), after InstantiateSFXs(), call StartCoroutine(PlayIntroAfterDelay())
+  - _Properties: P7_
+  - _Requirements: AC2.3, AC2.4, AC3.5, AC6.1, AC6.2, AC6.3, AC6.4_
+
 ## Manual Unity Setup Tasks
 
 ### Setup Task A: Install FMOD Unity Integration
@@ -54,21 +65,26 @@
 ### Setup Task B: Create FMOD Events
 1. Open FMOD Studio
 2. Create GameOver event
-3. Add audio to event
-4. Build banks
-5. Verify banks are in Unity project
+3. Create Intro event (short scary sound)
+4. Add audio to events
+5. Build banks
+6. Verify banks are in Unity project
 
 ### Setup Task C: Create AudioManager GameObject
 1. Create empty GameObject in scene
 2. Name it "AudioManager"
 3. Attach AudioManager script
 4. Assign GameOver EventReference in Inspector
+5. Assign Intro EventReference in Inspector
+6. Configure introDelay value (default 3 seconds)
 
 ### Setup Task D: Test FMOD Audio
 1. Press Play in Unity Editor
-2. Trigger game over
-3. Verify FMOD GameOver sound plays
-4. Check Console for FMOD errors
+2. Wait for intro delay (default 3 seconds)
+3. Verify Intro SFX plays after delay
+4. Trigger game over
+5. Verify FMOD GameOver sound plays
+6. Check Console for FMOD errors
 
 ## Implementation Notes
 
@@ -80,9 +96,9 @@
 
 ## Estimated Effort
 
-- Total Tasks: 5 coding tasks + 4 manual setup tasks
-- Estimated Coding Time: 30 minutes
-- Estimated Setup Time: 30 minutes (FMOD setup)
+- Total Tasks: 6 coding tasks + 4 manual setup tasks
+- Estimated Coding Time: 40 minutes
+- Estimated Setup Time: 35 minutes (FMOD setup + intro audio)
 - Complexity: Low-Medium
 - Risk Level: Low
 
@@ -120,6 +136,7 @@ public EventInstance newSfx;
 void InstantiateSFXs()
 {
     gameOverSfx = RuntimeManager.CreateInstance(gameOverRef);
+    introSfx = RuntimeManager.CreateInstance(introRef);
     newSfx = RuntimeManager.CreateInstance(newSfxRef);
 }
 
