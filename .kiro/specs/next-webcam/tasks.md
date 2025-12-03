@@ -307,8 +307,17 @@
   - _Properties: P21, P22, P23_
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
 
+- [x] 20. Hide demon teeth during calibration until calibration is complete
+  - Update calibration page to only show eyes during calibration steps
+  - Set `showTeeth` to false in useFaceOverlay hook during calibration
+  - Set `showHorns` to false in useFaceOverlay hook during calibration
+  - Only enable full demon features (eyes, horns, teeth) after calibration is complete
+  - Ensure visual effects (background segmentation, VHS) remain active during calibration
+  - _Properties: P24_
+  - _Requirements: 12.4, 12.5_
+
 ## Estimated Effort
 
-- Total Tasks: 19
-- Completed: 19
+- Total Tasks: 20
+- Completed: 20
 - Status: ✅ Complete

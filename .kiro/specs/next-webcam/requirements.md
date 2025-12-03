@@ -220,6 +220,8 @@ The webcam integration SHALL only work in secure contexts (HTTPS or localhost) a
 1. WHEN face landmarks are detected THEN the system SHALL draw demon horns on the forehead using forehead landmark positions
 2. WHEN the mouth is open THEN the system SHALL draw demon teeth and fangs that follow the curved shape of the mouth
 3. WHEN face overlay features are rendered THEN the system SHALL provide a reusable hook that can be used across multiple components
+4. WHEN calibration is not complete on the calibration page THEN the system SHALL only display eye overlays without horns or teeth
+5. WHEN calibration is complete on the calibration page THEN the system SHALL display all demon features including eyes, horns, and teeth
 
 ### Requirement 13: Face Detection Warning During Gameplay
 

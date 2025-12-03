@@ -162,7 +162,7 @@ export default function CalibrationPage() {
         vhsEffect: true,
     });
 
-    // Face overlay (eyes + demon horns) - only in ready state
+    // Face overlay (eyes + demon horns + teeth) - only in ready state
     useFaceOverlay({
         canvasRef: eyeCanvasRef,
         videoRef: webcam.videoRef,
@@ -171,6 +171,7 @@ export default function CalibrationPage() {
         enabled: webcam.isStreaming && pageState === 'ready',
         showEyes: true,
         showHorns: true,
+        showTeeth: true,
     });
 
     // Auto-advance to calibration when webcam starts
@@ -209,7 +210,7 @@ export default function CalibrationPage() {
 
 
 
-    // Draw eye landmarks on canvas during calibration (eyes only, no horns)
+    // Draw eye landmarks on canvas during calibration (eyes only, no horns or teeth)
     useFaceOverlay({
         canvasRef: eyeCanvasRef,
         videoRef: webcam.videoRef,
@@ -218,6 +219,7 @@ export default function CalibrationPage() {
         enabled: webcam.isStreaming && pageState === 'calibration',
         showEyes: true,
         showHorns: false,
+        showTeeth: false,
     });
 
     const handleRequestCamera = async () => {

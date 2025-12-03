@@ -945,6 +945,12 @@ interface UseBackgroundSegmentationReturn {
 
 **Validates: Requirements 12.1, 12.2, 12.3**
 
+### Property 24: Calibration Page Demon Feature Visibility
+
+*For any* calibration page state where calibration is not complete, the system should only display eye overlays without horns or teeth. *For any* calibration page state where calibration is complete, the system should display all demon features including eyes, horns, and teeth.
+
+**Validates: Requirements 12.4, 12.5**
+
 ### Property 21: Face Detection Warning Display
 
 *For any* gameplay state where the webcam is active and faceDetected is false, the system should display a centered warning notice with a 20-second countdown timer.
