@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
     Dialog,
     DialogContent,
@@ -14,12 +16,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User } from "lucide-react";
-
-
+import { User, LogOut } from "lucide-react";
 
 export function ModalAuth() {
-    const { signIn } = useAuthActions();
+    const { signIn, signOut } = useAuthActions();
+    const { isAuthenticated, isLoading: isAuthLoading } = useConvexAuth();
+    const currentUser = useQuery(
+        api.users.getCurrentUser,
+        isAuthenticated ? {} : "skip"
+    );
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
@@ -60,9 +65,35 @@ export function ModalAuth() {
         }
     };
 
+    const handleSignOut = async () => {
+        setIsLoading(true);
+        try {
+            await signOut();
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Show logout button when authenticated
+    if (isAuthenticated && !isAuthLoading) {
+        const displayName = currentUser?.username || "User";
+        return (
+            <Button
+                size="lg"
+                variant="secondary"
+                className="fixed z-40 bottom-18 left-1/2 -translate-x-1/2 shadow-sm shadow-red-500"
+                onClick={handleSignOut}
+                disabled={isLoading}
+            >
+                <LogOut className="mr-2 h-4 w-4" />
+                {isLoading ? "Logging out..." : `Log Out of ${displayName}`}
+            </Button>
+        );
+    }
+
+    // Show login/signup dialog when not authenticated
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-
             <DialogTrigger asChild>
                 <Button size="lg" className="fixed z-40 bottom-18 left-1/2 -translate-x-1/2 shadow-sm shadow-red-500">
                     <User />
