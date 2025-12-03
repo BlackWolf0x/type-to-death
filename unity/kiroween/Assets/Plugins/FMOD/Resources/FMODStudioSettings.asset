@@ -469,7 +469,7 @@ MonoBehaviour:
   BankRefreshCooldown: 1
   ShowBankRefreshWindow: 0
   AutomaticEventLoading: 0
-  BankLoadType: 0
+  BankLoadType: 2
   AutomaticSampleLoading: 0
   EncryptionKey: 
   ImportType: 0
@@ -697,7 +697,7 @@ MonoBehaviour:
       Value: 0
       HasValue: 0
     SampleRate:
-      Value: 48000
+      Value: 44100
       HasValue: 1
     BuildDirectory:
       Value: 
@@ -715,7 +715,7 @@ MonoBehaviour:
       Value: 2048
       HasValue: 1
     DSPBufferCount:
-      Value: 8
+      Value: 32
       HasValue: 1
     Plugins:
       Value: []
