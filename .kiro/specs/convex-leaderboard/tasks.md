@@ -19,7 +19,6 @@
     - Query for existing highscore using `by_user_story` index
     - Insert new record if no existing score
     - Update record only if new score is higher
-  - _Properties: P1, P2, P3, P4, P7, P8, P9_
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
 - [x] 3. Add getHighscores query to highscores.ts
@@ -27,25 +26,67 @@
   - Query highscores table using `by_score` index
   - Order results descending (highest score first)
   - Return all records without pagination
-  - _Properties: P5, P6_
   - _Requirements: 3.1, 3.2, 3.3_
+
+- [x] 4. Create calculateScore utility function
+  - Create `app-next/lib/score.ts` with calculateScore function
+  - Accept accuracy, wordPerMinute, and timeTaken as parameters
+  - Return calculated score using formula: `((accuracy² × WPM) / timeTaken) × 1000`
+  - Export function for use across the application
+  - _Properties: P1_
+  - _Requirements: 6.1, 6.2, 6.3_
+
+- [x] 5. Add getHighscoresWithUsers query
+  - Add new query to `app-next/convex/highscores.ts`
+  - Fetch all highscores sorted by score descending
+  - Enrich each entry with user data (username)
+  - Return username as null if user not found
+  - _Properties: P3, P4_
+  - _Requirements: 3.1, 3.2, 7.1, 7.2, 7.3_
+
+- [x] 6. Create ModalLeaderboard component
+  - Create `app-next/components/modal-leaderboard.tsx`
+  - Use shadcn/ui Dialog component for modal structure
+  - Add DialogTrigger with leaderboard button
+  - Add DialogContent with title "Leaderboard"
+  - Use ScrollArea for scrollable content
+  - Display grid layout for leaderboard entries
+  - Show rank, username (or "Anonymous"), score, WPM, accuracy for each entry
+  - Handle loading state while fetching data
+  - Handle empty state when no scores exist
+  - _Properties: P4, P5_
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 7.2_
+
+- [x] 7. Integrate score submission on game win
+  - Update `app-next/app/play/page.tsx` to submit score when game is won
+  - Add state for tracking submission status (idle, submitting, success, error)
+  - Call submitScore mutation with storyId, wpm, accuracy, timeTaken
+  - Display loading indicator while submitting
+  - Display success message with trophy icon on success
+  - Display error message on failure (with friendly message for unauthenticated users)
+  - Reset submission status on game restart
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
 ## Implementation Notes
 
-- Task 1 must be completed before Tasks 2-3 (schema dependency)
-- Tasks 2 and 3 can be implemented in the same file sequentially
-- Use `getAuthUserId` from `@convex-dev/auth/server` for authentication
-- Score formula uses accuracy squared to reward precision more heavily
+- Tasks 1-3 are already completed (backend implementation)
+- Task 4 extracts existing calculateScore function to lib for reusability
+- Task 5 enhances the query to include user information
+- Task 6 creates the frontend modal component
+- Use existing modal patterns from `modal-auth.tsx` as reference
+- ScrollArea component already exists in `app-next/components/ui/scroll-area.tsx`
 
 ## Dependencies
 
 - Existing `@convex-dev/auth` setup in `app-next/convex/auth.ts`
 - Existing `stories` table in schema
 - Existing `users` table in schema
+- shadcn/ui Dialog component (already installed)
+- shadcn/ui ScrollArea component (already installed)
 
 ## Estimated Effort
 
-- Total Tasks: 3
-- Estimated Time: 1-2 hours
+- Total Tasks: 7 (all completed)
+- Estimated Time: 2-3 hours total
 - Complexity: Low
 - Risk Level: Low

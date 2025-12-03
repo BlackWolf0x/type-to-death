@@ -1,17 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
-
-/**
- * Calculate score using the formula: Score = ((Accuracy² × WPM) / Time) × 1000
- */
-function calculateScore(
-    accuracy: number,
-    wordPerMinute: number,
-    timeTaken: number
-): number {
-    return ((accuracy * accuracy * wordPerMinute) / timeTaken) * 1000;
-}
+import { calculateScore } from "../lib/score";
 
 /**
  * Submit a score for a completed story.
@@ -97,5 +87,34 @@ export const getHighscores = query({
             .collect();
 
         return highscores;
+    },
+});
+
+
+/**
+ * Get all highscores with user information, sorted by score descending.
+ * Returns username as null if user not found.
+ */
+export const getHighscoresWithUsers = query({
+    args: {},
+    handler: async (ctx) => {
+        const highscores = await ctx.db
+            .query("highscores")
+            .withIndex("by_score")
+            .order("desc")
+            .collect();
+
+        // Enrich with user data
+        const enriched = await Promise.all(
+            highscores.map(async (hs) => {
+                const user = await ctx.db.get(hs.userId);
+                return {
+                    ...hs,
+                    username: user?.username ?? null,
+                };
+            })
+        );
+
+        return enriched;
     },
 });

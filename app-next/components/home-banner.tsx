@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Award, MoveRight, Skull } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { ModalLeaderboard } from "./modal-leaderboard";
 
 export function HomeBanner() {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -84,12 +85,7 @@ export function HomeBanner() {
                         </Link>
                     </Button>
 
-                    <Button variant="outline" size="xl" asChild>
-                        <Link href="/play">
-                            <Award />
-                            Leaderboard
-                        </Link>
-                    </Button>
+                    <ModalLeaderboard />
                 </div>
 
                 <p className="text-base font-light text-shadow-sm text-shadow-black">

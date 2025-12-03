@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
-import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target } from "lucide-react";
+import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,9 +25,12 @@ export default function PlayPage() {
     const [textVisible, setTextVisible] = useState(true);
     const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1 });
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [scoreSubmitStatus, setScoreSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+    const [scoreSubmitError, setScoreSubmitError] = useState<string | null>(null);
 
     // Fetch story from Convex backend
     const story = useQuery(api.stories.getLatestStory);
+    const submitScore = useMutation(api.highscores.submitScore);
 
     const resetTypingGame = useTypingGameStore((state) => state.reset);
     const loadStory = useTypingGameStore((state) => state.loadStory);
@@ -140,7 +143,7 @@ export default function PlayPage() {
         return () => clearInterval(interval);
     }, [isTimerRunning, tick]);
 
-    // Send win event to Unity when story is complete
+    // Send win event to Unity when story is complete and submit score
     useEffect(() => {
         if (isStoryComplete && gameStarted && !gameWon) {
             sendMessage("GameManager", "GameWon");
@@ -148,8 +151,29 @@ export default function PlayPage() {
             setGameStarted(false);
             stopTimer();
             resetTypingGame();
+
+            // Submit score to leaderboard
+            if (story?._id) {
+                setScoreSubmitStatus('submitting');
+                setScoreSubmitError(null);
+                submitScore({
+                    storyId: story._id,
+                    wordPerMinute: wpm,
+                    accuracy: accuracy,
+                    timeTaken: elapsedTime,
+                })
+                    .then(() => {
+                        setScoreSubmitStatus('success');
+                    })
+                    .catch((error) => {
+                        setScoreSubmitStatus('error');
+                        const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
+                        setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
+                        console.error("Failed to submit score:", error);
+                    });
+            }
         }
-    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer]);
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer, story, submitScore, wpm, accuracy, elapsedTime]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
@@ -169,6 +193,8 @@ export default function PlayPage() {
         setGameLost(false);
         setGameWon(false);
         setGameStarted(true);
+        setScoreSubmitStatus('idle');
+        setScoreSubmitError(null);
     }, [sendMessage, resetTypingGame, reloadStory, resetStats, startTimer]);
 
     // Fullscreen toggle handler
@@ -377,6 +403,28 @@ export default function PlayPage() {
                             </div>
                             {accuracy}% Accuracy
                         </div>
+                    </div>
+
+                    {/* Score submission status */}
+                    <div className="flex items-center gap-2 text-sm">
+                        {scoreSubmitStatus === 'submitting' && (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                <span className="text-muted-foreground">Saving score...</span>
+                            </>
+                        )}
+                        {scoreSubmitStatus === 'success' && (
+                            <>
+                                <Trophy className="h-4 w-4 text-yellow-500" />
+                                <span className="text-green-500">Score saved to leaderboard!</span>
+                            </>
+                        )}
+                        {scoreSubmitStatus === 'error' && (
+                            <>
+                                <XCircle className="h-4 w-4 text-red-500" />
+                                <span className="text-red-400">{scoreSubmitError}</span>
+                            </>
+                        )}
                     </div>
 
                     <div className="space-x-6">
