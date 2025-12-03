@@ -113,15 +113,10 @@ export default function PlayPage() {
     // Show intro when game is fully loaded (but only if not seen yet)
     useEffect(() => {
         if (isReady && unityReady && story && !introSeen && !showIntro) {
-            // Fade out loading screen first
+            // Show intro and hide loading immediately
+            setShowIntro(true);
             setTextVisible(false);
-            setTimeout(() => {
-                setLoadingVisible(false);
-                // Show intro after loading screen fades
-                setTimeout(() => {
-                    setShowIntro(true);
-                }, 300);
-            }, 600);
+            setLoadingVisible(false);
         }
     }, [isReady, unityReady, story, introSeen, showIntro]);
 
@@ -296,7 +291,7 @@ export default function PlayPage() {
 
             {/* Intro screen */}
             <div
-                className={`fixed inset-0 flex items-center justify-center bg-black text-white z-25 transition-opacity duration-700 ${showIntro
+                className={`fixed inset-0 flex items-center justify-center bg-black text-white z-25 ${showIntro
                     ? 'opacity-100'
                     : 'opacity-0 pointer-events-none'
                     }`}
