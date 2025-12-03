@@ -109,7 +109,7 @@
 - Eye landmarks are drawn on a canvas overlay for real-time visual feedback
 
 - [x] 10. Create GameWebcam component for Play Page
-  - Created `app-next/components/game/GameWebcam.tsx`
+  - Created `app-next/components/game-webcam.tsx`
   - Checks for stored calibration data in localStorage
   - Checks camera permission via Permissions API (without prompting)
   - Redirects to /calibration if either check fails
@@ -172,8 +172,124 @@
   - _Properties: P11, P12_
   - _Requirements: 9.9, 9.10, 9.11, 9.12_
 
+- [x] 14. Implement horror-themed visual styling for calibration page
+  - Add background image cycling system with horror images
+  - Implement default operating room background at 10% opacity
+  - Create array of 10 horror images that cycle on each blink
+  - Add VHSStatic component for film grain overlay effect
+  - Implement SVG-based film grain using feTurbulence filter
+  - Configure film grain with baseFrequency="0.65" and numOctaves="3"
+  - Apply mix-blend-multiply for authentic grain blending at 70% opacity
+  - Create CardRain component for red rain animation effect
+  - Implement canvas-based rain with 50 red raindrops
+  - Configure rain with speed range 2-5 units, length 10-30 pixels
+  - Add ResizeObserver for responsive rain sizing
+  - Enhance Card component with red corner brackets
+  - Add red border styling (border-red-500/30)
+  - Integrate CardRain background at 20% opacity
+  - Implement shake animation in globals.css
+  - Apply shake animation conditionally when webcam is not streaming
+  - Configure 1px diagonal jitter with 0.5s duration
+  - Track current image index with state (-1 for default, 0-9 for horror images)
+  - Increment image index on blink count change in ready state
+  - Reset to default image when camera stops
+  - Apply sepia filter to background images
+  - Adjust background opacity based on blink state (opacity-5 when blinking, opacity-100 when open)
+  - _Properties: P13, P14, P15_
+  - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
+
+- [x] 15. Simplify calibration UI and improve blink detection reliability
+  - Create reusable CalibrationCard component in `app-next/components/calibration-card.tsx`
+  - Component accepts step number, title, description, icon, completion state, and recording state
+  - Component displays checkmark when complete, step number badge when incomplete
+  - Component shows disabled state (opacity-20) when prerequisites not met
+  - Component displays recording message in amber text replacing description during recording
+  - Component shows loading spinner in Record button during recording
+  - Simplify calibration flow from 2-step (Record → Save) to 1-step (Record auto-saves)
+  - Add `calibrateOpen()` and `calibrateClosed()` functions that auto-save after 1.5 seconds
+  - Remove separate `startCalibrateOpen/saveCalibrateOpen` and `startCalibrateClosed/saveCalibrateClosed` functions
+  - Add `eyesOpenEARRef` to track eyes open value for reliable access in timeout callbacks
+  - Update threshold calculation to 60% between closed and open (more sensitive - triggers at 40% closed)
+  - Reduce `REOPEN_FRAMES` from 2 to 1 for faster blink registration
+  - Increase `MAX_BLINK_FRAMES` from 15 to 30 to allow slightly longer blinks
+  - Update CalibrationPage to use CalibrationCard component for both steps
+  - Step 2 (Eyes Closed) greys out until Step 1 (Eyes Open) completes
+  - Recording message displays in description area to prevent container height changes
+  - _Properties: P6, P7, P8_
+  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 7.1, 7.2, 7.3, 7.4_
+
+- [x] 16. Implement background segmentation and visual effects
+  - Create `useBackgroundSegmentation` hook in `app-next/hooks/useBackgroundSegmentation.ts`
+  - Initialize MediaPipe Image Segmenter with GPU delegate for performance
+  - Load selfie segmentation model from CDN
+  - Accept options: videoRef, canvasRef, enabled, backgroundDarkness, vhsEffect
+  - Throttle frame processing to ~30fps (every 33ms) for optimal performance
+  - Generate confidence masks (0 = background, 1 = person)
+  - Implement background darkening: multiply background pixels by (1 - confidence * darkness)
+  - Default backgroundDarkness to 0.7 (70% darker)
+  - Implement VHS effects when enabled:
+    - Chromatic aberration: shift red channel 4 pixels horizontally with 70/30 blend
+    - Random noise: pre-generate buffer of 10,000 noise values (±10 brightness), cycle through
+    - Rolling bar: vertical brightness wave scrolling at 8 units/second with 30px height
+  - Performance optimizations:
+    - Use bit shift operations (`i << 2`) for index calculations
+    - Cache local variables to avoid repeated property lookups
+    - Inline clamping with ternary operators instead of Math.max/min
+    - Process chromatic aberration in scanlines for cache efficiency
+    - Use mounted ref to prevent state updates after unmount
+    - Silence frame processing errors to avoid console spam
+    - Only resize canvas when dimensions change
+  - Use `willReadFrequently: true` context option for pixel manipulation
+  - Cancel animation frame on cleanup
+  - Integrate hook into calibration page with backgroundDarkness=0.95, vhsEffect=true
+  - _Properties: P16, P17, P18, P19_
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
+- [x] 17. Polish GameWebcam component with visual effects
+  - Update `app-next/components/game-webcam.tsx` to match calibration page design
+  - Add canvas-based rendering with background segmentation
+  - Integrate `useBackgroundSegmentation` hook with backgroundDarkness=0.95, vhsEffect=true
+  - Add eye landmark drawing overlay (green when open, red when blinking)
+  - Implement rounded corners with `rounded-lg` styling
+  - Add red shadow glow effect (`shadow-lg shadow-red-500/30`)
+  - Add border styling (`border border-zinc-800`)
+  - Position webcam feed in bottom-right corner (`fixed z-50 bottom-4 right-4`)
+  - Set webcam size to `w-64 aspect-video` (256px width, 16:9 aspect ratio)
+  - Remove blink status and face detection indicators (keep UI minimal)
+  - Use hidden video element with visible canvas layers for effects
+  - Apply same VHS effects as calibration page (chromatic aberration, noise)
+  - Remove rolling bar effect from background segmentation hook
+  - Update constants: remove BAR_HEIGHT, BAR_SPEED, BAR_BRIGHTNESS
+  - Remove rolling bar processing code from processFrame callback
+  - _Properties: P16, P17, P18, P19_
+  - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
+
+- [x] 18. Create reusable face overlay hook with demon features
+  - Create `app-next/hooks/useFaceOverlay.ts` for centralized face overlay rendering
+  - Extract eye landmark drawing logic from components into reusable hook
+  - Add demon horns drawing using forehead landmarks (10, 67, 297)
+  - Implement curved horn shapes with quadratic bezier curves
+  - Add dark red gradient fill for horns (maroon to blood red)
+  - Horns scale dynamically based on head width
+  - Add demon teeth/fangs drawing using mouth landmarks
+  - Use 11 upper lip landmarks and 11 lower lip landmarks for curved teeth placement
+  - Teeth follow natural mouth curve shape (not straight line)
+  - Implement full mouth of teeth (10 upper, 8 lower)
+  - Prominent vampire fangs at canine positions (28% of mouth width)
+  - Front incisors (16% of mouth width) and side teeth (12% of mouth width)
+  - Lower teeth smaller than upper (16%, 12%, 8% respectively)
+  - Teeth scale dynamically with mouth openness
+  - Sharp pointed fangs vs rounded regular teeth
+  - White-to-gray/yellow gradient for demon tooth appearance
+  - Configurable options: showEyes, showHorns, showTeeth, enabled
+  - Reverse eye color logic: red by default, green when blinking
+  - Update GameWebcam component to use useFaceOverlay hook
+  - Update calibration page to use useFaceOverlay hook (eyes only during calibration, full features in ready state)
+  - _Properties: P20_
+  - _Requirements: 12.1, 12.2, 12.3_
+
 ## Estimated Effort
 
-- Total Tasks: 13
-- Completed: 13
+- Total Tasks: 18
+- Completed: 18
 - Status: ✅ Complete

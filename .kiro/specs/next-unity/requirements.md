@@ -22,6 +22,8 @@ The game requires real-time communication between React (blink detection) and Un
 - **SendMessage**: Method to call Unity C# functions from JavaScript
 - **Monster**: Unity GameObject that responds to blink events
 - **MainMenuManager**: Unity GameObject that manages scene transitions
+- **Story Introduction**: The narrative text displayed before gameplay begins, providing context and setting
+- **Intro Screen**: The overlay that displays the story title and introduction before the game starts
 
 ## Requirements
 
@@ -39,6 +41,30 @@ The game requires real-time communication between React (blink detection) and Un
 6. WHEN Unity sends "GameIsReady" event THEN the system SHALL automatically start the game
 7. WHEN transitioning to game scene THEN the loading text SHALL fade out first (300ms)
 8. WHEN transitioning to game scene THEN the loading overlay SHALL fade out after (1000ms duration, 600ms delay)
+
+### Requirement 8: Story Introduction Screen
+
+**User Story:** As a player, I want to see the story introduction after the game loads, so that I understand the context and setting before gameplay begins.
+
+#### Acceptance Criteria
+
+1. WHEN requirements are checked and Unity is fully loaded THEN the system SHALL display the intro screen
+2. WHEN the intro screen appears THEN it SHALL show the story title in red text
+3. WHEN the intro screen appears THEN it SHALL show the story introduction text
+4. THE introduction text SHALL be scrollable if it exceeds viewport height
+5. WHEN the intro screen appears THEN a "Begin" button SHALL be visible
+6. WHEN the "Begin" button is clicked THEN the intro screen SHALL fade out
+7. WHEN the "Begin" button is clicked THEN Unity SHALL transition to the game scene
+8. WHEN the player restarts the game THEN the intro screen SHALL NOT appear again
+9. THE intro screen SHALL only appear on the first play session
+10. THE intro screen SHALL use story data from data.ts
+11. THE loading screen SHALL fade out before the intro screen appears
+12. THE intro screen SHALL appear after both requirements check and Unity loading are complete
+13. WHEN the intro screen appears THEN it SHALL display gameplay tips (blink warning, headphones, fullscreen)
+14. WHEN the intro screen appears THEN it SHALL provide a fullscreen toggle button
+15. WHEN the fullscreen button is clicked THEN the browser SHALL enter or exit fullscreen mode
+16. WHEN in fullscreen mode THEN the button text SHALL change to "Exit Fullscreen"
+17. WHEN not in fullscreen mode THEN the button text SHALL show "Enter Fullscreen"
 
 ### Requirement 2: Blink Detection Integration
 
@@ -157,6 +183,7 @@ The integration SHALL work on all browsers that support WebGL and MediaDevices A
 - Calibration data from `/calibration` page
 - shadcn/ui Button component
 - Lucide icons (Eye, EyeOff)
+- Story data from `@/typing-game/data.ts`
 
 ## Success Metrics
 
@@ -167,6 +194,19 @@ The integration SHALL work on all browsers that support WebGL and MediaDevices A
 - Debug controls work for testing
 - Webcam feed is hidden but functional
 - Game maintains smooth performance
+
+### Requirement 9: Unity Instance Cleanup
+
+**User Story:** As a user, I want the Unity game to properly clean up when I navigate away, so that I don't encounter errors or memory leaks.
+
+#### Acceptance Criteria
+
+1. WHEN the user navigates away from the play page THEN the Unity instance SHALL be unloaded
+2. WHEN Unity is being unloaded THEN the FMOD audio context SHALL be closed before unloading
+3. WHEN audio cleanup fails THEN the error SHALL be silently caught and ignored
+4. WHEN Unity unload fails THEN the error SHALL be silently caught and ignored
+5. THE cleanup SHALL happen automatically on component unmount
+6. THE cleanup SHALL prevent FMOD audio worklet errors after navigation
 
 ## Out of Scope
 

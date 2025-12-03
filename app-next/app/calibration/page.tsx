@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useWebcam, WebcamErrorCode, type WebcamError } from '@/hooks/useWebcam';
 import {
@@ -18,15 +19,18 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
-    Camera,
     Eye,
     EyeOff,
     Loader2,
     AlertCircle,
-    CheckCircle2,
     RefreshCw,
     Play,
+    Webcam,
 } from 'lucide-react';
+import { VHSStatic } from '@/components/vhs-static';
+import { CalibrationCard } from '@/components/calibration-card';
+import { useBackgroundSegmentation } from '@/hooks/useBackgroundSegmentation';
+import { useFaceOverlay } from '@/hooks/useFaceOverlay';
 
 // ============================================================================
 // Types
@@ -120,20 +124,54 @@ function getBlinkErrorUI(error: BlinkDetectorError) {
 // Calibration Page
 // ============================================================================
 
-// Eye landmark indices for drawing
-const LEFT_EYE_INDICES = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
-const RIGHT_EYE_INDICES = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398];
+// Horror images that cycle on blink
+const HORROR_IMAGES = [
+    '/horror-images/horror1.jpg',
+    '/horror-images/horror2.jpg',
+    '/horror-images/horror3.jpg',
+    '/horror-images/horror4.jpg',
+    '/horror-images/horror5.jpg',
+    '/horror-images/horror6.jpg',
+    '/horror-images/horror7.jpg',
+    '/horror-images/horror8.jpg',
+    '/horror-images/horror9.jpg',
+    '/horror-images/horror10.jpg',
+];
+const DEFAULT_IMAGE = '/operating-room.png';
 
 export default function CalibrationPage() {
     const router = useRouter();
     const [pageState, setPageState] = useState<PageState>('webcam');
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const eyeCanvasRef = useRef<HTMLCanvasElement>(null);
+    const segmentCanvasRef = useRef<HTMLCanvasElement>(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 = default image
+    const prevBlinkCountRef = useRef(0);
 
     // Webcam hook
     const webcam = useWebcam();
 
     // Blink detector
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+
+    // Background segmentation (darken background, highlight person) - only after calibration
+    useBackgroundSegmentation({
+        videoRef: webcam.videoRef,
+        canvasRef: segmentCanvasRef,
+        enabled: webcam.isStreaming && pageState === 'ready',
+        backgroundDarkness: 0.95,
+        vhsEffect: true,
+    });
+
+    // Face overlay (eyes + demon horns) - only in ready state
+    useFaceOverlay({
+        canvasRef: eyeCanvasRef,
+        videoRef: webcam.videoRef,
+        faceLandmarks: blink.faceLandmarks,
+        isBlinking: blink.isBlinking,
+        enabled: webcam.isStreaming && pageState === 'ready',
+        showEyes: true,
+        showHorns: true,
+    });
 
     // Auto-advance to calibration when webcam starts
     useEffect(() => {
@@ -154,44 +192,33 @@ export default function CalibrationPage() {
         }
     }, [blink.isCalibrated, pageState]);
 
-    // Draw eye landmarks on canvas
+    // Cycle horror images on each blink (only in ready state)
     useEffect(() => {
-        const canvas = canvasRef.current;
-        const video = webcam.videoRef.current;
-        if (!canvas || !video || !webcam.isStreaming || !blink.faceLandmarks) return;
+        if (pageState === 'ready' && blink.blinkCount > prevBlinkCountRef.current) {
+            setCurrentImageIndex(prev => (prev + 1) % HORROR_IMAGES.length);
+        }
+        prevBlinkCountRef.current = blink.blinkCount;
+    }, [blink.blinkCount, pageState]);
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+    // Reset to default image when camera stops
+    useEffect(() => {
+        if (!webcam.isStreaming) {
+            setCurrentImageIndex(-1);
+        }
+    }, [webcam.isStreaming]);
 
-        const w = video.videoWidth || 640;
-        const h = video.videoHeight || 480;
-        canvas.width = w;
-        canvas.height = h;
 
-        ctx.clearRect(0, 0, w, h);
 
-        const landmarks = blink.faceLandmarks;
-
-        const drawEyeOutline = (eyeIndices: number[], color: string) => {
-            ctx.beginPath();
-            eyeIndices.forEach((idx, i) => {
-                const point = landmarks[idx];
-                if (!point) return;
-                const x = point.x * w;
-                const y = point.y * h;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            });
-            ctx.closePath();
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        };
-
-        const eyeColor = blink.isBlinking ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 255, 0, 0.8)';
-        drawEyeOutline(LEFT_EYE_INDICES, eyeColor);
-        drawEyeOutline(RIGHT_EYE_INDICES, eyeColor);
-    }, [blink.faceLandmarks, webcam.isStreaming, webcam.videoRef, blink.isBlinking]);
+    // Draw eye landmarks on canvas during calibration (eyes only, no horns)
+    useFaceOverlay({
+        canvasRef: eyeCanvasRef,
+        videoRef: webcam.videoRef,
+        faceLandmarks: blink.faceLandmarks,
+        isBlinking: blink.isBlinking,
+        enabled: webcam.isStreaming && pageState === 'calibration',
+        showEyes: true,
+        showHorns: false,
+    });
 
     const handleRequestCamera = async () => {
         webcam.clearError();
@@ -211,25 +238,41 @@ export default function CalibrationPage() {
     const blinkErrorUI = blink.error ? getBlinkErrorUI(blink.error) : null;
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 font-sans dark:bg-black">
-            <Card className="w-full max-w-2xl">
+        <div className="relative flex min-h-screen items-center justify-center p-4 font-sans bg-black">
+            {/* Background image - cycles through horror images on blink */}
+            <Image
+                src={currentImageIndex === -1 ? DEFAULT_IMAGE : HORROR_IMAGES[currentImageIndex]}
+                alt="Background"
+                fill
+                className={`object-cover sepia ${!webcam.isStreaming
+                    ? 'opacity-10'
+                    : pageState === 'ready'
+                        ? (blink.isBlinking ? 'opacity-5' : 'opacity-100')
+                        : 'opacity-100'
+                    }`}
+                priority
+            />
+
+            {/* Film grain overlay */}
+            <VHSStatic />
+
+            <Card className={`relative z-10 w-full max-w-2xl shadow-2xl shadow-red-500/50 ${!webcam.isStreaming ? 'animate-shake' : ''}`}>
                 {/* WEBCAM PERMISSION STATE */}
                 {pageState === 'webcam' && (
                     <>
                         <CardHeader className="text-center">
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                                <Camera className="h-6 w-6" />
-                                Camera Access Required
+                            <CardTitle className="flex items-center justify-center gap-2 text-4xl text-red-500">
+                                <Webcam />
+                                Webcam Access Required
                             </CardTitle>
                             <CardDescription className="text-base">
-                                This game uses your camera to detect blinks.
-                                Your feed stays on your device.
+                                This game uses your webcam to detect blinks.
                             </CardDescription>
                         </CardHeader>
 
                         <CardContent className="space-y-6">
                             {webcam.error && webcamErrorUI && (
-                                <Alert variant="destructive">
+                                <Alert variant="destructive" className='mt-8'>
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>{webcamErrorUI.title}</AlertTitle>
                                     <AlertDescription>{webcamErrorUI.description}</AlertDescription>
@@ -245,17 +288,17 @@ export default function CalibrationPage() {
 
                             {!webcam.isStreaming && !webcam.isLoading && (
                                 <div className="flex flex-col items-center gap-6 py-8">
-                                    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                                        <Camera className="h-16 w-16 text-zinc-400" />
-                                    </div>
+                                    <Image src="/eyes.gif" width={400} height={320} alt='Calibration' unoptimized className="mix-blend-screen" />
+
                                     <Button
                                         onClick={handleRequestCamera}
-                                        size="lg"
+                                        size="xl"
+                                        variant="outlineRed"
                                         className="gap-2"
                                         disabled={webcamErrorUI?.canRetry === false}
                                     >
-                                        <Camera className="h-5 w-5" />
-                                        {webcam.error ? 'Try Again' : 'Grant Camera Access'}
+                                        <Webcam className="h-5 w-5" />
+                                        {webcam.error ? 'Try Again' : 'Grant Webcam Access'}
                                     </Button>
                                 </div>
                             )}
@@ -266,9 +309,8 @@ export default function CalibrationPage() {
                 {/* CALIBRATION STATE */}
                 {pageState === 'calibration' && (
                     <>
-                        <CardHeader className="text-center">
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                                <Eye className="h-6 w-6" />
+                        <CardHeader className="text-center mb-8">
+                            <CardTitle className="flex items-center justify-center text-4xl text-red-500">
                                 Blink Calibration
                             </CardTitle>
                             <CardDescription className="text-base">
@@ -294,7 +336,7 @@ export default function CalibrationPage() {
 
                             {blink.isInitialized && (
                                 <>
-                                    {/* Video Preview */}
+                                    {/* Video Preview - show raw video during calibration */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                         <video
                                             ref={webcam.setVideoRef}
@@ -304,7 +346,7 @@ export default function CalibrationPage() {
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <canvas
-                                            ref={canvasRef}
+                                            ref={eyeCanvasRef}
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-1 text-xs text-white">
@@ -318,105 +360,46 @@ export default function CalibrationPage() {
 
                                     {/* Calibration Steps */}
                                     <div className="space-y-4">
-                                        {/* Step 1: Eyes Open */}
-                                        <div className={`rounded-lg border p-4 ${blink.eyesOpenEAR ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-zinc-200 dark:border-zinc-800'}`}>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    {blink.eyesOpenEAR ? (
-                                                        <CheckCircle2 className="h-6 w-6 text-green-600" />
-                                                    ) : (
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold dark:bg-zinc-700">1</div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-medium">Eyes Open</div>
-                                                        <div className="text-sm text-zinc-500">
-                                                            {blink.eyesOpenEAR
-                                                                ? `Recorded: ${blink.eyesOpenEAR.toFixed(3)}`
-                                                                : 'Keep your eyes open naturally'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {!blink.eyesOpenEAR && (
-                                                    <div className="flex gap-2">
-                                                        {blink.calibrationState === 'open' ? (
-                                                            <Button onClick={blink.saveCalibrateOpen} variant="default">
-                                                                Save
-                                                            </Button>
-                                                        ) : (
-                                                            <Button
-                                                                onClick={blink.startCalibrateOpen}
-                                                                variant="outline"
-                                                                disabled={!blink.faceDetected}
-                                                            >
-                                                                <Eye className="mr-2 h-4 w-4" />
-                                                                Record
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {blink.calibrationState === 'open' && (
-                                                <div className="mt-2 text-sm text-amber-600">
-                                                    Recording... Keep your eyes open and click Save
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Step 2: Eyes Closed */}
-                                        <div className={`rounded-lg border p-4 ${blink.eyesClosedEAR ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-zinc-200 dark:border-zinc-800'}`}>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    {blink.eyesClosedEAR ? (
-                                                        <CheckCircle2 className="h-6 w-6 text-green-600" />
-                                                    ) : (
-                                                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-sm font-bold dark:bg-zinc-700">2</div>
-                                                    )}
-                                                    <div>
-                                                        <div className="font-medium">Eyes Closed</div>
-                                                        <div className="text-sm text-zinc-500">
-                                                            {blink.eyesClosedEAR
-                                                                ? `Recorded: ${blink.eyesClosedEAR.toFixed(3)}`
-                                                                : 'Close your eyes gently'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {blink.eyesOpenEAR && !blink.eyesClosedEAR && (
-                                                    <div className="flex gap-2">
-                                                        {blink.calibrationState === 'closed' ? (
-                                                            <Button onClick={blink.saveCalibrateClosed} variant="default">
-                                                                Save
-                                                            </Button>
-                                                        ) : (
-                                                            <Button
-                                                                onClick={blink.startCalibrateClosed}
-                                                                variant="outline"
-                                                                disabled={!blink.faceDetected}
-                                                            >
-                                                                <EyeOff className="mr-2 h-4 w-4" />
-                                                                Record
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            {blink.calibrationState === 'closed' && (
-                                                <div className="mt-2 text-sm text-amber-600">
-                                                    Recording... Close your eyes and click Save
-                                                </div>
-                                            )}
-                                        </div>
+                                        <CalibrationCard
+                                            step={1}
+                                            title="Eyes Open"
+                                            description="Keep your eyes open naturally"
+                                            completedDescription={blink.eyesOpenEAR ? `Recorded: ${blink.eyesOpenEAR.toFixed(3)}` : undefined}
+                                            icon={Eye}
+                                            isComplete={!!blink.eyesOpenEAR}
+                                            isRecording={blink.calibrationState === 'open'}
+                                            recordingMessage="Keep your eyes open..."
+                                            canRecord={blink.faceDetected}
+                                            onRecord={blink.calibrateOpen}
+                                        />
+                                        <CalibrationCard
+                                            step={2}
+                                            title="Eyes Closed"
+                                            description="Close your eyes gently"
+                                            completedDescription={blink.eyesClosedEAR ? `Recorded: ${blink.eyesClosedEAR.toFixed(3)}` : undefined}
+                                            disabledDescription="Complete step 1 first"
+                                            icon={EyeOff}
+                                            isComplete={!!blink.eyesClosedEAR}
+                                            isDisabled={!blink.eyesOpenEAR}
+                                            isRecording={blink.calibrationState === 'closed'}
+                                            recordingMessage="Keep your eyes closed..."
+                                            canRecord={blink.faceDetected}
+                                            onRecord={blink.calibrateClosed}
+                                        />
                                     </div>
 
                                     {/* Reset button */}
                                     {(blink.eyesOpenEAR || blink.error) && (
-                                        <Button
-                                            onClick={() => { blink.clearError(); blink.resetCalibration(); }}
-                                            variant="outline"
-                                            className="gap-2"
-                                        >
-                                            <RefreshCw className="h-4 w-4" />
-                                            Start Over
-                                        </Button>
+                                        <div className='flex justify-center'>
+                                            <Button
+                                                onClick={() => { blink.clearError(); blink.resetCalibration(); }}
+                                                variant="outline"
+                                                size="lg"
+                                            >
+                                                <RefreshCw />
+                                                Start Over
+                                            </Button>
+                                        </div>
                                     )}
                                 </>
                             )}
@@ -427,9 +410,8 @@ export default function CalibrationPage() {
                 {/* READY STATE */}
                 {pageState === 'ready' && (
                     <>
-                        <CardHeader className="text-center">
-                            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                                <CheckCircle2 className="h-6 w-6 text-green-600" />
+                        <CardHeader className="text-center mb-8">
+                            <CardTitle className="flex items-center justify-center gap-2 text-4xl text-red-500">
                                 Ready to Play!
                             </CardTitle>
                             <CardDescription className="text-base">
@@ -444,10 +426,14 @@ export default function CalibrationPage() {
                                     autoPlay
                                     playsInline
                                     muted
+                                    className="absolute inset-0 h-full w-full object-cover opacity-0"
+                                />
+                                <canvas
+                                    ref={segmentCanvasRef}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                                 <canvas
-                                    ref={canvasRef}
+                                    ref={eyeCanvasRef}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                                 <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-sm text-white">
@@ -461,26 +447,26 @@ export default function CalibrationPage() {
                             </div>
 
                             <div className="grid grid-cols-3 gap-4 text-center text-sm">
-                                <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
+                                <div className="rounded-lg border border-zinc-900 p-3">
                                     <div className="font-medium text-zinc-500">Eyes Open</div>
                                     <div className="text-lg font-bold">{blink.eyesOpenEAR?.toFixed(3)}</div>
                                 </div>
-                                <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
+                                <div className="rounded-lg border border-zinc-900 p-3">
                                     <div className="font-medium text-zinc-500">Eyes Closed</div>
                                     <div className="text-lg font-bold">{blink.eyesClosedEAR?.toFixed(3)}</div>
                                 </div>
-                                <div className="rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
+                                <div className="rounded-lg border border-zinc-900 p-3">
                                     <div className="font-medium text-zinc-500">Threshold</div>
                                     <div className="text-lg font-bold">{blink.earThreshold.toFixed(3)}</div>
                                 </div>
                             </div>
 
                             <div className="flex gap-3">
-                                <Button onClick={handleRecalibrate} variant="outline" className="gap-2">
+                                <Button onClick={handleRecalibrate} size="xl" variant="secondary" className="gap-2">
                                     <RefreshCw className="h-4 w-4" />
                                     Recalibrate
                                 </Button>
-                                <Button onClick={handleStartGame} size="lg" className="flex-1 gap-2">
+                                <Button onClick={handleStartGame} size="xl" variant="outlineRed" className="flex-1">
                                     <Play className="h-4 w-4" />
                                     Start Game
                                 </Button>

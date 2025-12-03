@@ -224,6 +224,34 @@ Unity C# scripts must implement:
   - _Properties: P2, P7_
   - _Requirements: 7.11, 7.12, 7.13_
 
+- [x] 11. Implement Story Introduction Screen
+  - Add showIntro and introSeen state variables
+  - Add introScrollRef for scrollable intro text container
+  - Import story data from @/typing-game/data.ts
+  - Add useEffect to show intro when isReady and not introSeen
+  - Update Unity auto-start logic to require introSeen state
+  - Create handleStartGame callback to hide intro and set introSeen
+  - Add intro screen overlay with fade transition (700ms)
+  - Display story.title in red (text-red-500) with large font
+  - Display story.introduction in scrollable container (max-h-[50vh])
+  - Add "Begin" button with red styling to start game
+  - Update showLoading logic to hide when intro is visible
+  - Ensure intro only appears on first play, skipped on restart
+  - _Properties: P8, P9_
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
+
+- [x] 12. Update Intro Screen to Display After Game Loads
+  - Modify intro screen display logic to wait for both isReady AND unityReady
+  - Update useEffect to show intro only after Unity is fully loaded
+  - Add smooth transition: loading screen fades out, then intro fades in
+  - Move GoToGameScene call to trigger only when "Begin" button is clicked
+  - Separate game start logic from intro display logic
+  - Ensure intro screen still skips on restart (introSeen persists)
+  - Loading screen fades out with text disappearing first (600ms), then overlay (300ms delay)
+  - Intro screen appears 300ms after loading screen starts fading
+  - _Properties: P8_
+  - _Requirements: 8.1, 8.7, 8.11, 8.12_
+
 ## Implementation Notes
 
 - Unity build files must be placed in `/public/game/` directory
@@ -259,8 +287,34 @@ Unity C# scripts must implement:
 5. **GameManager.RestartScene()** - Method to restart the game scene
 6. **GameManager.GameWon()** - Method to receive win notification from React
 
+- [x] 13. Enhance intro screen UI with gameplay tips and fullscreen toggle
+  - Add Eye icon with "Do not blink, Do not look down" tip card
+  - Add Headphones icon with "Headphones Recommended" tip card
+  - Add Fullscreen icon with "Fullscreen Recommended" tip card
+  - Implement fullscreen toggle button with Enter/Exit states
+  - Add toggleFullscreen handler using Fullscreen API
+  - Add fullscreen change event listener to track state
+  - Update button text dynamically based on fullscreen state
+  - Wrap story title and introduction in Card component with disableRain prop
+  - Adjust spacing and icon sizes for better visual balance
+  - Remove unused useRef import
+  - _Requirements: 8.2, 8.3, 8.5_
+
+- [x] 14. Implement Unity cleanup on navigation
+  - Add unload to useUnityContext destructuring
+  - Create cleanup effect that runs on component unmount
+  - Attempt to close FMOD audio context before unloading Unity
+  - Access Unity's audio context via window.unityInstance.Module.audioContext
+  - Call audioContext.close() with error catching
+  - Call unload() to destroy Unity instance
+  - Wrap all cleanup in try-catch to silently handle errors
+  - Use async cleanup function to properly handle promises
+  - Prevent "table index is out of bounds" FMOD error on navigation
+  - _Properties: P14_
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6_
+
 ## Estimated Effort
 
-- Total Tasks: 10
-- Completed: 10
+- Total Tasks: 14
+- Completed: 14
 - Status: ✅ Complete

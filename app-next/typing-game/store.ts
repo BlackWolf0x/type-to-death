@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { story, type Chapter } from './data';
 import { parseWords } from './utils/wordParser';
 import { useGameStatsStore } from '@/stores/gameStatsStore';
+import type { Story, Chapter } from '@/types';
 
 interface TypingGameStore {
     // Story metadata
@@ -31,8 +31,12 @@ interface TypingGameStore {
     isChapterComplete: boolean;
     isStoryComplete: boolean;
 
+    // Loaded story reference (for restarts)
+    loadedStory: Story | null;
+
     // Actions
-    loadStory: () => void;
+    loadStory: (story: Story) => void;
+    reloadStory: () => void;
     setInputValue: (value: string) => void;
     validateCharacter: () => void;
     handleSpaceOrEnter: () => void;
@@ -40,7 +44,7 @@ interface TypingGameStore {
     reset: () => void;
 }
 
-export const useTypingGameStore = create<TypingGameStore>((set) => ({
+export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
     // Initial state
     storyTitle: '',
     storyIntroduction: '',
@@ -57,9 +61,10 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
     isComplete: false,
     isChapterComplete: false,
     isStoryComplete: false,
+    loadedStory: null,
 
     // Actions
-    loadStory: () => {
+    loadStory: (story: Story) => {
         try {
             const { title, introduction, chapters } = story;
 
@@ -87,6 +92,7 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                     isComplete: false,
                     isChapterComplete: false,
                     isStoryComplete: false,
+                    loadedStory: story,
                 });
                 return;
             }
@@ -111,9 +117,17 @@ export const useTypingGameStore = create<TypingGameStore>((set) => ({
                 isComplete: false,
                 isChapterComplete: false,
                 isStoryComplete: false,
+                loadedStory: story,
             });
         } catch (error) {
             console.error('Error loading story:', error);
+        }
+    },
+
+    reloadStory: () => {
+        const { loadedStory, loadStory } = get();
+        if (loadedStory) {
+            loadStory(loadedStory);
         }
     },
 

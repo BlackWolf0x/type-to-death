@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useWebcam } from "@/hooks/useWebcam";
 import { useBlinkDetector } from "@/hooks/useBlinkDetector";
+import { useBackgroundSegmentation } from "@/hooks/useBackgroundSegmentation";
+import { useFaceOverlay } from "@/hooks/useFaceOverlay";
 
 // Check if calibration exists in localStorage
 function hasStoredCalibration(): boolean {
@@ -42,10 +44,32 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
     const router = useRouter();
     const hasRedirected = useRef(false);
     const hasSignaledReady = useRef(false);
+    const segmentCanvasRef = useRef<HTMLCanvasElement>(null);
+    const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
 
     // Don't auto-start webcam until we verify everything
     const webcam = useWebcam({ autoStart: false });
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+
+    // Background segmentation with VHS effects
+    useBackgroundSegmentation({
+        videoRef: webcam.videoRef,
+        canvasRef: segmentCanvasRef,
+        enabled: webcam.isStreaming,
+        backgroundDarkness: 0.95,
+        vhsEffect: true,
+    });
+
+    // Face overlay (eyes + demon horns)
+    useFaceOverlay({
+        canvasRef: overlayCanvasRef,
+        videoRef: webcam.videoRef,
+        faceLandmarks: blink.faceLandmarks,
+        isBlinking: blink.isBlinking,
+        enabled: webcam.isStreaming,
+        showEyes: true,
+        showHorns: true,
+    });
 
     // Check calibration and permission on mount
     useEffect(() => {
@@ -62,7 +86,6 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
             // Check camera permission without prompting
             const permissionState = await checkCameraPermission();
             if (permissionState !== 'granted') {
-                // Permission not granted, redirect to calibration
                 hasRedirected.current = true;
                 router.replace('/calibration');
                 return;
@@ -96,7 +119,6 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
             hasResetForGame.current = true;
             blink.resetBlinkCount();
         } else if (!gameStarted) {
-            // Reset the flag when game ends so it can reset again on next start
             hasResetForGame.current = false;
         }
     }, [gameStarted, blink]);
@@ -112,18 +134,29 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
     useEffect(() => {
         onBlinkDataChange?.({
             isBlinking: blink.isBlinking,
-            blinkCount: gameStarted ? blink.blinkCount : -1, // -1 means show infinity
+            blinkCount: gameStarted ? blink.blinkCount : -1,
         });
     }, [blink.isBlinking, blink.blinkCount, gameStarted, onBlinkDataChange]);
 
     return (
-        /* Hidden webcam video for blink detection */
-        <video
-            ref={webcam.setVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className="hidden"
-        />
+        <div className="fixed z-50 bottom-6 right-6">
+            <div className="relative w-64 aspect-video overflow-hidden rounded-lg bg-black shadow-lg shadow-red-500/30 border border-zinc-800">
+                <video
+                    ref={webcam.setVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="absolute inset-0 h-full w-full object-cover opacity-0"
+                />
+                <canvas
+                    ref={segmentCanvasRef}
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+                <canvas
+                    ref={overlayCanvasRef}
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+            </div>
+        </div>
     );
 }

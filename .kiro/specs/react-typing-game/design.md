@@ -306,6 +306,16 @@ Each property-based test will run a minimum of 100 iterations to ensure thorough
 *For any* typing input, the displayed value in the input field should match the typed characters in real-time.
 **Validates: Requirements 2.3**
 
+### Property 16: Accuracy calculation
+
+*For any* keystroke, the system should track whether it was correct or incorrect and calculate accuracy as (correct keystrokes / total keystrokes) * 100.
+**Validates: Requirements 11.11, 11.12**
+
+### Property 17: Chapter progress display
+
+*For any* active typing game session, the system should display the current chapter number (currentChapterIndex + 1) and total chapters in the format "Chapter X/Y".
+**Validates: Requirements 12.1, 12.2, 12.3, 12.4, 12.5, 12.6**
+
 ## Implementation Details
 
 ### React Architecture

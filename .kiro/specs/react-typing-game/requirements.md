@@ -164,3 +164,18 @@ The Typing Game is a core gameplay component of "Type to Death" that challenges 
 8. THE WPM SHALL be calculated as (characters typed / 5) / minutes elapsed
 9. THE WPM SHALL display in real-time in the typing game UI
 10. THE final time and WPM SHALL display on both win and lose overlays
+11. THE accuracy SHALL be calculated as (correct keystrokes / total keystrokes) * 100
+12. THE accuracy SHALL display in real-time in the typing game UI as a percentage
+
+### Requirement 12: Chapter Progress Display
+
+**User Story:** As a player, I want to see which chapter I'm currently on, so that I can track my progress through the story.
+
+#### Acceptance Criteria
+
+1. WHEN the typing game is visible THEN the system SHALL display the current chapter number
+2. WHEN displaying chapter progress THEN the system SHALL show the format "Chapter X/Y" where X is current chapter and Y is total chapters
+3. THE chapter indicator SHALL use the currentChapterIndex from the store (adding 1 for display since it's 0-indexed)
+4. THE chapter indicator SHALL use the totalChapters from the store
+5. THE chapter indicator SHALL update in real-time as the player progresses through chapters
+6. THE chapter indicator SHALL be positioned in the stats bar next to other game statistics
