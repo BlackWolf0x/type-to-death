@@ -15,7 +15,7 @@ const STORY_SCHEMA = {
         },
         introduction: {
             type: "string" as const,
-            description: "120-180 words atmospheric introduction. Use \\n\\n for paragraph breaks.",
+            description: "100-120 words atmospheric introduction. Use \\n\\n for paragraph breaks.",
         },
         chapters: {
             type: "array" as const,
