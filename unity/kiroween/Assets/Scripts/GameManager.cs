@@ -52,6 +52,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("GameManager: Monster Object not assigned");
         }
+
+        Debug.Log("Game Started");
     }
 
     void OnEnable()
