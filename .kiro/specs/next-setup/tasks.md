@@ -53,3 +53,12 @@
   - Ensure proper z-index layering for all visual effects
   - _Properties: P2_
   - _Requirements: 4.3_
+
+- [x] 6. Configure custom branding and typography
+  - Add Metal Mania font from Google Fonts to layout.tsx
+  - Configure font variable for horror-themed typography
+  - Update favicon.ico with custom game icon
+  - Add favicon.png to public directory
+  - Update metadata title and description for game branding
+  - _Properties: P1_
+  - _Requirements: 1.1, 1.2_
