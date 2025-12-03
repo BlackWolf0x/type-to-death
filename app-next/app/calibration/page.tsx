@@ -245,10 +245,7 @@ export default function CalibrationPage() {
                 alt="Background"
                 fill
                 className={`object-cover sepia ${!webcam.isStreaming
-                    ? 'opacity-10'
-                    : pageState === 'ready'
-                        ? (blink.isBlinking ? 'opacity-5' : 'opacity-100')
-                        : 'opacity-100'
+                    ? 'opacity-10' : 'opacity-100'
                     }`}
                 priority
             />
