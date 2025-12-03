@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, query } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import Anthropic from "@anthropic-ai/sdk";
 import { STORY_PROMPT } from "./prompt";
@@ -69,6 +69,19 @@ export const insertStory = internalMutation({
     },
 });
 
+// Internal query to get all story titles (for avoiding duplicates)
+export const getAllStoryTitles = internalQuery({
+    args: {},
+    handler: async (ctx) => {
+        const stories = await ctx.db
+            .query("stories")
+            .withIndex("by_createdAt")
+            .order("asc")
+            .collect();
+
+        return stories.map(story => story.title);
+    },
+});
 
 // Constants for retry logic
 const MAX_RETRIES = 2;
@@ -89,6 +102,16 @@ export const generateStory = internalAction({
         }
 
         try {
+            // Get all previous story titles to avoid repetition
+            const previousTitles = await ctx.runQuery(internal.stories.getAllStoryTitles);
+            
+            // Construct enhanced prompt with previous titles
+            let enhancedPrompt = STORY_PROMPT;
+            if (previousTitles.length > 0) {
+                const titlesList = previousTitles.map(title => `- ${title}`).join('\n');
+                enhancedPrompt += `\n\nPREVIOUSLY USED TITLES (avoid these and create something completely different):\n${titlesList}`;
+            }
+
             const anthropic = new Anthropic({ apiKey });
 
             // Use tool_choice to force structured JSON output
@@ -107,7 +130,7 @@ export const generateStory = internalAction({
                 messages: [
                     {
                         role: "user",
-                        content: STORY_PROMPT,
+                        content: enhancedPrompt,
                     },
                 ],
             });
