@@ -117,7 +117,53 @@ interface GameWebcamProps {
 - Next.js `useRouter`
 - Lucide icons: `Eye`, `EyeOff`
 
-### 5. useBlinkDetector Hook
+### 5. Face Detection Warning Component
+
+**File:** `app-next/components/face-detection-warning.tsx`
+
+**Responsibilities:**
+- Display centered warning notice when face is not detected during gameplay
+- Show countdown timer starting from 20 seconds
+- Redirect to /calibration when countdown reaches zero
+- Cancel countdown and hide when face detection resumes
+
+**Props:**
+```typescript
+interface FaceDetectionWarningProps {
+    faceDetected: boolean;
+    enabled: boolean; // Only show during active gameplay
+}
+```
+
+**State Management:**
+- `countdown` state: number starting at 20, decremented every second
+- `showWarning` state: boolean to control visibility
+- Uses `useEffect` with `setInterval` for countdown timer
+- Uses `useRouter` for navigation to /calibration
+
+**UI Design:**
+- Fixed position, centered on screen (z-50)
+- Semi-transparent dark background overlay
+- Red-themed warning card matching horror aesthetic
+- Large countdown number display
+- Clear warning message explaining face detection requirement
+- Smooth fade-in/fade-out transitions
+
+**Behavior:**
+1. When `faceDetected` becomes false and `enabled` is true:
+   - Show warning notice
+   - Start 20-second countdown
+2. Every second while countdown is active:
+   - Decrement countdown by 1
+   - Update display
+3. When countdown reaches 0:
+   - Redirect to /calibration
+4. When `faceDetected` becomes true:
+   - Cancel countdown
+   - Hide warning notice
+   - Reset countdown to 20
+
+### 6. useBlinkDetector Hook
 
 **File:** `app-next/hooks/useBlinkDetector.ts`
 
@@ -898,6 +944,30 @@ interface UseBackgroundSegmentationReturn {
 *For any* face with detected landmarks, the system should render demon horns on the forehead using forehead landmark positions, and when the mouth is open, render demon teeth and fangs that follow the curved shape of the mouth using lip landmark positions.
 
 **Validates: Requirements 12.1, 12.2, 12.3**
+
+### Property 24: Calibration Page Demon Feature Visibility
+
+*For any* calibration page state where calibration is not complete, the system should only display eye overlays without horns or teeth. *For any* calibration page state where calibration is complete, the system should display all demon features including eyes, horns, and teeth.
+
+**Validates: Requirements 12.4, 12.5**
+
+### Property 21: Face Detection Warning Display
+
+*For any* gameplay state where the webcam is active and faceDetected is false, the system should display a centered warning notice with a 20-second countdown timer.
+
+**Validates: Requirements 13.1, 13.2, 13.5**
+
+### Property 22: Face Detection Warning Countdown
+
+*For any* active countdown, the system should decrement the timer every second. *For any* countdown that reaches zero, the system should redirect to /calibration.
+
+**Validates: Requirements 13.3, 13.6**
+
+### Property 23: Face Detection Warning Cancellation
+
+*For any* state where face detection resumes (faceDetected becomes true) while the countdown is active, the system should immediately cancel the countdown and hide the warning notice.
+
+**Validates: Requirements 13.4**
 
 ## Future Enhancements
 

@@ -79,7 +79,8 @@ The Type to Death game requires a competitive element where players can see how 
 3. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's score (formatted)
 4. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's WPM
 5. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's accuracy percentage
-6. THE leaderboard entries SHALL be displayed in a grid layout for readability
+6. WHEN displaying a leaderboard entry THEN THE system SHALL show the player's time taken (formatted)
+7. THE leaderboard entries SHALL be displayed in a grid layout for readability
 
 ### Requirement 6: Score Calculation Utility
 
@@ -113,6 +114,17 @@ The Type to Death game requires a competitive element where players can see how 
 4. IF the score submission fails due to authentication THEN THE system SHALL display "Sign in to save your score"
 5. IF the score submission fails for other reasons THEN THE system SHALL display the error message
 6. WHEN the player restarts the game THEN THE system SHALL reset the submission status
+
+### Requirement 9: Data Precision
+
+**User Story:** As a player, I want my performance metrics stored with full precision, so that leaderboard rankings are accurate.
+
+#### Acceptance Criteria
+
+1. WHEN submitting a score THEN THE system SHALL store WPM with full decimal precision (no rounding)
+2. WHEN submitting a score THEN THE system SHALL store accuracy with full decimal precision (no rounding)
+3. WHEN submitting a score THEN THE system SHALL store timeTaken with full decimal precision (no rounding)
+4. WHEN displaying time on the leaderboard THEN THE system SHALL format it in a human-readable format (MM:SS)
 
 ## Non-Functional Requirements
 

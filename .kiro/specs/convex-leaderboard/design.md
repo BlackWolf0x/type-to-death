@@ -87,6 +87,7 @@ interface LeaderboardEntry {
   score: number;
   wpm: number;
   accuracy: number;
+  timeTaken: number;
 }
 ```
 
@@ -133,8 +134,12 @@ Formula: score = ((accuracy² × wordPerMinute) / timeTaken) × 1000
 **Validates: Requirements 7.1, 7.2**
 
 ### P5: Leaderboard Entry Completeness
-**Property:** *For any* leaderboard entry displayed, the rendered output SHALL contain rank, username, score, WPM, and accuracy values
-**Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5**
+**Property:** *For any* leaderboard entry displayed, the rendered output SHALL contain rank, username, score, WPM, accuracy, and time values
+**Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6**
+
+### P7: Data Precision Preservation
+**Property:** *For any* score submission, the stored WPM, accuracy, and timeTaken values SHALL match the submitted values without rounding
+**Validates: Requirements 9.1, 9.2, 9.3**
 
 ### P6: Score Submission Feedback
 **Property:** *For any* game win event, the UI SHALL display appropriate feedback based on submission status (loading, success, or error)

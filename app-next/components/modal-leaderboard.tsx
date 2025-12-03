@@ -12,6 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Award, Trophy } from "lucide-react";
+import { formatTime } from "@/stores/gameStatsStore";
 
 export function ModalLeaderboard() {
     const highscores = useQuery(api.highscores.getHighscoresWithUsers);
@@ -45,19 +46,20 @@ export function ModalLeaderboard() {
                     ) : (
                         <div className="space-y-1">
                             {/* Header */}
-                            <div className="grid grid-cols-[40px_1fr_120px_80px_80px] gap-2 px-2 py-2 text-xs font-medium text-muted-foreground border-b">
+                            <div className="grid grid-cols-[40px_1fr_100px_60px_60px_60px] gap-2 px-2 py-2 text-xs font-medium text-muted-foreground border-b">
                                 <span>#</span>
                                 <span>Player</span>
                                 <span className="text-right">Score</span>
                                 <span className="text-right">WPM</span>
-                                <span className="text-right">Accuracy</span>
+                                <span className="text-right">Acc</span>
+                                <span className="text-right">Time</span>
                             </div>
 
                             {/* Entries */}
                             {highscores.map((entry, index) => (
                                 <div
                                     key={entry._id}
-                                    className="grid grid-cols-[40px_1fr_120px_80px_80px] gap-2 px-2 py-2 text-sm rounded-md hover:bg-muted/50"
+                                    className="grid grid-cols-[40px_1fr_100px_60px_60px_60px] gap-2 px-2 py-2 text-sm rounded-md hover:bg-muted/50"
                                 >
                                     <span className="font-bold text-muted-foreground">
                                         {index + 1}
@@ -69,10 +71,13 @@ export function ModalLeaderboard() {
                                         {Math.round(entry.score).toLocaleString()}
                                     </span>
                                     <span className="text-right font-mono text-muted-foreground">
-                                        {Math.round(entry.wordPerMinute)}
+                                        {entry.wordPerMinute.toFixed(1)}
                                     </span>
                                     <span className="text-right font-mono text-muted-foreground">
-                                        {Math.round(entry.accuracy)}%
+                                        {entry.accuracy.toFixed(1)}%
+                                    </span>
+                                    <span className="text-right font-mono text-muted-foreground">
+                                        {formatTime(Math.round(entry.timeTaken))}
                                     </span>
                                 </div>
                             ))}
