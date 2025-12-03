@@ -2,16 +2,18 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { GameWebcam } from "@/components/game-webcam";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
-import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
+import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
+import { ModalLeaderboard } from "@/components/modal-leaderboard";
 import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, XCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ModalAuth } from "@/components/modal-auth";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
@@ -31,6 +33,7 @@ export default function PlayPage() {
     // Fetch story from Convex backend
     const story = useQuery(api.stories.getLatestStory);
     const submitScore = useMutation(api.highscores.submitScore);
+    const { isAuthenticated } = useConvexAuth();
 
     const resetTypingGame = useTypingGameStore((state) => state.reset);
     const loadStory = useTypingGameStore((state) => state.loadStory);
@@ -49,6 +52,9 @@ export default function PlayPage() {
     const isTimerRunning = useGameStatsStore((state) => state.isTimerRunning);
     const wpm = calculateWPM(charactersTyped, elapsedTime);
     const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
+    // Raw values for database submission (no rounding)
+    const wpmRaw = calculateWPMRaw(charactersTyped, elapsedTime);
+    const accuracyRaw = calculateAccuracyRaw(correctKeystrokes, totalKeystrokes);
 
     const { unityProvider, isLoaded, sendMessage, addEventListener, removeEventListener, unload } = useUnityContext({
         loaderUrl: "/game/build.loader.js",
@@ -152,14 +158,14 @@ export default function PlayPage() {
             stopTimer();
             resetTypingGame();
 
-            // Submit score to leaderboard
+            // Submit score to leaderboard (using raw values without rounding)
             if (story?._id) {
                 setScoreSubmitStatus('submitting');
                 setScoreSubmitError(null);
                 submitScore({
                     storyId: story._id,
-                    wordPerMinute: wpm,
-                    accuracy: accuracy,
+                    wordPerMinute: wpmRaw,
+                    accuracy: accuracyRaw,
                     timeTaken: elapsedTime,
                 })
                     .then(() => {
@@ -173,7 +179,7 @@ export default function PlayPage() {
                     });
             }
         }
-    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer, story, submitScore, wpm, accuracy, elapsedTime]);
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer, story, submitScore, wpmRaw, accuracyRaw, elapsedTime]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
@@ -182,6 +188,29 @@ export default function PlayPage() {
     const handleReady = useCallback(() => {
         setIsReady(true);
     }, []);
+
+    // Retry score submission (for when user logs in after failing)
+    const handleRetrySubmit = useCallback(() => {
+        if (story?._id && isAuthenticated) {
+            setScoreSubmitStatus('submitting');
+            setScoreSubmitError(null);
+            submitScore({
+                storyId: story._id,
+                wordPerMinute: wpmRaw,
+                accuracy: accuracyRaw,
+                timeTaken: elapsedTime,
+            })
+                .then(() => {
+                    setScoreSubmitStatus('success');
+                })
+                .catch((error) => {
+                    setScoreSubmitStatus('error');
+                    const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
+                    setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
+                    console.error("Failed to submit score:", error);
+                });
+        }
+    }, [story, isAuthenticated, submitScore, wpmRaw, accuracyRaw, elapsedTime]);
 
     // Reusable restart function (for game over and win screens)
     const handleRestartGame = useCallback(() => {
@@ -196,6 +225,13 @@ export default function PlayPage() {
         setScoreSubmitStatus('idle');
         setScoreSubmitError(null);
     }, [sendMessage, resetTypingGame, reloadStory, resetStats, startTimer]);
+
+    // Auto-retry score submission when user logs in after auth error
+    useEffect(() => {
+        if (isAuthenticated && scoreSubmitStatus === 'error' && scoreSubmitError?.includes("Sign in")) {
+            handleRetrySubmit();
+        }
+    }, [isAuthenticated, scoreSubmitStatus, scoreSubmitError, handleRetrySubmit]);
 
     // Fullscreen toggle handler
     const toggleFullscreen = useCallback(async () => {
@@ -375,78 +411,96 @@ export default function PlayPage() {
                     : 'opacity-0 pointer-events-none'
                     }`}
             >
-                <div className="bg-black/80 px-12 py-8 rounded-2xl flex flex-col items-center gap-6">
-                    <h1 className="text-6xl font-metalMania font-bold text-green-500 tracking-wider">You Survived!</h1>
+                <Card disableRain className="">
+                    <CardHeader className="mb-4">
+                        <h1 className="text-6xl font-metalMania font-bold text-green-500 tracking-wider text-center">You Survived!</h1>
+                    </CardHeader>
 
-                    <div className="flex items-center gap-6 border rounded-xl">
-                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
-                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
-                                <Clock size={20} />
+                    <CardContent className="mb-8 flex flex-col items-center">
+                        <div className="mb-8 flex items-center gap-6 border rounded-xl">
+                            <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                                <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                    <Clock size={20} />
+                                </div>
+                                Time: {formatTime(elapsedTime)}
                             </div>
-                            Time: {formatTime(elapsedTime)}
+
+                            <Separator orientation="vertical" className="h-8!" />
+
+                            <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                                <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                    <Keyboard size={20} />
+                                </div>
+                                {wpm} WPM
+                            </div>
+
+                            <Separator orientation="vertical" className="h-8!" />
+
+                            <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                                <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                    <Target size={20} />
+                                </div>
+                                {accuracy}% Accuracy
+                            </div>
                         </div>
 
-                        <Separator orientation="vertical" className="h-8!" />
-
-                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
-                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
-                                <Keyboard size={20} />
+                        {/* Score submission status */}
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="flex items-center gap-2 text-sm">
+                                {scoreSubmitStatus === 'submitting' && (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                        <span className="text-muted-foreground">Saving score...</span>
+                                    </>
+                                )}
+                                {scoreSubmitStatus === 'success' && (
+                                    <>
+                                        <Trophy className="h-4 w-4 text-yellow-500" />
+                                        <span className="text-green-500">Score saved to leaderboard!</span>
+                                    </>
+                                )}
+                                {scoreSubmitStatus === 'error' && (
+                                    <>
+                                        <XCircle className="h-4 w-4 text-red-500" />
+                                        <span className="text-red-400">{scoreSubmitError}</span>
+                                    </>
+                                )}
                             </div>
-                            {wpm} WPM
+                            {/* Show auth modal if submission failed due to authentication */}
+                            {scoreSubmitStatus === 'error' && scoreSubmitError?.includes("Sign in") && !isAuthenticated && (
+                                <ModalAuth />
+                            )}
+                        </div>
+                    </CardContent>
+
+                    <CardFooter className="flex-col justify-center gap-4">
+                        <div className="flex items-center gap-6">
+                            <ModalLeaderboard />
+
+                            <Button
+                                onClick={handleRestartGame}
+                                variant="outlineRed"
+                                size="xl"
+                            >
+                                Restart Game
+                            </Button>
                         </div>
 
-                        <Separator orientation="vertical" className="h-8!" />
+                        <div>
+                            <Button
+                                variant="secondary"
+                                size="lg"
+                                asChild
+                            >
+                                <a href="/">
+                                    Go To Main Menu
+                                </a>
+                            </Button>
 
-                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
-                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
-                                <Target size={20} />
-                            </div>
-                            {accuracy}% Accuracy
+                            <ModalAuth />
                         </div>
-                    </div>
-
-                    {/* Score submission status */}
-                    <div className="flex items-center gap-2 text-sm">
-                        {scoreSubmitStatus === 'submitting' && (
-                            <>
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                                <span className="text-muted-foreground">Saving score...</span>
-                            </>
-                        )}
-                        {scoreSubmitStatus === 'success' && (
-                            <>
-                                <Trophy className="h-4 w-4 text-yellow-500" />
-                                <span className="text-green-500">Score saved to leaderboard!</span>
-                            </>
-                        )}
-                        {scoreSubmitStatus === 'error' && (
-                            <>
-                                <XCircle className="h-4 w-4 text-red-500" />
-                                <span className="text-red-400">{scoreSubmitError}</span>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="space-x-6">
-                        <Button
-                            variant="secondary"
-                            size="xl"
-                            asChild
-                        >
-                            <a href="/">
-                                Main Menu
-                            </a>
-                        </Button>
-
-                        <Button
-                            onClick={handleRestartGame}
-                            variant="outlineRed"
-                            size="xl"
-                        >
-                            Restart Game
-                        </Button>
-                    </div>
-                </div>
+                    </CardFooter>
+                </Card>
             </div>
 
             {/* Only render Unity after ready */}

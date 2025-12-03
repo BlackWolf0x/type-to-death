@@ -61,7 +61,7 @@ export function formatTime(seconds: number): string {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Calculate WPM (standard: 5 characters = 1 word)
+// Calculate WPM (standard: 5 characters = 1 word) - rounded for display
 export function calculateWPM(charactersTyped: number, elapsedSeconds: number): number {
     if (elapsedSeconds === 0) return 0;
     const minutes = elapsedSeconds / 60;
@@ -69,8 +69,22 @@ export function calculateWPM(charactersTyped: number, elapsedSeconds: number): n
     return Math.round(words / minutes);
 }
 
-// Calculate accuracy percentage
+// Calculate WPM with full precision (for database storage)
+export function calculateWPMRaw(charactersTyped: number, elapsedSeconds: number): number {
+    if (elapsedSeconds === 0) return 0;
+    const minutes = elapsedSeconds / 60;
+    const words = charactersTyped / 5;
+    return words / minutes;
+}
+
+// Calculate accuracy percentage - rounded for display
 export function calculateAccuracy(correctKeystrokes: number, totalKeystrokes: number): number {
     if (totalKeystrokes === 0) return 100;
     return Math.round((correctKeystrokes / totalKeystrokes) * 100);
+}
+
+// Calculate accuracy with full precision (for database storage)
+export function calculateAccuracyRaw(correctKeystrokes: number, totalKeystrokes: number): number {
+    if (totalKeystrokes === 0) return 100;
+    return (correctKeystrokes / totalKeystrokes) * 100;
 }

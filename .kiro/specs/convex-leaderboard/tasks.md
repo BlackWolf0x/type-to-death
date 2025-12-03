@@ -67,6 +67,21 @@
   - Reset submission status on game restart
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 8.6_
 
+- [x] 8. Add time display and preserve decimal precision
+  - Update `app-next/components/modal-leaderboard.tsx` to display time column
+  - Format time as MM:SS for readability
+  - Ensure score submission uses raw decimal values (no rounding)
+  - Update grid layout to accommodate time column
+  - Display WPM and accuracy with 1 decimal place precision
+  - _Properties: P5, P7_
+  - _Requirements: 5.6, 9.1, 9.2, 9.3, 9.4_
+
+- [x] 9. Add leaderboard access to game win screen
+  - Add ModalLeaderboard component to win screen in `app-next/app/play/page.tsx`
+  - Position leaderboard button alongside existing buttons (Main Menu, Restart Game)
+  - Ensure modal opens correctly from win screen
+  - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
 ## Implementation Notes
 
 - Tasks 1-3 are already completed (backend implementation)
@@ -86,7 +101,7 @@
 
 ## Estimated Effort
 
-- Total Tasks: 7 (all completed)
+- Total Tasks: 9 (all completed)
 - Estimated Time: 2-3 hours total
 - Complexity: Low
 - Risk Level: Low
