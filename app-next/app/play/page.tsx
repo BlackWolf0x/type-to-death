@@ -351,21 +351,53 @@ export default function PlayPage() {
             >
                 <div className="bg-black/80 px-12 py-8 rounded-2xl flex flex-col items-center gap-6">
                     <h1 className="text-5xl font-bold text-green-500 tracking-wider">You Survived!</h1>
-                    <div className="flex items-center gap-6 text-white/80 text-lg">
-                        <span>Time: {formatTime(elapsedTime)}</span>
-                        <span>•</span>
-                        <span>{wpm} WPM</span>
-                        <span>•</span>
-                        <span>{accuracy}% Accuracy</span>
+
+                    <div className="flex items-center gap-6 border rounded-xl">
+                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Clock size={20} />
+                            </div>
+                            Time: {formatTime(elapsedTime)}
+                        </div>
+
+                        <Separator orientation="vertical" className="h-8!" />
+
+                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Keyboard size={20} />
+                            </div>
+                            {wpm} WPM
+                        </div>
+
+                        <Separator orientation="vertical" className="h-8!" />
+
+                        <div className="py-4 px-6 flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                            <div className="bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                                <Target size={20} />
+                            </div>
+                            {accuracy}% Accuracy
+                        </div>
                     </div>
-                    <Button
-                        onClick={handleRestartGame}
-                        variant="outline"
-                        size="lg"
-                        className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
-                    >
-                        Play Again
-                    </Button>
+
+                    <div className="space-x-6">
+                        <Button
+                            variant="secondary"
+                            size="xl"
+                            asChild
+                        >
+                            <a href="/">
+                                Main Menu
+                            </a>
+                        </Button>
+
+                        <Button
+                            onClick={handleRestartGame}
+                            variant="outlineRed"
+                            size="xl"
+                        >
+                            Try Again
+                        </Button>
+                    </div>
                 </div>
             </div>
 
