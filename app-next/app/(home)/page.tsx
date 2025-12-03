@@ -1,5 +1,6 @@
 import { HomeBanner } from "@/components/home-banner";
 import { ModalAuth } from "@/components/modal-auth";
+import { ModalCredits } from "@/components/modal-credits";
 import { Button } from "@/components/ui/button";
 import { UsernameCheck } from "@/components/username-check";
 import { SlidersHorizontal } from "lucide-react";
@@ -17,6 +18,7 @@ export default function Home() {
 						<SlidersHorizontal /> Eye Calibration
 					</Link>
 				</Button>
+				<ModalCredits />
 			</div>
 		</div>
 	);

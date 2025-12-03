@@ -21,7 +21,7 @@ export function ModalLeaderboard() {
         <Dialog>
             <DialogTrigger asChild>
                 <Button variant="outline" size="xl">
-                    <Award />
+                    <Trophy />
                     Leaderboard
                 </Button>
             </DialogTrigger>
