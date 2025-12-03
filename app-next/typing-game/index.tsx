@@ -11,6 +11,7 @@ export { useTypingGameStore } from "./store";
 export interface BlinkData {
     isBlinking: boolean;
     blinkCount: number; // -1 means show infinity
+    faceDetected?: boolean;
 }
 
 interface TypingGameProps {
@@ -19,6 +20,7 @@ interface TypingGameProps {
 }
 
 export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
+    const disabled = blinkData?.faceDetected === false;
     const currentChapterIndex = useTypingGameStore((state) => state.currentChapterIndex);
     const totalChapters = useTypingGameStore((state) => state.totalChapters);
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
@@ -84,7 +86,7 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
             </div>
 
             <TextDisplay />
-            <TypingInput />
+            <TypingInput disabled={disabled} />
         </div>
     );
 }

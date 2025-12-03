@@ -288,8 +288,27 @@
   - _Properties: P20_
   - _Requirements: 12.1, 12.2, 12.3_
 
+- [x] 19. Implement face detection warning during gameplay
+  - Create `app-next/components/face-detection-warning.tsx` component
+  - Accept `faceDetected` and `enabled` props
+  - Display centered warning notice when face not detected and enabled is true
+  - Implement 20-second countdown timer using setInterval
+  - Show countdown number prominently in warning UI
+  - Display clear message: "Face not detected. Please position your face in front of the camera."
+  - Redirect to /calibration when countdown reaches zero using useRouter
+  - Cancel countdown and hide warning when faceDetected becomes true
+  - Reset countdown to 20 when warning is dismissed
+  - Style with horror theme: dark overlay, red accents, matching existing aesthetic
+  - Add smooth fade-in/fade-out transitions
+  - Update GameWebcam component to expose faceDetected state
+  - Update Play Page to integrate FaceDetectionWarning component
+  - Pass faceDetected from GameWebcam to FaceDetectionWarning
+  - Only enable warning when gameStarted is true
+  - _Properties: P21, P22, P23_
+  - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
+
 ## Estimated Effort
 
-- Total Tasks: 18
-- Completed: 18
+- Total Tasks: 19
+- Completed: 19
 - Status: ✅ Complete

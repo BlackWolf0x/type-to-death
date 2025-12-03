@@ -5,6 +5,7 @@ import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { GameWebcam } from "@/components/game-webcam";
+import { FaceDetectionWarning } from "@/components/face-detection-warning";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ export default function PlayPage() {
     const [gameWon, setGameWon] = useState(false);
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
-    const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1 });
+    const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1, faceDetected: true });
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [scoreSubmitStatus, setScoreSubmitStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
     const [scoreSubmitError, setScoreSubmitError] = useState<string | null>(null);
@@ -272,6 +273,12 @@ export default function PlayPage() {
                 onReady={handleReady}
                 onBlinkDataChange={setBlinkData}
                 gameStarted={gameStarted}
+            />
+
+            {/* Face detection warning - only active during gameplay */}
+            <FaceDetectionWarning
+                faceDetected={blinkData.faceDetected}
+                enabled={gameStarted}
             />
 
             {/* Loading screen with fade transition */}

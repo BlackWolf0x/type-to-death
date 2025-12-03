@@ -31,6 +31,7 @@ async function checkCameraPermission(): Promise<'granted' | 'denied' | 'prompt'>
 export interface BlinkData {
     isBlinking: boolean;
     blinkCount: number;
+    faceDetected: boolean;
 }
 
 interface GameWebcamProps {
@@ -135,8 +136,9 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
         onBlinkDataChange?.({
             isBlinking: blink.isBlinking,
             blinkCount: gameStarted ? blink.blinkCount : -1,
+            faceDetected: blink.faceDetected,
         });
-    }, [blink.isBlinking, blink.blinkCount, gameStarted, onBlinkDataChange]);
+    }, [blink.isBlinking, blink.blinkCount, blink.faceDetected, gameStarted, onBlinkDataChange]);
 
     return (
         <div className="fixed z-50 bottom-6 right-6">
