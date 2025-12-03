@@ -35,7 +35,9 @@ The game uses FMOD Studio for audio instead of Unity's built-in audio system. FM
 
 1. THE AudioManager SHALL provide a serialized EventReference field for GameOver SFX
 2. THE AudioManager SHALL provide a public EventInstance field for GameOver SFX
-3. THE EventReference SHALL be assignable in the Inspector
+3. THE AudioManager SHALL provide a serialized EventReference field for Intro SFX
+4. THE AudioManager SHALL provide a public EventInstance field for Intro SFX
+5. THE EventReference SHALL be assignable in the Inspector
 
 ### Requirement 3: SFX Instantiation
 
@@ -47,6 +49,7 @@ The game uses FMOD Studio for audio instead of Unity's built-in audio system. FM
 2. THE method SHALL be called in Awake()
 3. THE method SHALL use RuntimeManager.CreateInstance() to create EventInstances
 4. THE GameOver EventInstance SHALL be created from GameOver EventReference
+5. THE Intro EventInstance SHALL be created from Intro EventReference
 
 ### Requirement 4: SFX Playback
 
@@ -67,6 +70,17 @@ The game uses FMOD Studio for audio instead of Unity's built-in audio system. FM
 1. THE GameManager SHALL call AudioManager.Instance.PlaySfx() on game over
 2. THE call SHALL pass AudioManager.Instance.GameOverSfx
 3. THE call SHALL happen in GameOverSequence() after black screen activates
+
+### Requirement 6: Intro SFX Playback
+
+**User Story:** As a game designer, I want a scary intro sound to play after a configurable delay from game start, so that I can introduce the monster with audio.
+
+#### Acceptance Criteria
+
+1. THE AudioManager SHALL provide a serialized float field for introDelay (Inspector-configurable)
+2. WHEN the game starts, THE AudioManager SHALL wait introDelay seconds
+3. AFTER introDelay seconds, THE AudioManager SHALL play the Intro SFX
+4. THE intro playback SHALL use a coroutine for the delay
 
 ## Non-Functional Requirements
 
@@ -111,3 +125,4 @@ The game uses FMOD Studio for audio instead of Unity's built-in audio system. FM
 - Audio parameters
 - Event callbacks
 - Audio pooling
+- Stopping or canceling intro SFX

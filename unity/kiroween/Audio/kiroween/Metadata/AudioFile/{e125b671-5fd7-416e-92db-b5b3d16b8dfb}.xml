@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{e125b671-5fd7-416e-92db-b5b3d16b8dfb}">
+		<property name="assetPath">
+			<value>creepy-horror-sound-229139.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>4.944</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{bcd52691-6c6e-4404-a0ca-bf47ac2477d8}</destination>
+		</relationship>
+	</object>
+</objects>

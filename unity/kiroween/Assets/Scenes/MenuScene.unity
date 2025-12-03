@@ -850,6 +850,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startButton: {fileID: 401357358}
+  Banks:
+  - Master
+  - Master.strings
 --- !u!4 &1544806833
 Transform:
   m_ObjectHideFlags: 0

@@ -32,8 +32,8 @@ The movelist system extends the existing MonsterController to add dynamic pose v
 ### New Runtime State
 
 ```csharp
-// No additional runtime state needed
-// Pose selection happens inline during teleportation
+private System.Collections.Generic.List<AnimationClip> unusedPoses = new();
+private System.Collections.Generic.List<AnimationClip> validPoses = new();
 ```
 
 ## Core Algorithms
@@ -64,10 +64,13 @@ On Spawn (in Start method, after position setup):
 
 ```
 On Teleport (when currentLives > 1):
-1. Generate random index: Random.Range(0, randomPoses.Length)
-2. Select pose: selectedPose = randomPoses[randomIndex]
-3. Call ApplyPose(selectedPose)
-4. Log pose selection and index
+1. Check if unusedPoses pool is empty
+   - If empty: Reset pool with all valid poses
+2. Generate random index: Random.Range(0, unusedPoses.Count)
+3. Select pose: selectedPose = unusedPoses[randomIndex]
+4. Remove selected pose from unusedPoses pool
+5. Call ApplyPose(selectedPose)
+6. Log pose selection and remaining pool size
 ```
 
 ### 4. Final Pose Application
@@ -166,9 +169,9 @@ The Animator Controller must be set up to support direct animation clip playback
 **Covers:** Requirements 2.1, 2.2, 2.3, 2.4
 
 ### P2: Random Pose Selection
-**Property:** For any teleport when currentLives > 1, a pose is randomly selected from randomPoses array  
-**Verification:** Selected index is within [0, randomPoses.Length)  
-**Covers:** Requirements 3.1, 3.2, 3.3
+**Property:** For any teleport when currentLives > 1, a pose is randomly selected from the unusedPoses pool  
+**Verification:** Selected index is within [0, unusedPoses.Count) and selected pose is removed from pool  
+**Covers:** Requirements 3.1, 3.3, 3.4
 
 ### P3: Random Pose Application
 **Property:** Selected random pose is applied immediately after teleportation  
@@ -196,9 +199,19 @@ The Animator Controller must be set up to support direct animation clip playback
 **Covers:** Requirements 1.5
 
 ### P8: Uniform Distribution
-**Property:** Random pose selection uses uniform distribution  
-**Verification:** All poses have equal probability of selection  
+**Property:** Random pose selection uses uniform distribution from unused poses pool  
+**Verification:** All unused poses have equal probability of selection  
 **Covers:** Requirements 3.3
+
+### P9: Pose Pool Reset
+**Property:** When all poses have been used, the pool resets and all poses become available again  
+**Verification:** When unusedPoses.Count == 0, pool is refilled with all validPoses  
+**Covers:** Requirements 3.5
+
+### P10: No Immediate Repetition
+**Property:** For any pose selection, the same pose cannot be selected again until all other poses have been used  
+**Verification:** Selected pose is removed from unusedPoses until pool reset  
+**Covers:** Requirements 3.6
 
 ## Implementation Approaches
 
