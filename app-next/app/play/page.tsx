@@ -10,8 +10,8 @@ import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "
 import { Button } from "@/components/ui/button";
 import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
@@ -235,13 +235,15 @@ export default function PlayPage() {
                 <div className="max-w-6xl mx-auto px-8 flex flex-col items-center gap-12">
 
                     <Card disableRain className="pt-10">
-                        <h1 className="mb-2 text-6xl font-bold font-metalMania text-center tracking-wide text-red-500 animate-in">
+                        <h1 className="mb-4 text-6xl font-bold font-metalMania text-center tracking-wide text-red-500 animate-in">
                             {story?.title}
                         </h1>
                         <CardContent>
-                            <p className="p-4 text-2xl leading-loose text-justify whitespace-pre-line">
-                                {story?.introduction.replace(/\\n/g, '\n')}
-                            </p>
+                            <ScrollArea className="h-[350px] w-full rounded-md pr-2">
+                                <p className="p-4 text-2xl leading-relaxed text-justify whitespace-pre-line">
+                                    {story?.introduction.replace(/\\n/g, '\n')}
+                                </p>
+                            </ScrollArea>
                         </CardContent>
                     </Card>
 
