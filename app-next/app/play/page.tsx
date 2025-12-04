@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { GameWebcam } from "@/components/game-webcam";
+import { GameWebcamSimple } from "@/components/game-webcam-simple";
 import { FaceDetectionWarning } from "@/components/face-detection-warning";
 import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
@@ -113,15 +113,10 @@ export default function PlayPage() {
     // Show intro when game is fully loaded (but only if not seen yet)
     useEffect(() => {
         if (isReady && unityReady && story && !introSeen && !showIntro) {
-            // Fade out loading screen first
+            // Show intro and hide loading immediately
+            setShowIntro(true);
             setTextVisible(false);
-            setTimeout(() => {
-                setLoadingVisible(false);
-                // Show intro after loading screen fades
-                setTimeout(() => {
-                    setShowIntro(true);
-                }, 300);
-            }, 600);
+            setLoadingVisible(false);
         }
     }, [isReady, unityReady, story, introSeen, showIntro]);
 
@@ -267,8 +262,8 @@ export default function PlayPage() {
 
     return (
         <>
-            {/* GameWebcam handles calibration/permission checks and signals when ready */}
-            <GameWebcam
+            {/* Simple webcam - blink detection only, no visual effects */}
+            <GameWebcamSimple
                 onBlink={handleBlink}
                 onReady={handleReady}
                 onBlinkDataChange={setBlinkData}
@@ -296,7 +291,7 @@ export default function PlayPage() {
 
             {/* Intro screen */}
             <div
-                className={`fixed inset-0 flex items-center justify-center bg-black text-white z-25 transition-opacity duration-700 ${showIntro
+                className={`fixed inset-0 flex items-center justify-center bg-black text-white z-25 ${showIntro
                     ? 'opacity-100'
                     : 'opacity-0 pointer-events-none'
                     }`}

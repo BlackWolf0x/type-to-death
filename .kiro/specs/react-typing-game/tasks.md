@@ -352,8 +352,25 @@
   - Remove unused useEffect import from TypingGame component
   - _Requirements: 1.2, 7.1, 7.2, 8.1_
 
+- [x] 28. Fix error count calculation and extend red highlighting across word boundaries
+  - Update store's setInputValue to calculate errorCount as only the incorrect characters (not including correct prefix)
+  - Find firstErrorIndex by comparing input against expected characters
+  - Calculate currentErrorCount as characters after firstErrorIndex (value.length - firstErrorIndex)
+  - Limit error input to firstErrorIndex + 10 characters maximum
+  - Update errorCount state to reflect actual number of error characters typed
+  - Update TextDisplay to use errorCount from store for highlighting
+  - Calculate errorOverflow when errors extend beyond current word
+  - Highlight untyped characters in current word when within error range
+  - Highlight space after current word when errors overflow
+  - Update FutureWords component to accept errorOverflow prop
+  - Implement cross-word-boundary highlighting in FutureWords
+  - Highlight characters in future words (including spaces) up to errorCount total
+  - Test by typing "corriaaaaa" for "corridor and" - verify only 5 error chars counted (not 10)
+  - Test that red highlight extends exactly errorCount characters across word boundaries
+  - _Requirements: 5.1, 5.2, 9.1, 9.2_
+
 ## Estimated Effort
 
-- Total Tasks: 27
-- Completed: 27
+- Total Tasks: 28
+- Completed: 28
 - Status: ✅ Complete

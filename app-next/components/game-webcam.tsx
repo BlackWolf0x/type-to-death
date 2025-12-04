@@ -131,13 +131,25 @@ export function GameWebcam({ onBlink, onReady, onBlinkDataChange, gameStarted = 
         }
     }, [gameStarted, blink.isBlinking, onBlink]);
 
-    // Send blink data to parent for display
+    // Send blink data to parent for display - throttled to reduce re-renders
+    const lastBlinkDataRef = useRef({ isBlinking: false, blinkCount: -1, faceDetected: true });
     useEffect(() => {
-        onBlinkDataChange?.({
+        const newData = {
             isBlinking: blink.isBlinking,
             blinkCount: gameStarted ? blink.blinkCount : -1,
             faceDetected: blink.faceDetected,
-        });
+        };
+
+        // Only update if data actually changed to prevent unnecessary re-renders
+        const last = lastBlinkDataRef.current;
+        if (
+            last.isBlinking !== newData.isBlinking ||
+            last.blinkCount !== newData.blinkCount ||
+            last.faceDetected !== newData.faceDetected
+        ) {
+            lastBlinkDataRef.current = newData;
+            onBlinkDataChange?.(newData);
+        }
     }, [blink.isBlinking, blink.blinkCount, blink.faceDetected, gameStarted, onBlinkDataChange]);
 
     return (

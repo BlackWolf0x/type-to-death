@@ -81,7 +81,7 @@ export function ModalAuth() {
             <Button
                 size="lg"
                 variant="secondary"
-                className="fixed z-40 bottom-18 left-1/2 -translate-x-1/2 shadow-sm shadow-red-500"
+                className="shadow-sm shadow-red-500"
                 onClick={handleSignOut}
                 disabled={isLoading}
             >
@@ -95,7 +95,7 @@ export function ModalAuth() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="lg" className="fixed z-40 bottom-18 left-1/2 -translate-x-1/2 shadow-sm shadow-red-500">
+                <Button size="lg" className="shadow-sm shadow-red-500">
                     <User />
                     Login / Sign Up
                 </Button>
