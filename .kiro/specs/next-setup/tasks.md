@@ -76,3 +76,34 @@
   - Add clickable links to external resources
   - _Properties: P2_
   - _Requirements: 4.1, 4.5_
+
+- [x] 8. Create mobile warning component
+
+
+  - Create `app-next/components/mobile-warning.tsx` as client component
+  - Use 'use client' directive for client-side rendering
+  - Implement useState hook to track isMobile state
+  - Implement useEffect hook to detect viewport width on mount
+  - Add window resize event listener to update isMobile state
+  - Set mobile breakpoint at 768px (viewport width < 768px shows warning)
+  - Clean up resize listener on component unmount
+  - Return null when viewport is desktop size (≥768px)
+  - Render warning message when viewport is mobile size (<768px)
+  - Use fixed positioning at top of viewport with high z-index (z-50)
+  - Style with Tailwind CSS: background color, padding, text styling
+  - Message should state: "This game is optimized for desktop with a keyboard"
+  - Ensure warning doesn't block page content (non-modal design)
+  - _Properties: P3, P4, P5_
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+
+
+
+- [ ] 9. Integrate mobile warning into root layout
+  - Open `app-next/app/layout.tsx`
+  - Import MobileWarning component using @/ alias
+  - Add MobileWarning component at the top of the body content
+  - Ensure it appears before {children} so it's visible on all pages
+  - Verify component renders on all routes (/, /permission, /calibration, /play)
+  - _Properties: P3, P5_
+  - _Requirements: 5.1, 5.5_

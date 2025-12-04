@@ -325,8 +325,23 @@
   - _Properties: P0_
   - _Requirements: 5.1_
 
+- [x] 22. Implement 2-second intro delay for blink detection at game start
+  - Add `INTRO_DELAY_MS` constant set to 2000ms in GameWebcamSimple component
+  - Add `introDelayActive` state to track when intro delay is active
+  - Add `blinkCountBaselineRef` to capture blink count at end of intro delay
+  - Add `currentBlinkCountRef` to track current blink count for setTimeout closure
+  - Block blink event sending to Unity during intro delay period
+  - Block blink counter display during intro delay (show -1 for infinity symbol)
+  - Capture baseline blink count when intro delay ends using ref for fresh value
+  - Subtract baseline from current blink count to show adjusted count after delay
+  - Reset baseline to 0 when game stops
+  - Update blink data effect to use adjusted blink count after intro delay
+  - Ensure blink counter starts at 0 when it appears after 2-second delay
+  - _Properties: P11, P12_
+  - _Requirements: 9.9, 9.10, 9.11, 9.12_
+
 ## Estimated Effort
 
-- Total Tasks: 21
-- Completed: 21
+- Total Tasks: 22
+- Completed: 22
 - Status: ✅ Complete

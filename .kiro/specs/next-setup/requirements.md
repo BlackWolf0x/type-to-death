@@ -67,6 +67,18 @@ The project already has a basic Next.js 16 installation in the `app-next/` direc
 4. WHEN the application is accessed at `/play` THEN the Next.js Application SHALL display the game play page
 5. WHEN a page is created THEN the Next.js Application SHALL use the App Router file-based routing system
 
+### Requirement 5: Mobile and Small Screen Detection
+
+**User Story:** As a user on a mobile device or small screen, I want to see a clear warning that the game requires a desktop with a keyboard, so that I understand why the game may not work properly on my device.
+
+#### Acceptance Criteria
+
+1. WHEN the viewport width is less than 768 pixels THEN the Next.js Application SHALL display a warning message on all pages
+2. WHEN the warning is displayed THEN the Next.js Application SHALL inform users that the game is optimized for desktop with keyboard
+3. WHEN the warning is displayed THEN the Next.js Application SHALL remain visible and not block the entire page
+4. WHEN the viewport is resized to desktop size THEN the Next.js Application SHALL hide the warning message
+5. WHEN the warning is displayed THEN the Next.js Application SHALL use consistent styling across all pages
+
 ## Non-Functional Requirements
 
 ### NFR1: Performance
@@ -120,3 +132,6 @@ The Next.js application SHALL be compatible with Next.js 16.0.5, React 19, and B
 - Deployment configuration
 - Testing setup (unit tests, e2e tests)
 - CI/CD pipeline configuration
+- Mobile-optimized gameplay (game is desktop-only by design)
+- Touch screen controls or mobile keyboard alternatives
+- Responsive layout optimization for mobile devices
