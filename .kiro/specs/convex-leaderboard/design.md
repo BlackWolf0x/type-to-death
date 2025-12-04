@@ -236,3 +236,50 @@ export const getHighscoresWithUsers = query({
 - Real-time updates via subscriptions
 - User avatars in leaderboard
 - Pagination for very large datasets
+
+
+---
+
+## Update: Single Highscore Per User
+
+### Context
+
+Changed from tracking one highscore per user per story to tracking only one highscore per user regardless of story.
+
+### Schema Changes
+
+The `by_user_story` index has been replaced with a `by_user` index:
+
+```typescript
+// Before
+.index("by_user_story", ["userId", "storyId"])
+
+// After
+.index("by_user", ["userId"])
+```
+
+### Query Changes
+
+The existing highscore lookup now queries by userId only:
+
+```typescript
+// Before
+const existingHighscore = await ctx.db
+    .query("highscores")
+    .withIndex("by_user_story", (q) =>
+        q.eq("userId", userId).eq("storyId", storyId)
+    )
+    .unique();
+
+// After
+const existingHighscore = await ctx.db
+    .query("highscores")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .unique();
+```
+
+### Updated Correctness Property
+
+#### P2: Best Score Retention (Updated)
+**Property:** *For any* user, after multiple score submissions across any stories, the stored highscore SHALL be the maximum of all submitted scores
+**Validates: Requirements 2.4, 2.5, 2.6, 10.1, 10.2**

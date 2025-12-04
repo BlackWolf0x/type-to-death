@@ -105,3 +105,25 @@
 - Estimated Time: 2-3 hours total
 - Complexity: Low
 - Risk Level: Low
+
+
+---
+
+## Update: Single Highscore Per User
+
+### Context
+
+Changed the highscore system to track only one highscore per user (regardless of story) instead of one per user per story.
+
+### Completed Tasks
+
+- [x] 10. Update schema index for single user highscore
+  - Changed `by_user_story` index to `by_user` index in `app-next/convex/schema.ts`
+  - Index now uses only `["userId"]` instead of `["userId", "storyId"]`
+  - _Requirements: 10.3_
+
+- [x] 11. Update highscore lookup query
+  - Modified `submitScore` mutation in `app-next/convex/highscores.ts`
+  - Changed query to use `by_user` index with only userId filter
+  - Removed storyId from the index query
+  - _Requirements: 10.1, 10.2_
