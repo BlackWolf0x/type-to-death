@@ -49,7 +49,7 @@ INTRODUCTION:
 DIFFICULTY CRITERIA FOR CHAPTERS:
 
 EASY (Chapters 1-4 - Story Beginning):
-- 30-50 words in length
+- 30-40 words in length
 - Very simple sentence structures (subject-verb-object)
 - Common, everyday vocabulary only
 - Short words (average 3-5 letters)
@@ -59,7 +59,7 @@ EASY (Chapters 1-4 - Story Beginning):
 - Story function: Establish protagonist, setting, initial curiosity or unease
 
 MEDIUM (Chapters 5-6 - Story Development):
-- 50-60 words in length
+- 30-40 words in length
 - Mix of simple, compound, and some complex sentences
 - More varied vocabulary with descriptive and atmospheric terms
 - Mix of short and medium-length words (average 5-7 letters)
@@ -69,7 +69,7 @@ MEDIUM (Chapters 5-6 - Story Development):
 - Story function: Deepen the mystery, escalate danger, reveal disturbing details
 
 HARD (Chapters 7-8 - Story Climax/Resolution):
-- 50-70 words in length 
+- 40-45 words in length 
 - Complex, literary sentence structures with multiple clauses
 - Advanced vocabulary, uncommon words, horror-specific terminology
 - Longer, challenging words (average 6-9+ letters)

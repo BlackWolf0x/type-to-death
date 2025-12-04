@@ -38,8 +38,16 @@ const STORY_SCHEMA = {
             maxItems: 8,
             description: "Exactly 8 chapters: 1-4 easy, 5-6 medium, 7-8 hard",
         },
+        patientName: {
+            type: "string" as const,
+            description: "The patient's full name (first and last name)",
+        },
+        patientNumber: {
+            type: "string" as const,
+            description: "The patient's identification number prefixed with hashtag (e.g., #928, #2120, #15847)",
+        },
     },
-    required: ["title", "introduction", "chapters"],
+    required: ["title", "introduction", "chapters", "patientName", "patientNumber"],
 };
 
 // Internal mutation to insert a story into the database
@@ -57,20 +65,24 @@ export const insertStory = internalMutation({
                 ),
             })
         ),
+        patientName: v.string(),
+        patientNumber: v.string(),
     },
     handler: async (ctx, args) => {
         const storyId = await ctx.db.insert("stories", {
             title: args.title,
             introduction: args.introduction,
             chapters: args.chapters,
+            patientName: args.patientName,
+            patientNumber: args.patientNumber,
             createdAt: Date.now(),
         });
         return storyId;
     },
 });
 
-// Internal query to get all story titles (for avoiding duplicates)
-export const getAllStoryTitles = internalQuery({
+// Internal query to get previous story data (titles and patient identities for avoiding duplicates)
+export const getPreviousStoryData = internalQuery({
     args: {},
     handler: async (ctx) => {
         const stories = await ctx.db
@@ -79,7 +91,11 @@ export const getAllStoryTitles = internalQuery({
             .order("asc")
             .collect();
 
-        return stories.map(story => story.title);
+        return stories.map(story => ({
+            title: story.title,
+            patientName: story.patientName,
+            patientNumber: story.patientNumber,
+        }));
     },
 });
 
@@ -102,14 +118,18 @@ export const generateStory = internalAction({
         }
 
         try {
-            // Get all previous story titles to avoid repetition
-            const previousTitles = await ctx.runQuery(internal.stories.getAllStoryTitles);
+            // Get all previous story data (titles and patient identities) to avoid repetition
+            const previousStoryData = await ctx.runQuery(internal.stories.getPreviousStoryData);
             
-            // Construct enhanced prompt with previous titles
+            // Construct enhanced prompt with previous titles and patient identities
             let enhancedPrompt = STORY_PROMPT;
-            if (previousTitles.length > 0) {
-                const titlesList = previousTitles.map(title => `- ${title}`).join('\n');
-                enhancedPrompt += `\n\nPREVIOUSLY USED TITLES (avoid these and create something completely different):\n${titlesList}`;
+            if (previousStoryData.length > 0) {
+                const titlesList = previousStoryData.map(story => `- ${story.title}`).join('\n');
+                const patientIdentitiesList = previousStoryData
+                    .map(story => `- Name: ${story.patientName}, Number: ${story.patientNumber}`)
+                    .join('\n');
+                
+                enhancedPrompt += `\n\nPREVIOUSLY USED (avoid these and create something completely different):\n\nTitles:\n${titlesList}\n\nPatient Identities:\n${patientIdentitiesList}`;
             }
 
             const anthropic = new Anthropic({ apiKey });
@@ -148,7 +168,7 @@ export const generateStory = internalAction({
             const story = toolUseBlock.input as Story;
 
             // Validate required fields
-            if (!story.title || !story.introduction || !story.chapters) {
+            if (!story.title || !story.introduction || !story.chapters || !story.patientName || !story.patientNumber) {
                 throw new Error("Invalid story structure - missing required fields");
             }
 
@@ -161,6 +181,8 @@ export const generateStory = internalAction({
                 title: story.title,
                 introduction: story.introduction,
                 chapters: story.chapters,
+                patientName: story.patientName,
+                patientNumber: story.patientNumber,
             });
 
             console.log("Successfully generated and stored story:", story.title);

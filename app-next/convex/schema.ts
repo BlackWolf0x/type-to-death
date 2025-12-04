@@ -26,6 +26,8 @@ const schema = defineSchema({
                 ),
             })
         ),
+        patientName: v.string(),
+        patientNumber: v.string(),
         createdAt: v.number(),
     }).index("by_createdAt", ["createdAt"]),
 
