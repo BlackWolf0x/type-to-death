@@ -13,18 +13,22 @@ export const TypingInput = memo(function TypingInput({ disabled = false }: Typin
     const hasError = useTypingGameStore((state) => state.hasError);
     const errorCount = useTypingGameStore((state) => state.errorCount);
     const isStoryComplete = useTypingGameStore((state) => state.isStoryComplete);
+    const isChapterComplete = useTypingGameStore((state) => state.isChapterComplete);
     const currentWordIndex = useTypingGameStore((state) => state.currentWordIndex);
     const words = useTypingGameStore((state) => state.words);
 
     const setInputValue = useTypingGameStore((state) => state.setInputValue);
     const handleSpaceOrEnter = useTypingGameStore((state) => state.handleSpaceOrEnter);
 
+    // Disable input during chapter transition to prevent skipping chapters
+    const isInputDisabled = disabled || isChapterComplete;
+
     const inputRef = useRef<HTMLInputElement>(null);
     const shakeRef = useRef<HTMLInputElement>(null);
 
     // Auto-focus on mount and refocus on click anywhere (only when not disabled)
     useEffect(() => {
-        if (disabled) return;
+        if (isInputDisabled) return;
 
         inputRef.current?.focus();
 
@@ -34,7 +38,7 @@ export const TypingInput = memo(function TypingInput({ disabled = false }: Typin
 
         document.addEventListener('click', handleClick);
         return () => document.removeEventListener('click', handleClick);
-    }, [disabled]);
+    }, [isInputDisabled]);
 
     // Retrigger shake animation when errorCount changes
     useEffect(() => {
@@ -91,13 +95,13 @@ export const TypingInput = memo(function TypingInput({ disabled = false }: Typin
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            disabled={disabled}
+            disabled={isInputDisabled}
             className={cn(
                 "w-full h-9 rounded-md border bg-transparent px-3 py-1 text-base font-mono text-white",
                 "focus:outline-none focus:ring-2 focus:ring-orange-100",
                 "pointer-events-auto",
                 hasError && "border-red-500 focus:ring-red-500",
-                disabled && "opacity-50 cursor-not-allowed"
+                isInputDisabled && "opacity-50 cursor-not-allowed"
             )}
         />
     );
