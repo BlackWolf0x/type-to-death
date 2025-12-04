@@ -161,21 +161,27 @@ export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
                 });
             }
 
-            let hasAnyError = false;
+            // Find the first error position and count errors
+            let firstErrorIndex = -1;
             for (let i = 0; i < value.length; i++) {
                 if (i >= currentWord.length || value[i] !== currentWord[i]) {
-                    hasAnyError = true;
+                    firstErrorIndex = i;
                     break;
                 }
             }
 
-            if (hasAnyError && value.length > 10) {
-                const limitedValue = value.substring(0, 10);
+            const hasAnyError = firstErrorIndex !== -1;
+            // Error count is only the characters after the first error
+            const currentErrorCount = hasAnyError ? value.length - firstErrorIndex : 0;
+
+            // Limit errors to 10 (only counting actual error characters, not correct prefix)
+            if (hasAnyError && currentErrorCount > 10) {
+                const limitedValue = value.substring(0, firstErrorIndex + 10);
                 return {
                     inputValue: limitedValue,
                     currentCharIndex: limitedValue.length,
                     hasError: true,
-                    errorCount: state.errorCount,
+                    errorCount: 10,
                 };
             }
 

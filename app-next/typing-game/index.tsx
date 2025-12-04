@@ -5,7 +5,7 @@ import { useTypingGameStore } from "./store";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { TextDisplay } from "./components/TextDisplay";
 import { TypingInput } from "./components/TypingInput";
-import { Eye, EyeOff, Clock, Keyboard, BookOpen } from "lucide-react";
+import { Eye, EyeOff, Clock, Keyboard, BookOpen, Target } from "lucide-react";
 
 export { useTypingGameStore } from "./store";
 
@@ -32,19 +32,20 @@ const StatsDisplay = memo(function StatsDisplay() {
     return (
         <div className="flex items-center gap-4">
             {/* WPM */}
-            <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                 <Keyboard className="h-5 w-5 text-purple-400" />
                 <span>{wpm} WPM</span>
             </div>
 
             {/* Timer */}
-            <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                 <Clock className="h-5 w-5 text-blue-400" />
                 <span>{formatTime(elapsedTime)}</span>
             </div>
 
             {/* Accuracy */}
-            <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
+                <Target />
                 <span className="text-green-400 font-medium">{accuracy}%</span>
             </div>
         </div>
@@ -72,7 +73,7 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
                 <div className="flex items-center gap-4">
                     {/* Blink status indicator */}
                     {blinkData && (
-                        <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                        <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                             {blinkData.isBlinking ? (
                                 <EyeOff className="h-5 w-5 text-yellow-400" />
                             ) : (
@@ -84,7 +85,7 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
 
                     {/* Chapter indicator */}
                     {totalChapters > 0 && (
-                        <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                        <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                             <BookOpen className="h-5 w-5 text-orange-400" />
                             <span>Chapter {currentChapterIndex + 1}/{totalChapters}</span>
                         </div>
