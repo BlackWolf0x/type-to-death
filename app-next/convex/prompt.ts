@@ -1,4 +1,4 @@
-export const STORY_PROMPT = `You are a horror writer creating typing practice texts for a horror-themed typing game set in Latham Asylum. Generate a SINGLE CONTINUOUS HORROR STORY about a patient's terrifying experience, with a compelling title, an atmospheric introduction, and 10 progressive chapters that players will type through.
+export const STORY_PROMPT = `You are a horror writer creating typing practice texts for a horror-themed typing game set in Latham Asylum. Generate a SINGLE CONTINUOUS HORROR STORY about a patient's terrifying experience, with a compelling title, an atmospheric introduction, and 8 progressive chapters that players will type through.
 
 SETTING CONTEXT: These are the stories of Latham Asylum patients - the horrifying experiences that led to their confinement. Latham Asylum is an institution that handles patients who have been victims of horror incidents, supernatural encounters, and unexplainable traumas. Each story tells what happened to someone BEFORE they ended up at Latham Asylum. The horror events take place in the outside world, and these traumatic experiences are what ultimately resulted in their institutionalization. The stories can explore:
 - A person's encounter with supernatural forces that drove them to madness
@@ -10,7 +10,7 @@ SETTING CONTEXT: These are the stories of Latham Asylum patients - the horrifyin
 
 IMPORTANT: Create a UNIQUE and ORIGINAL story. Avoid repeating titles, patient backgrounds, or plot structures from previous stories. Be creative and explore different horror subgenres, time periods, and narrative styles while maintaining the asylum patient perspective.
 
-The story should follow a clear narrative arc: introduction → rising tension → climax → terrifying conclusion. Each text is a chapter that flows naturally from the previous one, creating an immersive experience where players uncover the horror as they progress.
+The story should follow a clear narrative arc: introduction → rising tension → climax → terrifying conclusion. Each text is a chapter that flows naturally from the previous one, creating an immersive experience where players uncover the horror as they progress. The story is shorter and more focused, delivering a complete horror experience in 8 chapters.
 
 UNIVERSAL ACCEPTANCE CRITERIA (applies to ALL text content):
 - Each chapter MUST be a single continuous paragraph with NO line breaks or \\n characters
@@ -58,8 +58,8 @@ EASY (Chapters 1-4 - Story Beginning):
 - Horror elements: gentle atmosphere, mysterious setup, introduction of setting/character
 - Story function: Establish protagonist, setting, initial curiosity or unease
 
-MEDIUM (Chapters 5-8 - Story Development):
-- 50-70 words in length
+MEDIUM (Chapters 5-6 - Story Development):
+- 50-60 words in length
 - Mix of simple, compound, and some complex sentences
 - More varied vocabulary with descriptive and atmospheric terms
 - Mix of short and medium-length words (average 5-7 letters)
@@ -68,8 +68,8 @@ MEDIUM (Chapters 5-8 - Story Development):
 - Horror elements: building tension, discoveries, unsettling revelations
 - Story function: Deepen the mystery, escalate danger, reveal disturbing details
 
-HARD (Chapters 9-10 - Story Climax/Resolution):
-- 70-90 words in length 
+HARD (Chapters 7-8 - Story Climax/Resolution):
+- 50-70 words in length 
 - Complex, literary sentence structures with multiple clauses
 - Advanced vocabulary, uncommon words, horror-specific terminology
 - Longer, challenging words (average 6-9+ letters)
@@ -81,17 +81,16 @@ HARD (Chapters 9-10 - Story Climax/Resolution):
 - Story function: Climactic confrontation, horrifying truth revealed, devastating finale
 
 NARRATIVE RULES:
-1. CONTINUOUS NARRATIVE: All 10 chapters must tell ONE coherent story from beginning to end
+1. CONTINUOUS NARRATIVE: All 8 chapters must tell ONE coherent story from beginning to end
 2. PROGRESSIVE DIFFICULTY: Each chapter should be slightly harder than the previous one
 3. STORY COHESION: Maintain consistent protagonist, setting, and plot thread
 4. CLIFFHANGERS: Where appropriate, end chapters with tension that pulls the reader forward
 
 STORY STRUCTURE GUIDE:
 - Chapters 1-2: Normal life before the horror began, initial strange occurrence
-- Chapters 3-4: First unsettling discoveries or encounters, things start going wrong
-- Chapters 5-6: Escalation of horror, mounting dread, protagonist investigates or tries to escape
-- Chapters 7-8: Disturbing revelations, protagonist realizes the horrifying truth
-- Chapters 9-10: Climax and devastating conclusion that explains why they ended up in the asylum
+- Chapters 3-4: First unsettling discoveries or encounters, things start going wrong, escalation begins
+- Chapters 5-6: Mounting dread, protagonist investigates or tries to escape, disturbing revelations
+- Chapters 7-8: Horrifying truth revealed, climax and devastating conclusion that explains why they ended up in the asylum
 
 CONTENT GUIDELINES:
 - Create a memorable protagonist (can be first or third person) who will become a Latham Asylum patient
@@ -101,7 +100,7 @@ CONTENT GUIDELINES:
 - Themes: descent into madness, supernatural forces, forbidden knowledge, paranormal encounters, psychological breakdown, trauma, things that cannot be explained
 - Progressive mood: normalcy → unease → fear → terror → complete psychological collapse
 - Appropriate for general audiences while maintaining genuine horror atmosphere
-- The story should feel complete by chapter 10, ending with why they're now at Latham Asylum
+- The story should feel complete by chapter 8, ending with why they're now at Latham Asylum
 - By the end, it should be clear why no one believed them and why they were sent to Latham Asylum
 - Remember: Latham Asylum specializes in patients who have been victims of horror incidents and unexplainable phenomena
 - Do not use the examples given literally, create your own based on them.

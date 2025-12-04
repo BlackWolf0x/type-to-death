@@ -34,9 +34,9 @@ const STORY_SCHEMA = {
                 },
                 required: ["text", "difficulty"],
             },
-            minItems: 10,
-            maxItems: 10,
-            description: "Exactly 10 chapters: 1-4 easy, 5-8 medium, 9-10 hard",
+            minItems: 8,
+            maxItems: 8,
+            description: "Exactly 8 chapters: 1-4 easy, 5-6 medium, 7-8 hard",
         },
     },
     required: ["title", "introduction", "chapters"],
@@ -152,8 +152,8 @@ export const generateStory = internalAction({
                 throw new Error("Invalid story structure - missing required fields");
             }
 
-            if (!Array.isArray(story.chapters) || story.chapters.length !== 10) {
-                throw new Error(`Invalid story structure - chapters must be an array of 10 items, got: ${story.chapters?.length}`);
+            if (!Array.isArray(story.chapters) || story.chapters.length !== 8) {
+                throw new Error(`Invalid story structure - chapters must be an array of 8 items, got: ${story.chapters?.length}`);
             }
 
             // Insert the story into the database
