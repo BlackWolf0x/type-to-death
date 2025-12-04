@@ -123,8 +123,9 @@ export function useBackgroundSegmentation(options: UseBackgroundSegmentationOpti
             return;
         }
 
-        // Throttle to ~30fps for performance (every ~33ms)
-        if (timestamp - lastFrameTimeRef.current < 33) {
+        // Throttle to ~15fps for performance (every ~66ms)
+        // Lower framerate reduces main thread blocking, helping Unity audio
+        if (timestamp - lastFrameTimeRef.current < 66) {
             animationFrameRef.current = requestAnimationFrame(processFrame);
             return;
         }

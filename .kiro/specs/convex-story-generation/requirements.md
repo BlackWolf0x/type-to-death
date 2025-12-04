@@ -33,12 +33,14 @@ This feature implements automated story generation for the typing game using Cla
 #### Acceptance Criteria
 
 1. WHEN the generation action runs, THE system SHALL call Claude API with the prompt from convex/prompt.ts
-2. THE system SHALL use Claude tool use to enforce the Story interface format
-3. IF the Claude API returns an error, THEN THE system SHALL log the error and schedule a retry
-4. IF validation fails, THEN THE system SHALL log the error and schedule a retry
-5. WHEN generation succeeds, THE system SHALL store the story in the stories table
-6. IF generation fails, THEN THE system SHALL retry up to 3 times with 5 minute delays
-7. IF all retries fail, THEN THE system SHALL wait for the next daily cron execution
+2. THE system SHALL retrieve all previously generated story titles before calling Claude API
+3. THE system SHALL include the list of previous titles in the prompt to avoid repetition
+4. THE system SHALL use Claude tool use to enforce the Story interface format
+5. IF the Claude API returns an error, THEN THE system SHALL log the error and schedule a retry
+6. IF validation fails, THEN THE system SHALL log the error and schedule a retry
+7. WHEN generation succeeds, THE system SHALL store the story in the stories table
+8. IF generation fails, THEN THE system SHALL retry up to 3 times with 5 minute delays
+9. IF all retries fail, THEN THE system SHALL wait for the next daily cron execution
 
 ### Requirement 3: Scheduled Generation (Cron Job)
 
@@ -59,6 +61,17 @@ This feature implements automated story generation for the typing game using Cla
 1. WHEN the query is called, THE system SHALL return the most recently created story
 2. IF no stories exist, THEN THE system SHALL return null
 3. THE query SHALL be a public query accessible from the frontend
+
+### Requirement 5: Previous Story Titles Query
+
+**User Story:** As a system, I want to retrieve all previously generated story titles, so that I can avoid generating duplicate or similar stories.
+
+#### Acceptance Criteria
+
+1. THE system SHALL provide an internal query to retrieve all story titles
+2. THE query SHALL return only the title field from each story
+3. THE query SHALL order stories by creation date (oldest to newest)
+4. THE query SHALL be accessible from internal actions
 
 ## Non-Functional Requirements
 

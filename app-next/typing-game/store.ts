@@ -135,6 +135,11 @@ export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
         set((state) => {
             const currentWord = state.words[state.currentWordIndex];
 
+            // Guard against undefined currentWord (game ended or invalid state)
+            if (!currentWord) {
+                return state;
+            }
+
             if (value === '') {
                 return {
                     inputValue: '',
@@ -144,29 +149,39 @@ export const useTypingGameStore = create<TypingGameStore>((set, get) => ({
             }
 
             // Record keystroke if a new character was typed (not backspace)
+            // Defer to next microtask to avoid blocking the main thread during typing
             if (value.length > state.inputValue.length) {
                 const newCharPos = value.length - 1;
                 const typedChar = value[newCharPos];
                 const expectedChar = currentWord[newCharPos];
                 const isCorrect = typedChar === expectedChar;
-                useGameStatsStore.getState().recordKeystroke(isCorrect);
+                // Use queueMicrotask to batch this update separately from the typing state
+                queueMicrotask(() => {
+                    useGameStatsStore.getState().recordKeystroke(isCorrect);
+                });
             }
 
-            let hasAnyError = false;
+            // Find the first error position and count errors
+            let firstErrorIndex = -1;
             for (let i = 0; i < value.length; i++) {
                 if (i >= currentWord.length || value[i] !== currentWord[i]) {
-                    hasAnyError = true;
+                    firstErrorIndex = i;
                     break;
                 }
             }
 
-            if (hasAnyError && value.length > 10) {
-                const limitedValue = value.substring(0, 10);
+            const hasAnyError = firstErrorIndex !== -1;
+            // Error count is only the characters after the first error
+            const currentErrorCount = hasAnyError ? value.length - firstErrorIndex : 0;
+
+            // Limit errors to 10 (only counting actual error characters, not correct prefix)
+            if (hasAnyError && currentErrorCount > 10) {
+                const limitedValue = value.substring(0, firstErrorIndex + 10);
                 return {
                     inputValue: limitedValue,
                     currentCharIndex: limitedValue.length,
                     hasError: true,
-                    errorCount: state.errorCount,
+                    errorCount: 10,
                 };
             }
 

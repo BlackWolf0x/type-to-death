@@ -6,16 +6,47 @@ This design outlines the integration of the `useWebcam` and `useBlinkDetector` h
 
 **Main Components:**
 
-1. **Calibration Page (`/calibration`)** - Handles webcam permission, blink calibration, and game readiness
-2. **Play Page (`/play`)** - Game page with automatic webcam/calibration verification
-3. **GameWebcam Component** - Handles webcam checks, redirects, and blink event forwarding
-4. **useWebcam Hook** - Manages webcam state and controls
-5. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
-6. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
+1. **Home Page (`/`)** - Main menu with navigation to calibration and game
+2. **Calibration Page (`/calibration`)** - Handles webcam permission, blink calibration, and game readiness
+3. **Play Page (`/play`)** - Game page with automatic webcam/calibration verification
+4. **GameWebcam Component** - Handles webcam checks, redirects, and blink event forwarding
+5. **useWebcam Hook** - Manages webcam state and controls
+6. **useBlinkDetector Hook** - Manages MediaPipe face detection and blink detection
+7. **shadcn/ui Components** - UI building blocks (Button, Alert, Card, Progress)
 
 ## Component Structure
 
-### 1. Calibration Page Component
+### 1. Home Page Component
+
+**File:** `app-next/app/(home)/page.tsx`
+
+**Responsibilities:**
+- Display main menu interface
+- Provide navigation to calibration page
+- Show authentication modal
+- Display username check component
+
+**UI Components:**
+- `HomeBanner` - Main banner/hero section
+- `UsernameCheck` - Username verification component
+- `ModalAuth` - Authentication modal
+- `Button` - Eye Calibration navigation button with icon
+- `Link` - Next.js navigation to `/calibration`
+
+**Navigation:**
+- Eye Calibration button with `SlidersHorizontal` icon
+- Links to `/calibration` route
+- Positioned in fixed bottom bar with other action buttons
+
+**Dependencies:**
+- `@/components/home-banner`
+- `@/components/modal-auth`
+- `@/components/username-check`
+- shadcn/ui `Button` component
+- Lucide `SlidersHorizontal` icon
+- Next.js `Link` component
+
+### 2. Calibration Page Component
 
 **File:** `app-next/app/calibration/page.tsx`
 
@@ -424,6 +455,12 @@ const getErrorUI = (error: WebcamError) => {
 
 
 ## Correctness Properties
+
+### Property 0: Home Page Navigation to Calibration
+
+*For any* user interaction with the "Eye Calibration" button on the home page, the system should navigate to the `/calibration` route.
+
+**Validates: Requirements 5.1**
 
 ### Property 1: Permission Request Initiates Webcam
 

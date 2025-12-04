@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo, useCallback } from "react";
 import { useTypingGameStore } from "../store";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,7 @@ interface TypingInputProps {
     disabled?: boolean;
 }
 
-export function TypingInput({ disabled = false }: TypingInputProps) {
+export const TypingInput = memo(function TypingInput({ disabled = false }: TypingInputProps) {
     const inputValue = useTypingGameStore((state) => state.inputValue);
     const hasError = useTypingGameStore((state) => state.hasError);
     const errorCount = useTypingGameStore((state) => state.errorCount);
@@ -73,16 +73,19 @@ export function TypingInput({ disabled = false }: TypingInputProps) {
         e.preventDefault();
     };
 
+    // Memoize the ref callback to avoid recreating on every render
+    const setRefs = useCallback((el: HTMLInputElement | null) => {
+        inputRef.current = el;
+        shakeRef.current = el;
+    }, []);
+
     if (isStoryComplete) {
         return null;
     }
 
     return (
         <input
-            ref={(el) => {
-                inputRef.current = el;
-                shakeRef.current = el;
-            }}
+            ref={setRefs}
             type="text"
             value={inputValue}
             onChange={handleChange}
@@ -98,4 +101,4 @@ export function TypingInput({ disabled = false }: TypingInputProps) {
             )}
         />
     );
-}
+});

@@ -81,11 +81,12 @@ The webcam and blink detection are critical components for the Type to Death gam
 
 #### Acceptance Criteria
 
-1. WHEN the webcam permission is granted and streaming THEN the Calibration Page SHALL automatically advance to calibration
-2. WHEN calibration is complete THEN the Calibration Page SHALL display a "Start Game" button
-3. WHEN a user navigates to /play without calibration data THEN the system SHALL redirect to /calibration
-4. WHEN a user navigates to /play without camera permission THEN the system SHALL redirect to /calibration
-5. WHEN a user navigates to /play with valid calibration and permission THEN the system SHALL start the webcam and load the game
+1. WHEN a user is on the home page THEN the system SHALL display an "Eye Calibration" button that navigates to /calibration
+2. WHEN the webcam permission is granted and streaming THEN the Calibration Page SHALL automatically advance to calibration
+3. WHEN calibration is complete THEN the Calibration Page SHALL display a "Start Game" button
+4. WHEN a user navigates to /play without calibration data THEN the system SHALL redirect to /calibration
+5. WHEN a user navigates to /play without camera permission THEN the system SHALL redirect to /calibration
+6. WHEN a user navigates to /play with valid calibration and permission THEN the system SHALL start the webcam and load the game
 
 ### Requirement 6: Blink Detection Calibration
 

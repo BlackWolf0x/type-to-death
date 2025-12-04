@@ -316,8 +316,17 @@
   - _Properties: P24_
   - _Requirements: 12.4, 12.5_
 
+- [x] 21. Add Eye Calibration navigation button to home page
+  - Add "Eye Calibration" button to home page (`app-next/app/(home)/page.tsx`)
+  - Button `SlidersHorizontal` icon from Lucide
+  - Button link to `/calibration` route using Next.js Link component
+  - Button style with secondary variant and shadow effects
+  - Position in fixed bottom bar alongside authentication modal
+  - _Properties: P0_
+  - _Requirements: 5.1_
+
 ## Estimated Effort
 
-- Total Tasks: 20
-- Completed: 20
+- Total Tasks: 21
+- Completed: 21
 - Status: ✅ Complete

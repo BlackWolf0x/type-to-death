@@ -127,20 +127,24 @@ export interface Story {
 ```
 1. Cron triggers generateStory action (retryCount = 0)
 2. Action reads CLAUDE_API_KEY from environment
-3. Action imports STORY_PROMPT from convex/prompt.ts
-4. Action calls Claude API with tool use (forced structured output)
-5. Claude returns tool_use block with Story object matching JSON schema
-6. Validate Story object has required fields and 10 chapters
-7. Insert story into database with timestamp
-8. On failure: schedule retry in 5 minutes (max 3 attempts)
-9. After max retries: wait for next daily cron
+3. Action queries all previous story titles using getAllStoryTitles
+4. Action imports STORY_PROMPT from convex/prompt.ts
+5. Action constructs enhanced prompt with previous titles list
+6. Action calls Claude API with enhanced prompt and tool use (forced structured output)
+7. Claude returns tool_use block with Story object matching JSON schema
+8. Validate Story object has required fields and 10 chapters
+9. Insert story into database with timestamp
+10. On failure: schedule retry in 5 minutes (max 3 attempts)
+11. After max retries: wait for next daily cron
 ```
 
 **Implementation Details:**
 - Uses Claude's tool use feature with `tool_choice` to guarantee structured JSON output
 - JSON schema enforces the Story interface structure
 - No manual JSON parsing needed - Claude returns typed object
-- Prompt is imported from `convex/prompt.ts`
+- Prompt is imported from `convex/prompt.ts` and enhanced with previous titles
+- Previous titles are retrieved via internal query before generation
+- Enhanced prompt includes instruction to avoid repeating previous titles
 - Types are imported from `types.ts`
 - Retry logic: max 3 attempts, 5 minute delay between retries
 - Uses optional `retryCount` argument to track attempts
@@ -154,6 +158,15 @@ export interface Story {
 4. Return story or null if none exist
 ```
 
+### 3. Get All Story Titles Query
+
+```
+1. Query all stories from stories table
+2. Order by createdAt ascending (oldest to newest)
+3. Map to extract only title field
+4. Return array of title strings
+```
+
 ## Correctness Properties
 
 *A property is a characteristic or behavior that should hold true across all valid executions of a system-essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
@@ -161,12 +174,22 @@ export interface Story {
 ### P1: JSON Parsing Round Trip
 **Property:** *For any* valid Story object, serializing to JSON and parsing back should produce an equivalent Story object with the same title, introduction, and chapters.
 **Verification:** Generate random valid Story objects, serialize to JSON, parse back, and compare all fields.
-**Validates: Requirements 2.2**
+**Validates: Requirements 2.4**
 
 ### P2: Latest Story Ordering
 **Property:** *For any* set of stories with distinct creation timestamps, the getLatestStory query should return the story with the maximum createdAt value.
 **Verification:** Insert multiple stories with different timestamps, query latest, verify it has the highest timestamp.
 **Validates: Requirements 4.1**
+
+### P3: Previous Titles Completeness
+**Property:** *For any* set of stories in the database, getAllStoryTitles should return exactly the same number of titles as there are stories.
+**Verification:** Insert N stories, call getAllStoryTitles, verify the returned array has length N.
+**Validates: Requirements 5.1, 5.2**
+
+### P4: Prompt Enhancement Inclusion
+**Property:** *For any* non-empty list of previous titles, the enhanced prompt should contain all titles from the list.
+**Verification:** Generate random list of titles, construct enhanced prompt, verify each title appears in the prompt string.
+**Validates: Requirements 2.3**
 
 ## Edge Cases
 

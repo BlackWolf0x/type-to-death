@@ -60,14 +60,13 @@ export function HomeBanner() {
                 }}
             />
 
-            <div className="relative z-10 text-center max-w-4xl">
+            <div className="relative z-10 text-center max-w-5xl">
                 <h1 className="text-[7rem] font-metalMania font-bold text-red-500 mb-2 text-shadow-sm text-shadow-black tracking-wide drop-shadow-[0_0_25px_rgba(220,38,38,0.8)]">
                     Type To Death
                 </h1>
 
                 <p className="mb-6 text-2xl font-light text-shadow-lg text-shadow-black">
-                    Welcome to Latham Asylum, where the walls whisper forgotten names
-                    and the shadows hunger for the living. Every keystroke is a heartbeat. Every blink brings them closer.
+                    Welcome to Latham Asylum, where the walls whisper forgotten patient stories and the shadows hunger for the living. Every keystroke is a heartbeat. Every blink brings them closer.
                 </p>
 
                 <p className="mb-10 text-xl font-semibold text-red-500 text-shadow-xs text-shadow-black drop-shadow-[0_0_10px_rgba(239,68,68,0.6)] md:text-2xl">

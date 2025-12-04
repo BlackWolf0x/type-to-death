@@ -62,3 +62,17 @@
   - Update metadata title and description for game branding
   - _Properties: P1_
   - _Requirements: 1.1, 1.2_
+
+- [x] 7. Add Credits modal to homepage
+  - Create `components/modal-credits.tsx` with Dialog component
+  - Use shadcn Dialog, Button, and ScrollArea components
+  - Add Credits button after Eye Calibration button on homepage
+  - Include credits for Monster & Animations (Mixamo)
+  - Include credits for FX & Music (licensed bundle + Pixabay)
+  - Include credits for Level Design (Abandoned Asylum Free Asset Pack)
+  - Include credits for AI Tools (Pixverse, Recraft)
+  - Include credits for Development (Unity 6.1, Next.js, MediaPipe, shadcn/ui)
+  - Use ScrollArea for scrollable content with proper styling
+  - Add clickable links to external resources
+  - _Properties: P2_
+  - _Requirements: 4.1, 4.5_

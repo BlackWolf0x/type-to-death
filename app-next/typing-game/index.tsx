@@ -1,10 +1,11 @@
 'use client';
 
+import { memo } from "react";
 import { useTypingGameStore } from "./store";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy } from "@/stores/gameStatsStore";
 import { TextDisplay } from "./components/TextDisplay";
 import { TypingInput } from "./components/TypingInput";
-import { Eye, EyeOff, Clock, Keyboard, BookOpen } from "lucide-react";
+import { Eye, EyeOff, Clock, Keyboard, BookOpen, Target } from "lucide-react";
 
 export { useTypingGameStore } from "./store";
 
@@ -19,16 +20,42 @@ interface TypingGameProps {
     blinkData?: BlinkData;
 }
 
-export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
-    const disabled = blinkData?.faceDetected === false;
-    const currentChapterIndex = useTypingGameStore((state) => state.currentChapterIndex);
-    const totalChapters = useTypingGameStore((state) => state.totalChapters);
+// Separate component for stats that update frequently - isolated re-renders
+const StatsDisplay = memo(function StatsDisplay() {
     const elapsedTime = useGameStatsStore((state) => state.elapsedTime);
     const charactersTyped = useGameStatsStore((state) => state.charactersTyped);
     const totalKeystrokes = useGameStatsStore((state) => state.totalKeystrokes);
     const correctKeystrokes = useGameStatsStore((state) => state.correctKeystrokes);
     const wpm = calculateWPM(charactersTyped, elapsedTime);
     const accuracy = calculateAccuracy(correctKeystrokes, totalKeystrokes);
+
+    return (
+        <div className="flex items-center gap-4">
+            {/* WPM */}
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
+                <Keyboard className="h-5 w-5 text-purple-400" />
+                <span>{wpm} WPM</span>
+            </div>
+
+            {/* Timer */}
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
+                <Clock className="h-5 w-5 text-blue-400" />
+                <span>{formatTime(elapsedTime)}</span>
+            </div>
+
+            {/* Accuracy */}
+            <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
+                <Target />
+                <span className="text-green-400 font-medium">{accuracy}%</span>
+            </div>
+        </div>
+    );
+});
+
+export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
+    const disabled = blinkData?.faceDetected === false;
+    const currentChapterIndex = useTypingGameStore((state) => state.currentChapterIndex);
+    const totalChapters = useTypingGameStore((state) => state.totalChapters);
 
     return (
         <div
@@ -46,7 +73,7 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
                 <div className="flex items-center gap-4">
                     {/* Blink status indicator */}
                     {blinkData && (
-                        <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                        <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                             {blinkData.isBlinking ? (
                                 <EyeOff className="h-5 w-5 text-yellow-400" />
                             ) : (
@@ -58,31 +85,14 @@ export function TypingGame({ isVisible = false, blinkData }: TypingGameProps) {
 
                     {/* Chapter indicator */}
                     {totalChapters > 0 && (
-                        <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
+                        <div className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2">
                             <BookOpen className="h-5 w-5 text-orange-400" />
                             <span>Chapter {currentChapterIndex + 1}/{totalChapters}</span>
                         </div>
                     )}
                 </div>
 
-                <div className="flex items-center gap-4">
-                    {/* WPM */}
-                    <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                        <Keyboard className="h-5 w-5 text-purple-400" />
-                        <span>{wpm} WPM</span>
-                    </div>
-
-                    {/* Timer */}
-                    <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                        <Clock className="h-5 w-5 text-blue-400" />
-                        <span>{formatTime(elapsedTime)}</span>
-                    </div>
-
-                    {/* Accuracy */}
-                    <div className="flex items-center gap-2 rounded-lg bg-black/60 px-4 py-2 text-white">
-                        <span className="text-green-400 font-medium">{accuracy}%</span>
-                    </div>
-                </div>
+                <StatsDisplay />
             </div>
 
             <TextDisplay />
