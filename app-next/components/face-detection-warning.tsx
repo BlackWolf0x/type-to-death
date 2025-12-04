@@ -9,7 +9,7 @@ interface FaceDetectionWarningProps {
     enabled: boolean;
 }
 
-const COUNTDOWN_SECONDS = 20;
+const COUNTDOWN_SECONDS = 5;
 
 export function FaceDetectionWarning({ faceDetected, enabled }: FaceDetectionWarningProps) {
     const router = useRouter();
