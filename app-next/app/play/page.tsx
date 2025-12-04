@@ -265,7 +265,7 @@ export default function PlayPage() {
 
     // Determine loading screen state (only show when intro is not visible and game not ready)
     const showLoading = (!isReady || !unityReady || !story) && !showIntro;
-    const loadingText = !isReady ? "Checking requirements..." : !story ? "Loading story..." : "Loading game...";
+    const loadingText = !isReady ? "Checking requirements..." : !story ? "Loading story..." : "Loading game... It might take a little longer to load the first time.";
 
     return (
         <>
