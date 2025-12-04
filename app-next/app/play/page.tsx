@@ -475,7 +475,7 @@ export default function PlayPage() {
                         </div>
                     </CardContent>
 
-                    <CardFooter className="flex-col justify-center gap-4">
+                    <CardFooter className="flex-col justify-center gap-8">
                         <div className="flex items-center gap-6">
                             <ModalLeaderboard />
 
@@ -486,20 +486,16 @@ export default function PlayPage() {
                             >
                                 Restart Game
                             </Button>
-                        </div>
 
-                        <div>
                             <Button
-                                variant="secondary"
-                                size="lg"
+                                variant="outline"
+                                size="xl"
                                 asChild
                             >
                                 <a href="/">
-                                    Go To Main Menu
+                                    Exit Game
                                 </a>
                             </Button>
-
-                            <ModalAuth />
                         </div>
                     </CardFooter>
                 </Card>
