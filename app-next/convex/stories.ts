@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, query } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import Anthropic from "@anthropic-ai/sdk";
 import { STORY_PROMPT } from "./prompt";
@@ -15,7 +15,7 @@ const STORY_SCHEMA = {
         },
         introduction: {
             type: "string" as const,
-            description: "120-180 words atmospheric introduction. Use \\n\\n for paragraph breaks.",
+            description: "100-120 words atmospheric introduction. Use \\n\\n for paragraph breaks.",
         },
         chapters: {
             type: "array" as const,
@@ -34,9 +34,9 @@ const STORY_SCHEMA = {
                 },
                 required: ["text", "difficulty"],
             },
-            minItems: 10,
-            maxItems: 10,
-            description: "Exactly 10 chapters: 1-4 easy, 5-8 medium, 9-10 hard",
+            minItems: 8,
+            maxItems: 8,
+            description: "Exactly 8 chapters: 1-4 easy, 5-6 medium, 7-8 hard",
         },
     },
     required: ["title", "introduction", "chapters"],
@@ -69,6 +69,19 @@ export const insertStory = internalMutation({
     },
 });
 
+// Internal query to get all story titles (for avoiding duplicates)
+export const getAllStoryTitles = internalQuery({
+    args: {},
+    handler: async (ctx) => {
+        const stories = await ctx.db
+            .query("stories")
+            .withIndex("by_createdAt")
+            .order("asc")
+            .collect();
+
+        return stories.map(story => story.title);
+    },
+});
 
 // Constants for retry logic
 const MAX_RETRIES = 2;
@@ -89,6 +102,16 @@ export const generateStory = internalAction({
         }
 
         try {
+            // Get all previous story titles to avoid repetition
+            const previousTitles = await ctx.runQuery(internal.stories.getAllStoryTitles);
+            
+            // Construct enhanced prompt with previous titles
+            let enhancedPrompt = STORY_PROMPT;
+            if (previousTitles.length > 0) {
+                const titlesList = previousTitles.map(title => `- ${title}`).join('\n');
+                enhancedPrompt += `\n\nPREVIOUSLY USED TITLES (avoid these and create something completely different):\n${titlesList}`;
+            }
+
             const anthropic = new Anthropic({ apiKey });
 
             // Use tool_choice to force structured JSON output
@@ -107,7 +130,7 @@ export const generateStory = internalAction({
                 messages: [
                     {
                         role: "user",
-                        content: STORY_PROMPT,
+                        content: enhancedPrompt,
                     },
                 ],
             });
@@ -129,8 +152,8 @@ export const generateStory = internalAction({
                 throw new Error("Invalid story structure - missing required fields");
             }
 
-            if (!Array.isArray(story.chapters) || story.chapters.length !== 10) {
-                throw new Error(`Invalid story structure - chapters must be an array of 10 items, got: ${story.chapters?.length}`);
+            if (!Array.isArray(story.chapters) || story.chapters.length !== 8) {
+                throw new Error(`Invalid story structure - chapters must be an array of 8 items, got: ${story.chapters?.length}`);
             }
 
             // Insert the story into the database
