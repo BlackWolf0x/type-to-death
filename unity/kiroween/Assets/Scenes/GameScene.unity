@@ -533,7 +533,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5179924108125497011, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -1.7
+      value: -1.72
       objectReference: {fileID: 0}
     - target: {fileID: 5302882740091876691, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
       propertyPath: m_Mesh
@@ -833,6 +833,31 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1245970631}
   m_SourcePrefab: {fileID: 100100000, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+--- !u!108 &102056603 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 7337623939305128381, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+  m_PrefabInstance: {fileID: 102056602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &102056604 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 7276884118956509596, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+  m_PrefabInstance: {fileID: 102056602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &102056605 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 659404723581390824, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+  m_PrefabInstance: {fileID: 102056602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &102056606 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 182852452165023607, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+  m_PrefabInstance: {fileID: 102056602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!108 &102056607 stripped
+Light:
+  m_CorrespondingSourceObject: {fileID: 1084320755591240842, guid: 38a2cbe2ecb44a748be41ed55a15bb57, type: 3}
+  m_PrefabInstance: {fileID: 102056602}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &141275569 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3522258607027585299, guid: be42bd3e619e89b4ab65f82b7f8e4897, type: 3}
@@ -2962,6 +2987,14 @@ MonoBehaviour:
   blackScreenPanel: {fileID: 141275569}
   monsterObject: {fileID: 183105040}
   gameOverDelay: 0.35
+  directionalLight: {fileID: 410087039}
+  playerLight: {fileID: 102056603}
+  middleLight: {fileID: 102056605}
+  bathroomLight: {fileID: 102056604}
+  elevatorLight: {fileID: 102056607}
+  elevatorBulb: {fileID: 102056606}
+  whiteBulbMat: {fileID: 2100000, guid: 15a023bdfe70c244c8bb39f4e52d154a, type: 2}
+  delayAfterWinSfx: 0.6
 --- !u!4 &881647354
 Transform:
   m_ObjectHideFlags: 0
@@ -3589,6 +3622,13 @@ MonoBehaviour:
       Data4: 1264139162
     Path: event:/Whispers
   hummingPitchIncrease: 1.1
+  winTransitionRef:
+    Guid:
+      Data1: 1343860896
+      Data2: 1330632247
+      Data3: -1706012245
+      Data4: 1656128044
+    Path: event:/Monster Outro
   introDelay: 1.2
 --- !u!1 &1245970627 stripped
 GameObject:
