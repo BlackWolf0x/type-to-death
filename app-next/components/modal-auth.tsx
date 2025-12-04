@@ -29,6 +29,39 @@ export function ModalAuth() {
     const [error, setError] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
 
+    const getAuthErrorMessage = (err: unknown, defaultMessage: string): string => {
+        if (!(err instanceof Error)) return defaultMessage;
+
+        const message = err.message.toLowerCase();
+
+        // Map Convex auth errors to user-friendly messages
+        if (
+            message.includes("invalidaccountid") ||
+            message.includes("invalid account") ||
+            message.includes("invalidsecret") ||
+            message.includes("invalid secret") ||
+            message.includes("account not found") ||
+            message.includes("wrong password") ||
+            message.includes("invalid credentials")
+        ) {
+            return "Invalid email or password.";
+        }
+
+        if (message.includes("account already exists") || message.includes("email already")) {
+            return "An account with this email already exists.";
+        }
+
+        if (message.includes("weak password") || message.includes("password too short")) {
+            return "Password is too weak. Please use a stronger password.";
+        }
+
+        if (message.includes("invalid email")) {
+            return "Please enter a valid email address.";
+        }
+
+        return defaultMessage;
+    };
+
     const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -41,7 +74,7 @@ export function ModalAuth() {
             await signIn("password", formData);
             setOpen(false);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Sign in failed");
+            setError(getAuthErrorMessage(err, "Invalid email or password."));
         } finally {
             setIsLoading(false);
         }
@@ -59,7 +92,7 @@ export function ModalAuth() {
             await signIn("password", formData);
             setOpen(false);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Registration failed");
+            setError(getAuthErrorMessage(err, "Registration failed. Please try again."));
         } finally {
             setIsLoading(false);
         }

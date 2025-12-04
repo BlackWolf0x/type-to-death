@@ -64,6 +64,19 @@ This feature integrates Convex as the backend infrastructure for the Type to Dea
 4. WHEN a user clicks the logout button THEN the system SHALL sign out the user using Convex Auth
 5. WHEN a user signs out THEN the system SHALL return to the unauthenticated state
 
+### Requirement 5: Authentication Error Handling
+
+**User Story:** As a player, I want to see clear, user-friendly error messages when authentication fails, so that I understand what went wrong and how to fix it.
+
+#### Acceptance Criteria
+
+1. WHEN authentication fails due to invalid credentials THEN the system SHALL display "Invalid email or password."
+2. WHEN sign up fails due to an existing account THEN the system SHALL display "An account with this email already exists."
+3. WHEN sign up fails due to a weak password THEN the system SHALL display "Password is too weak. Please use a stronger password."
+4. WHEN authentication fails due to an invalid email format THEN the system SHALL display "Please enter a valid email address."
+5. THE system SHALL NOT expose internal error codes or technical details to users
+6. THE system SHALL map all Convex authentication error codes to user-friendly messages
+
 ## Non-Functional Requirements
 
 ### NFR1: Compatibility
