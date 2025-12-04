@@ -23,6 +23,9 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private EventReference whispersRef;
     [SerializeField] private float hummingPitchIncrease = 2f;
 
+    [Header("Win")]
+    [SerializeField] private EventReference winTransitionRef;
+
     [Header("Timing")]
     [SerializeField] private float introDelay = 2f;
 
@@ -32,6 +35,7 @@ public class AudioManager : MonoBehaviour
     private EventInstance ambianceInstance;
     private EventInstance hummingInstance;
     private EventInstance whispersInstance;
+    private EventInstance winTransitionInstance;
     private int currentHeartbeatIndex = -1;
     private bool isInitialized = false;
     private bool isHummingPlaying = false;
@@ -39,6 +43,7 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance => instance;
     public EventInstance GameOverSfx => gameOverSfx;
     public EventInstance IntroSfx => introSfx;
+    public EventInstance WinTransitionSfx => winTransitionInstance;
 
     void Awake()
     {
@@ -111,6 +116,11 @@ public class AudioManager : MonoBehaviour
         {
             whispersInstance = RuntimeManager.CreateInstance(whispersRef);
         }
+
+        if (!winTransitionRef.IsNull)
+        {
+            winTransitionInstance = RuntimeManager.CreateInstance(winTransitionRef);
+        }
     }
 
     void ValidateHeartbeatReferences()
@@ -164,6 +174,12 @@ public class AudioManager : MonoBehaviour
         {
             whispersInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
             whispersInstance.release();
+        }
+
+        if (winTransitionInstance.isValid())
+        {
+            winTransitionInstance.stop(FMOD.Studio.STOP_MODE.IMMEDIATE);
+            winTransitionInstance.release();
         }
     }
 
@@ -286,4 +302,5 @@ public class AudioManager : MonoBehaviour
         if (!whispersInstance.isValid()) return;
         whispersInstance.start();
     }
+
 }
