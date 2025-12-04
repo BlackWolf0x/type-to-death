@@ -176,3 +176,24 @@ The leaderboard modal SHALL handle large numbers of entries gracefully using a s
 - Filtering by story or time period
 - Real-time leaderboard updates
 - Test files and testing scripts
+
+
+---
+
+## Update: Single Highscore Per User
+
+### Context
+
+The original implementation stored one highscore per user per story. This has been changed to store only one highscore per user, regardless of which story they played.
+
+### Updated Requirements
+
+#### Requirement 10: Single User Highscore
+
+**User Story:** As a player, I want only my best overall score tracked, so that the leaderboard reflects my best performance regardless of which story I played.
+
+##### Acceptance Criteria
+
+1. THE system SHALL maintain only one highscore record per user
+2. WHEN a user submits a score THEN THE system SHALL compare against their existing highscore regardless of story
+3. THE highscores table index SHALL use only userId (not userId + storyId combination)

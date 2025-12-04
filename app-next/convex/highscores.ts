@@ -38,12 +38,10 @@ export const submitScore = mutation({
         // Calculate score
         const score = calculateScore(accuracy, wordPerMinute, timeTaken);
 
-        // Check for existing highscore
+        // Check for existing highscore (one per user, regardless of story)
         const existingHighscore = await ctx.db
             .query("highscores")
-            .withIndex("by_user_story", (q) =>
-                q.eq("userId", userId).eq("storyId", storyId)
-            )
+            .withIndex("by_user", (q) => q.eq("userId", userId))
             .unique();
 
         if (!existingHighscore) {

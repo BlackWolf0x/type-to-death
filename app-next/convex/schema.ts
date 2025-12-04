@@ -41,7 +41,7 @@ const schema = defineSchema({
         createdAt: v.number(),
     })
         .index("by_score", ["score"])
-        .index("by_user_story", ["userId", "storyId"]),
+        .index("by_user", ["userId"]),
 });
 
 export default schema;
