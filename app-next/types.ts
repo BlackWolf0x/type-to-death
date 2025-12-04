@@ -7,4 +7,6 @@ export interface Story {
     title: string;
     introduction: string;
     chapters: Chapter[];
+    patientName: string;
+    patientNumber: string;
 }

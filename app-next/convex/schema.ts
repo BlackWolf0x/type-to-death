@@ -26,6 +26,8 @@ const schema = defineSchema({
                 ),
             })
         ),
+        patientName: v.string(),
+        patientNumber: v.string(),
         createdAt: v.number(),
     }).index("by_createdAt", ["createdAt"]),
 
@@ -39,7 +41,7 @@ const schema = defineSchema({
         createdAt: v.number(),
     })
         .index("by_score", ["score"])
-        .index("by_user_story", ["userId", "storyId"]),
+        .index("by_user", ["userId"]),
 });
 
 export default schema;

@@ -81,6 +81,50 @@ app/
 - **Calibration (`/calibration`)**: Blink detection calibration, sensitivity adjustment
 - **Play (`/play`)**: Active gameplay with typing challenges and monster
 
+### 4. Mobile Warning Component
+
+**Responsibilities:**
+- Detect viewport width using client-side hooks
+- Display warning message when viewport is below 768px
+- Hide warning when viewport is resized to desktop size
+- Provide consistent styling across all pages
+- Not block page content (non-modal)
+
+**Dependencies:**
+- React hooks (useState, useEffect)
+- Tailwind CSS for responsive styling
+- shadcn/ui Alert component (optional)
+
+**Component Structure:**
+```typescript
+// components/MobileWarning.tsx
+'use client'
+
+export function MobileWarning() {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    // Check initial viewport
+    // Add resize listener
+    // Cleanup on unmount
+  }, [])
+  
+  if (!isMobile) return null
+  
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50">
+      {/* Warning message */}
+    </div>
+  )
+}
+```
+
+**Integration:**
+- Add to root layout (`app/layout.tsx`) to appear on all pages
+- Use `'use client'` directive for client-side rendering
+- Position fixed at top of viewport
+- High z-index to stay above content
+
 ## Data Models
 
 ### shadcn/ui Configuration
@@ -120,6 +164,24 @@ No runtime state is managed by the setup itself. This is purely configuration.
 
 **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
 
+### Property 3: Mobile Warning Visibility
+
+*For any* viewport width less than 768 pixels, the mobile warning component should be visible on all pages, and *for any* viewport width greater than or equal to 768 pixels, the warning should be hidden.
+
+**Validates: Requirements 5.1, 5.4**
+
+### Property 4: Warning Message Content
+
+*For any* page where the mobile warning is displayed, the warning message should inform users that the game is optimized for desktop with keyboard.
+
+**Validates: Requirements 5.2**
+
+### Property 5: Non-Blocking Warning Display
+
+*For any* page where the mobile warning is displayed, the warning should remain visible but not block the entire page content.
+
+**Validates: Requirements 5.3**
+
 ## Edge Cases
 
 ### E1: Missing Configuration Files
@@ -142,7 +204,42 @@ No runtime state is managed by the setup itself. This is purely configuration.
 **Scenario:** User navigates to a non-existent route
 **Handling:** Next.js will automatically show a 404 page. Custom 404 page can be added later if needed.
 
+### E6: Viewport Resize During Gameplay
+**Scenario:** User resizes browser window from desktop to mobile size during active gameplay
+**Handling:** Warning appears immediately via resize listener. Game continues to function but warning informs user of suboptimal experience.
 
+### E7: Server-Side Rendering of Client Component
+**Scenario:** Mobile warning component needs client-side hooks but Next.js uses SSR
+**Handling:** Use 'use client' directive to mark component as client-side only. Initial render may show no warning, then hydration will show it if viewport is mobile.
+
+
+
+## Core Algorithms
+
+### 1. Viewport Width Detection
+
+```
+Algorithm: detectMobileViewport()
+1. Get current window.innerWidth
+2. Compare width to MOBILE_BREAKPOINT (768px)
+3. If width < 768px:
+   - Set isMobile state to true
+4. Else:
+   - Set isMobile state to false
+5. Return isMobile state
+```
+
+### 2. Resize Event Handling
+
+```
+Algorithm: handleResize()
+1. Add event listener to window 'resize' event
+2. On resize:
+   - Call detectMobileViewport()
+   - Update component state
+3. On component unmount:
+   - Remove event listener to prevent memory leaks
+```
 
 ## Integration Points
 
@@ -173,5 +270,73 @@ The shadcn CLI will automatically create:
 - `components.json` - shadcn/ui configuration
 - `app/lib/utils.ts` - Utility functions (cn helper)
 - `components/ui/` - Directory for shadcn components (when first component is added)
+
+### Mobile Warning Integration
+
+The mobile warning component will be integrated into:
+- `app/layout.tsx` - Root layout to appear on all pages
+- Positioned as a fixed element at the top of the viewport
+- Uses Tailwind CSS responsive utilities for styling
+- Optional: Uses shadcn/ui Alert component for consistent styling
+
+## Performance Considerations
+
+- **Resize Event Throttling**: Consider debouncing resize events to avoid excessive re-renders
+- **Client-Side Only**: Mobile warning uses client-side rendering to access window object
+- **Minimal Bundle Impact**: Component is small and only loads on client
+- **No Layout Shift**: Fixed positioning prevents content layout shifts
+
+## Testing Strategy
+
+### Manual Testing
+
+1. **Desktop View (≥768px)**
+   - Open application in desktop browser
+   - Verify no warning is displayed
+   - Navigate to all routes (/, /permission, /calibration, /play)
+   - Confirm no warning appears on any page
+
+2. **Mobile View (<768px)**
+   - Open application in mobile browser or use browser dev tools
+   - Set viewport to 375px width (iPhone size)
+   - Verify warning is displayed at top of page
+   - Verify warning message mentions "desktop" and "keyboard"
+   - Navigate to all routes
+   - Confirm warning appears consistently on all pages
+
+3. **Resize Behavior**
+   - Start with desktop viewport (1024px)
+   - Verify no warning
+   - Resize to mobile viewport (375px)
+   - Verify warning appears immediately
+   - Resize back to desktop (1024px)
+   - Verify warning disappears immediately
+
+4. **Warning Content**
+   - Verify warning is visible but doesn't block page content
+   - Verify warning has appropriate styling (color, padding, etc.)
+   - Verify text is readable and clear
+
+### Edge Case Testing
+
+1. **Exactly 768px width**
+   - Set viewport to exactly 768px
+   - Verify warning does NOT appear (boundary condition)
+
+2. **767px width**
+   - Set viewport to 767px
+   - Verify warning DOES appear (just below threshold)
+
+3. **Rapid Resize**
+   - Rapidly resize window between mobile and desktop sizes
+   - Verify warning appears/disappears correctly without errors
+
+## Future Enhancements (Out of Scope)
+
+- Dismissible warning with localStorage persistence
+- Custom warning messages per page
+- Animation transitions for warning appearance/disappearance
+- Tablet-specific messaging (768px-1024px range)
+- Warning analytics tracking
 
 

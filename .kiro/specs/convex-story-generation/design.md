@@ -127,9 +127,9 @@ export interface Story {
 ```
 1. Cron triggers generateStory action (retryCount = 0)
 2. Action reads CLAUDE_API_KEY from environment
-3. Action queries all previous story titles using getAllStoryTitles
+3. Action queries all previous story data using getPreviousStoryData
 4. Action imports STORY_PROMPT from convex/prompt.ts
-5. Action constructs enhanced prompt with previous titles list
+5. Action constructs enhanced prompt with previous titles, patient names, and patient numbers
 6. Action calls Claude API with enhanced prompt and tool use (forced structured output)
 7. Claude returns tool_use block with Story object matching JSON schema
 8. Validate Story object has required fields and 10 chapters
@@ -142,9 +142,9 @@ export interface Story {
 - Uses Claude's tool use feature with `tool_choice` to guarantee structured JSON output
 - JSON schema enforces the Story interface structure
 - No manual JSON parsing needed - Claude returns typed object
-- Prompt is imported from `convex/prompt.ts` and enhanced with previous titles
-- Previous titles are retrieved via internal query before generation
-- Enhanced prompt includes instruction to avoid repeating previous titles
+- Prompt is imported from `convex/prompt.ts` and enhanced with previous story data
+- Previous story data (titles, patient names, patient numbers) retrieved via single internal query before generation
+- Enhanced prompt includes instruction to avoid repeating previous titles and patient identities
 - Types are imported from `types.ts`
 - Retry logic: max 3 attempts, 5 minute delay between retries
 - Uses optional `retryCount` argument to track attempts
@@ -158,13 +158,13 @@ export interface Story {
 4. Return story or null if none exist
 ```
 
-### 3. Get All Story Titles Query
+### 3. Get Previous Story Data Query
 
 ```
 1. Query all stories from stories table
 2. Order by createdAt ascending (oldest to newest)
-3. Map to extract only title field
-4. Return array of title strings
+3. Map to extract title, patientName, and patientNumber fields
+4. Return array of objects with { title, patientName, patientNumber } structure
 ```
 
 ## Correctness Properties
@@ -181,14 +181,14 @@ export interface Story {
 **Verification:** Insert multiple stories with different timestamps, query latest, verify it has the highest timestamp.
 **Validates: Requirements 4.1**
 
-### P3: Previous Titles Completeness
-**Property:** *For any* set of stories in the database, getAllStoryTitles should return exactly the same number of titles as there are stories.
-**Verification:** Insert N stories, call getAllStoryTitles, verify the returned array has length N.
+### P3: Previous Story Data Completeness
+**Property:** *For any* set of stories in the database, getPreviousStoryData should return exactly the same number of records as there are stories.
+**Verification:** Insert N stories, call getPreviousStoryData, verify the returned array has length N.
 **Validates: Requirements 5.1, 5.2**
 
 ### P4: Prompt Enhancement Inclusion
-**Property:** *For any* non-empty list of previous titles, the enhanced prompt should contain all titles from the list.
-**Verification:** Generate random list of titles, construct enhanced prompt, verify each title appears in the prompt string.
+**Property:** *For any* non-empty list of previous story data, the enhanced prompt should contain all titles, patient names, and patient numbers from the list.
+**Verification:** Generate random list of story data, construct enhanced prompt, verify each title, patient name, and patient number appears in the prompt string.
 **Validates: Requirements 2.3**
 
 ## Edge Cases
@@ -317,3 +317,136 @@ Property-based tests would require a test environment with Convex test utilities
 - Story categories or themes
 - Story expiration/cleanup
 - Exponential backoff for retries
+
+---
+
+## Update: Patient Name and Number Tracking
+
+### Context
+
+The current implementation sometimes generates stories with duplicate patient names and numbers. This update adds tracking for patient identities to ensure uniqueness across generated stories.
+
+### Updated Data Model
+
+#### Stories Table Schema (Updated)
+
+```typescript
+// schema.ts - updated stories table
+stories: defineTable({
+  title: v.string(),
+  introduction: v.string(),
+  chapters: v.array(
+    v.object({
+      text: v.string(),
+      difficulty: v.union(
+        v.literal("easy"),
+        v.literal("medium"),
+        v.literal("hard")
+      ),
+    })
+  ),
+  patientName: v.string(),      // NEW: Patient's name
+  patientNumber: v.string(),    // NEW: Patient's identification number
+  createdAt: v.number(),
+})
+```
+
+#### Story Interface (Updated)
+
+```typescript
+// Located in app-next/types.ts - updated Story interface
+export interface Story {
+  title: string;
+  introduction: string;
+  chapters: Chapter[];
+  patientName: string;      // NEW: Patient's name
+  patientNumber: string;    // NEW: Patient's identification number
+}
+```
+
+### Updated Core Algorithms
+
+#### 1. Story Generation Flow (Updated)
+
+```
+1. Cron triggers generateStory action (retryCount = 0)
+2. Action reads CLAUDE_API_KEY from environment
+3. Action queries all previous story data using getPreviousStoryData (UPDATED to include patient data)
+5. Action imports STORY_PROMPT from convex/prompt.ts
+6. Action constructs enhanced prompt with:
+   - Previous titles list
+   - Previous patient names and numbers list (NEW)
+7. Action calls Claude API with enhanced prompt and tool use (forced structured output)
+8. Claude returns tool_use block with Story object including patientName and patientNumber (NEW)
+9. Validate Story object has required fields, 10 chapters, patientName, and patientNumber (NEW)
+10. Insert story into database with timestamp, patientName, and patientNumber (NEW)
+11. On failure: schedule retry in 5 minutes (max 3 attempts)
+12. After max retries: wait for next daily cron execution
+```
+
+**Updated Implementation Details:**
+- STORY_SCHEMA now includes patientName and patientNumber fields
+- Enhanced prompt includes instruction to avoid repeating previous patient identities
+- Previous story data (titles and patient identities) retrieved via single updated query
+- Validation checks for presence of patientName and patientNumber fields
+
+#### 2. Get Previous Story Data Query (UPDATED)
+
+```
+1. Query all stories from stories table
+2. Order by createdAt ascending (oldest to newest)
+3. Map to extract title, patientName, and patientNumber fields
+4. Return array of objects with { title, patientName, patientNumber } structure
+```
+
+### Updated Correctness Properties
+
+#### P5: Previous Story Data Includes Patient Identities (NEW)
+**Property:** *For any* set of stories in the database, getPreviousStoryData should return title, patientName, and patientNumber for each story.
+**Verification:** Insert N stories with patient identities, call getPreviousStoryData, verify each returned object has all three fields.
+**Validates: Requirements 7.1, 7.2, 7.3, 7.4**
+
+#### P6: Prompt Enhancement with Patient Identities (NEW)
+**Property:** *For any* non-empty list of previous story data, the enhanced prompt should contain all patient names and numbers from the list.
+**Verification:** Generate random list of story data with patient identities, construct enhanced prompt, verify each name and number appears in the prompt string.
+**Validates: Requirements 6.4**
+
+### Updated Error Handling
+
+```typescript
+// Updated validation in generateStory action
+const story = toolUseBlock.input as Story;
+
+// Validate required fields exist (UPDATED)
+if (!story.title || !story.introduction || !story.chapters || 
+    !story.patientName || !story.patientNumber) {
+  console.error('Invalid story structure - missing required fields');
+  return;
+}
+
+if (!Array.isArray(story.chapters) || story.chapters.length !== 10) {
+  console.error('Invalid story structure - chapters must be 10 items');
+  return;
+}
+
+// Insert with patient identity fields (UPDATED)
+await ctx.runMutation(internal.stories.insertStory, {
+  title: story.title,
+  introduction: story.introduction,
+  chapters: story.chapters,
+  patientName: story.patientName,
+  patientNumber: story.patientNumber,
+});
+```
+
+### Updated Integration Points
+
+#### Files to Modify
+
+1. **convex/schema.ts** - Add patientName and patientNumber fields to stories table
+2. **convex/stories.ts** - Update:
+   - STORY_SCHEMA to include patientName and patientNumber
+   - getPreviousStoryData internal query to return title, patientName, and patientNumber (UPDATED)
+   - generateStory action to retrieve and use patient identities from updated query
+   - insertStory mutation to accept and store patient identity fields
+3. **types.ts** - Update Story interface to include patientName and patientNumber fields

@@ -24,6 +24,7 @@ export default function PlayPage() {
     const [gameStarted, setGameStarted] = useState(false);
     const [gameLost, setGameLost] = useState(false);
     const [gameWon, setGameWon] = useState(false);
+    const [showWinOverlay, setShowWinOverlay] = useState(false);
     const [loadingVisible, setLoadingVisible] = useState(true);
     const [textVisible, setTextVisible] = useState(true);
     const [blinkData, setBlinkData] = useState({ isBlinking: false, blinkCount: -1, faceDetected: true });
@@ -154,6 +155,11 @@ export default function PlayPage() {
             stopTimer();
             resetTypingGame();
 
+            // Show win overlay after a delay (1.5 seconds)
+            setTimeout(() => {
+                setShowWinOverlay(true);
+            }, 1500);
+
             // Submit score to leaderboard (using raw values without rounding)
             if (story?._id) {
                 setScoreSubmitStatus('submitting');
@@ -217,6 +223,7 @@ export default function PlayPage() {
         startTimer();
         setGameLost(false);
         setGameWon(false);
+        setShowWinOverlay(false);
         setGameStarted(true);
         setScoreSubmitStatus('idle');
         setScoreSubmitError(null);
@@ -406,14 +413,14 @@ export default function PlayPage() {
                 </div>
             </div>
 
-            {/* Win overlay - no dark background, just centered content */}
+            {/* Win overlay - no dark background, just centered content with delay and smooth transition */}
             <div
-                className={`fixed inset-0 flex flex-col items-center justify-center gap-8 z-30 transition-opacity duration-700 ${gameWon
-                    ? 'opacity-100'
-                    : 'opacity-0 pointer-events-none'
+                className={`fixed inset-0 flex flex-col items-center justify-center gap-8 z-30 transition-all duration-1000 ease-out ${showWinOverlay
+                    ? 'opacity-100 scale-100'
+                    : 'opacity-0 scale-95 pointer-events-none'
                     }`}
             >
-                <Card disableRain className="">
+                <Card disableRain className="py-10">
                     <CardHeader className="mb-4">
                         <h1 className="text-6xl font-metalMania font-bold text-green-500 tracking-wider text-center">You Survived!</h1>
                     </CardHeader>
@@ -475,7 +482,7 @@ export default function PlayPage() {
                         </div>
                     </CardContent>
 
-                    <CardFooter className="flex-col justify-center gap-4">
+                    <CardFooter className="flex-col justify-center gap-8">
                         <div className="flex items-center gap-6">
                             <ModalLeaderboard />
 
@@ -486,20 +493,16 @@ export default function PlayPage() {
                             >
                                 Restart Game
                             </Button>
-                        </div>
 
-                        <div>
                             <Button
-                                variant="secondary"
-                                size="lg"
+                                variant="outline"
+                                size="xl"
                                 asChild
                             >
                                 <a href="/">
-                                    Go To Main Menu
+                                    Exit Game
                                 </a>
                             </Button>
-
-                            <ModalAuth />
                         </div>
                     </CardFooter>
                 </Card>

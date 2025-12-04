@@ -62,14 +62,14 @@ This feature implements automated story generation for the typing game using Cla
 2. IF no stories exist, THEN THE system SHALL return null
 3. THE query SHALL be a public query accessible from the frontend
 
-### Requirement 5: Previous Story Titles Query
+### Requirement 5: Previous Story Data Query
 
-**User Story:** As a system, I want to retrieve all previously generated story titles, so that I can avoid generating duplicate or similar stories.
+**User Story:** As a system, I want to retrieve all previously generated story data, so that I can avoid generating duplicate or similar stories.
 
 #### Acceptance Criteria
 
-1. THE system SHALL provide an internal query to retrieve all story titles
-2. THE query SHALL return only the title field from each story
+1. THE system SHALL provide an internal query to retrieve story titles, patient names, and patient numbers
+2. THE query SHALL return title, patientName, and patientNumber fields from each story
 3. THE query SHALL order stories by creation date (oldest to newest)
 4. THE query SHALL be accessible from internal actions
 
@@ -106,3 +106,37 @@ The system SHALL handle API failures gracefully with automatic retry logic (max 
 - Story editing or moderation
 - Multiple story generation per day
 - Story versioning or history management
+
+---
+
+## Update: Patient Name and Number Tracking
+
+### Context
+
+Currently, the system sometimes generates stories with duplicate patient names and numbers. To ensure variety and uniqueness in generated stories, we need to track and avoid reusing patient names and numbers.
+
+### Updated Requirements
+
+#### Requirement 6: Patient Identity Tracking
+
+**User Story:** As a system, I want to track patient names and numbers used in stories, so that I can avoid generating duplicate patient identities.
+
+##### Acceptance Criteria
+
+1. THE stories table SHALL include a patientName field (string) to store the patient's name
+2. THE stories table SHALL include a patientNumber field (string) to store the patient's identification number
+3. WHEN generating a story, THE system SHALL retrieve all previously used patient names and numbers
+4. THE system SHALL include the list of previous patient names and numbers in the Claude prompt
+5. THE Claude API response SHALL include the patient name and number in the structured output
+6. THE system SHALL store the patient name and number when inserting a new story
+
+#### Requirement 7: Updated Previous Story Data Query
+
+**User Story:** As a system, I want the existing story data query to include patient identities, so that I can retrieve all necessary information in a single query.
+
+##### Acceptance Criteria
+
+1. THE existing getPreviousStoryData query SHALL be updated to include patientName and patientNumber fields
+2. THE query SHALL return title, patientName, and patientNumber for each story
+3. THE query SHALL maintain the existing ordering by creation date (oldest to newest)
+4. THE query SHALL remain accessible from internal actions

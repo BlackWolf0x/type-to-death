@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWebcam } from "@/hooks/useWebcam";
 import { useBlinkDetector } from "@/hooks/useBlinkDetector";
+
+// Duration to block blink detection at game start (Unity intro animation)
+const INTRO_DELAY_MS = 2000;
 
 // Check if calibration exists in localStorage
 function hasStoredCalibration(): boolean {
@@ -42,9 +45,34 @@ export function GameWebcamSimple({ onBlink, onReady, onBlinkDataChange, gameStar
     const router = useRouter();
     const hasRedirected = useRef(false);
     const hasSignaledReady = useRef(false);
+    const [introDelayActive, setIntroDelayActive] = useState(false);
+    const blinkCountBaselineRef = useRef(0);
+    const currentBlinkCountRef = useRef(0);
 
     const webcam = useWebcam({ autoStart: false });
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
+
+    // Keep a ref of current blink count so we can read it in setTimeout
+    useEffect(() => {
+        currentBlinkCountRef.current = blink.blinkCount;
+    }, [blink.blinkCount]);
+
+    // Block blink detection for 2 seconds when game starts (Unity intro animation)
+    // Capture baseline blink count when intro delay ends
+    useEffect(() => {
+        if (gameStarted) {
+            setIntroDelayActive(true);
+            const timer = setTimeout(() => {
+                // Capture current blink count as baseline when intro ends (use ref for fresh value)
+                blinkCountBaselineRef.current = currentBlinkCountRef.current;
+                setIntroDelayActive(false);
+            }, INTRO_DELAY_MS);
+            return () => clearTimeout(timer);
+        } else {
+            setIntroDelayActive(false);
+            blinkCountBaselineRef.current = 0;
+        }
+    }, [gameStarted]);
 
     // Check calibration and permission on mount
     useEffect(() => {
@@ -83,30 +111,24 @@ export function GameWebcamSimple({ onBlink, onReady, onBlinkDataChange, gameStar
         }
     }, [webcam.error, router]);
 
-    // Reset blink count when game starts
-    const hasResetForGame = useRef(false);
+    // Send blink events to parent (blocked during intro delay)
     useEffect(() => {
-        if (gameStarted && !hasResetForGame.current) {
-            hasResetForGame.current = true;
-            blink.resetBlinkCount();
-        } else if (!gameStarted) {
-            hasResetForGame.current = false;
-        }
-    }, [gameStarted, blink]);
-
-    // Send blink events to parent
-    useEffect(() => {
-        if (gameStarted && blink.isBlinking) {
+        if (gameStarted && !introDelayActive && blink.isBlinking) {
             onBlink();
         }
-    }, [gameStarted, blink.isBlinking, onBlink]);
+    }, [gameStarted, introDelayActive, blink.isBlinking, onBlink]);
 
-    // Send blink data to parent - only when changed
+    // Send blink data to parent - only when changed (blocked during intro delay)
+    // Uses baseline to exclude blinks that occurred during intro
     const lastBlinkDataRef = useRef({ isBlinking: false, blinkCount: -1, faceDetected: true });
     useEffect(() => {
+        // Show blink count only when game started AND intro delay is over
+        const shouldShowBlinkCount = gameStarted && !introDelayActive;
+        // Subtract baseline to get blinks since intro ended
+        const adjustedBlinkCount = blink.blinkCount - blinkCountBaselineRef.current;
         const newData = {
             isBlinking: blink.isBlinking,
-            blinkCount: gameStarted ? blink.blinkCount : -1,
+            blinkCount: shouldShowBlinkCount ? adjustedBlinkCount : -1,
             faceDetected: blink.faceDetected,
         };
 
@@ -119,7 +141,7 @@ export function GameWebcamSimple({ onBlink, onReady, onBlinkDataChange, gameStar
             lastBlinkDataRef.current = newData;
             onBlinkDataChange?.(newData);
         }
-    }, [blink.isBlinking, blink.blinkCount, blink.faceDetected, gameStarted, onBlinkDataChange]);
+    }, [blink.isBlinking, blink.blinkCount, blink.faceDetected, gameStarted, introDelayActive, onBlinkDataChange]);
 
     // Hidden video element - no canvas rendering, no effects
     return (

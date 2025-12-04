@@ -5,13 +5,14 @@ import { api } from "@/convex/_generated/api";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Award, Trophy } from "lucide-react";
+import { Award, Info, Trophy } from "lucide-react";
 import { formatTime } from "@/stores/gameStatsStore";
 
 export function ModalLeaderboard() {
@@ -28,7 +29,7 @@ export function ModalLeaderboard() {
 
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="flex items-center gap-4">
                         <Trophy className="h-5 w-5 text-yellow-500" />
                         Leaderboard
                     </DialogTitle>
@@ -84,6 +85,10 @@ export function ModalLeaderboard() {
                         </div>
                     )}
                 </ScrollArea>
+
+                <DialogDescription className="flex items-center gap-2 border-t pt-6 text-xs">
+                    <Info className="size-4" />  Score = ((Accuracy² × WPM) / Time ) x 1000
+                </DialogDescription>
             </DialogContent>
         </Dialog>
     );
