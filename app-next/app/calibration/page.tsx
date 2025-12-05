@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useWebcam, WebcamErrorCode, type WebcamError } from '@/hooks/useWebcam';
@@ -140,7 +140,7 @@ const HORROR_IMAGES = [
 ];
 const DEFAULT_IMAGE = '/operating-room.png';
 
-export default function CalibrationPage() {
+function CalibrationContent() {
     const router = useRouter();
     const [pageState, setPageState] = useState<PageState>('webcam');
     const eyeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -505,5 +505,17 @@ export default function CalibrationPage() {
                 )}
             </Card>
         </div>
+    );
+}
+
+export default function CalibrationPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <Loader2 className="h-10 w-10 animate-spin text-zinc-500" />
+            </div>
+        }>
+            <CalibrationContent />
+        </Suspense>
     );
 }

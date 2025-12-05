@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from 'next/navigation';
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
@@ -18,7 +18,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModalAuth } from "@/components/modal-auth";
 import { Id } from "@/convex/_generated/dataModel";
 
-export default function PlayPage() {
+function PlayContent() {
     const [isReady, setIsReady] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
     const [introSeen, setIntroSeen] = useState(false);
@@ -530,5 +530,20 @@ export default function PlayPage() {
                 </>
             )}
         </>
+    );
+}
+
+export default function PlayPage() {
+    return (
+        <Suspense fallback={
+            <div className="fixed inset-0 flex items-center justify-center bg-black text-white">
+                <div className="flex items-center gap-3">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>Loading...</span>
+                </div>
+            </div>
+        }>
+            <PlayContent />
+        </Suspense>
     );
 }
