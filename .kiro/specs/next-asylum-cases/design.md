@@ -2,11 +2,12 @@
 
 ## Overview
 
-The Asylum Cases feature adds two new pages to the Next.js application:
-1. A case list page (`/cases`) that displays all stories from the Convex database
-2. A case detail page (`/cases/[slug]`) that shows the full content of a single story using a URL-friendly slug derived from the title
+The Asylum Cases feature adds two new pages to the Next.js application with a shared layout:
+1. A case list page (`/cases`) that displays all stories as polaroid-style cards with patient photos
+2. A case detail page (`/cases/[slug]`) that shows the full story content in a paper document format
+3. A shared layout component (`/cases/layout.tsx`) that provides consistent navigation and atmospheric styling
 
-The implementation uses Next.js App Router with dynamic routes, Convex for data fetching, and shadcn/ui components for the UI. Story titles are converted to URL slugs by removing special characters and replacing spaces with dashes.
+The implementation uses Next.js App Router with dynamic routes, Convex for data fetching, and custom styled components. Story titles are converted to URL slugs by removing special characters and replacing spaces with dashes. The visual design features polaroid-style case cards with random rotation, archive background imagery, VHS film grain effects, and paper texture overlays for an immersive horror aesthetic.
 
 ## Architecture
 
@@ -36,67 +37,73 @@ The implementation uses Next.js App Router with dynamic routes, Convex for data 
 
 ## Components and Interfaces
 
+### Layout Component
+
+#### `/app/cases/layout.tsx` - Shared Cases Layout
+
+**Responsibilities:**
+- Provide consistent header with conditional navigation buttons
+- Display archive background image with VHS film grain overlay
+- Apply sticky header with backdrop blur
+- Show different titles based on current page (list vs detail)
+
+**Dependencies:**
+- Next.js `usePathname` hook
+- VHSStatic component
+- shadcn/ui Button component
+
+**Features:**
+- Conditional navigation: "Main Menu" button on list page, "View all Cases" button on detail page
+- Archive background image with sepia tone and opacity
+- VHS film grain overlay for atmospheric effect
+- Sticky header with backdrop blur
+
 ### Page Components
 
 #### `/app/cases/page.tsx` - Case List Page
 
 **Responsibilities:**
 - Fetch all stories from Convex
-- Render list of case cards
+- Render polaroid-style case cards with patient photos
+- Apply random rotation (2-10 degrees) to each card image
 - Handle loading and empty states
-- Provide navigation to detail pages
+- Provide hover effects and navigation to detail pages
 
 **Dependencies:**
 - Convex `useQuery` hook
-- CaseCard component
-- shadcn/ui Card, Button components
+- Next.js Image component
+- slugify utility function
+- Lucide icons (Loader2, FolderClosed)
+
+**Visual Features:**
+- Polaroid-style cards with paper texture overlay
+- Random image rotation for visual variety
+- Placeholder patient photo (/case-images/test.jpg)
+- Paper clip tab at top of each card
+- Hover scale and rotation effects
+- Creation date display
 
 #### `/app/cases/[slug]/page.tsx` - Case Detail Page
 
 **Responsibilities:**
 - Fetch single story by slug from Convex
-- Render full story content (header, intro, chapters)
+- Render full story text with proper formatting
+- Handle escaped characters (\\n, \\") conversion
+- Display patient header with number and name
 - Handle not found state
-- Provide back navigation
+- Fall back to introduction if full story unavailable
 
 **Dependencies:**
 - Convex `useQuery` hook
-- shadcn/ui Card, Badge, Button, Separator components
+- Next.js `useParams` hook
+- Lucide icons (Loader2, FolderClosed, ArrowLeft)
 
-### UI Components
-
-#### `CaseCard` Component
-
-**Responsibilities:**
-- Display case preview (patient number, name, title)
-- Link to detail page using slug
-- Apply horror-themed styling
-
-**Props:**
-```typescript
-interface CaseCardProps {
-  slug: string;
-  patientNumber: string;
-  patientName: string;
-  title: string;
-  createdAt: number;
-}
-```
-
-#### `ChapterSection` Component
-
-**Responsibilities:**
-- Display chapter content with difficulty badge
-- Apply appropriate styling based on difficulty
-
-**Props:**
-```typescript
-interface ChapterSectionProps {
-  index: number;
-  text: string;
-  difficulty: "easy" | "medium" | "hard";
-}
-```
+**Visual Features:**
+- Paper document styling with texture overlay
+- Layered paper effect with rotation
+- Proper text formatting with whitespace-pre-line
+- Centered patient header with monospace font
+- Large title in horror font (metalMania)
 
 ## Data Models
 
@@ -223,18 +230,18 @@ Based on the prework analysis, the following properties can be combined and veri
 **Validates:** Requirements 1.3
 
 ### P4: Case Detail Content Completeness
-**Property:** *For any* valid story slug, the detail page displays the patient number, patient name, title, introduction, and all chapters.
-**Verification:** All required fields from the story document appear in the rendered output.
-**Validates:** Requirements 2.1, 2.2, 2.3, 2.4, 2.5
+**Property:** *For any* valid story slug, the detail page displays the patient number, patient name, title, and full story text (or introduction as fallback).
+**Verification:** All required fields from the story document appear in the rendered output with proper formatting.
+**Validates:** Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
 
 ### P6: Slug Generation Consistency
 **Property:** *For any* story title, the slugify function produces a URL-safe string containing only lowercase letters, numbers, and dashes.
 **Verification:** Slugified output matches regex `/^[a-z0-9-]*$/` and round-trip lookup finds the original story.
 **Validates:** Requirements 2.1
 
-### P5: Chapter Difficulty Display
-**Property:** *For any* chapter in a story, the detail page displays that chapter's difficulty level.
-**Verification:** Each rendered chapter section includes a difficulty indicator matching the source data.
+### P5: Text Formatting Correctness
+**Property:** *For any* story text containing escaped characters (\\n, \\"), the detail page displays them as proper formatting (newlines, quotes).
+**Verification:** Rendered text contains actual newlines and quotes, not escaped character sequences.
 **Validates:** Requirements 2.6
 
 ## Edge Cases
@@ -290,7 +297,37 @@ Add a navigation button to the home banner, next to the Leaderboard button:
 
 Add new queries to `convex/stories.ts`:
 - `getAllStories` - Returns all stories ordered by createdAt desc
-- `getStoryById` - Returns single story by ID
+- `getStoryBySlug` - Returns single story by matching slugified title
+
+## Visual Design Details
+
+### Polaroid Card Styling
+
+Each case card features:
+- Paper clip tab at top (20px wide, 4px tall, tan color)
+- Outer tan border with paper texture overlay
+- Layered paper effect with multiple rotated backgrounds
+- Patient photo with random rotation (2-10 degrees, positive or negative)
+- Case information in italic black text
+- Creation date in smaller, faded text
+- Hover effects: scale from 95% to 100%, slight rotation
+
+### Paper Document Styling
+
+Case detail pages feature:
+- Amber/cream paper background (#fef3c7)
+- Paper texture overlay using SVG noise filter
+- Layered effect with rotated background paper
+- Black text with increased line height for readability
+- Proper whitespace handling with `whitespace-pre-line`
+
+### Background and Atmosphere
+
+Both pages include:
+- Archive background image (/archive.png) with sepia tone
+- VHS film grain overlay at 30% opacity
+- Dark backdrop with blur for header
+- Sticky header that remains visible on scroll
 
 ## Performance Considerations
 

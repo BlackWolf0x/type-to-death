@@ -40,9 +40,9 @@ The game already generates AI-powered horror stories stored in Convex with patie
 1. WHEN a user navigates to `/cases/[slug]`, THE system SHALL display the full case content where slug is derived from the story title
 2. THE case detail page SHALL display the patient number and patient name in a header section
 3. THE case detail page SHALL display the story title prominently
-4. THE case detail page SHALL display the introduction text
-5. THE case detail page SHALL display all chapters with their content
-6. THE case detail page SHALL indicate the difficulty level for each chapter
+4. THE case detail page SHALL display the full story text with proper paragraph formatting
+5. THE case detail page SHALL fall back to introduction text if full story is not available
+6. THE case detail page SHALL handle escaped characters (\\n, \\") by converting them to proper formatting
 7. WHEN a user clicks a back button, THE system SHALL navigate to the case list
 8. IF the case slug does not match any story, THEN THE system SHALL display a not found message
 9. THE system SHALL generate URL slugs by removing special characters and replacing spaces with dashes
@@ -53,10 +53,12 @@ The game already generates AI-powered horror stories stored in Convex with patie
 
 #### Acceptance Criteria
 
-1. THE case pages SHALL use the existing dark theme and horror styling
-2. THE case list SHALL display cases as cards with atmospheric styling
-3. THE case detail page SHALL present content in a readable, document-like format
-4. THE chapter difficulty indicators SHALL use distinct visual styling (colors or badges)
+1. THE case pages SHALL use the existing dark theme and horror styling with archive background
+2. THE case list SHALL display cases as polaroid-style cards with patient photos
+3. THE case cards SHALL have random rotation between 2-10 degrees for visual variety
+4. THE case detail page SHALL present content in a readable, document-like format with paper texture
+5. THE pages SHALL include VHS film grain overlay for atmospheric effect
+6. THE case cards SHALL display a placeholder patient photo with dynamic rotation
 
 ### Requirement 4: Navigation Integration
 
@@ -65,7 +67,10 @@ The game already generates AI-powered horror stories stored in Convex with patie
 #### Acceptance Criteria
 
 1. THE home banner SHALL include a "Case Files" button next to the Leaderboard button
-2. THE cases pages SHALL include navigation back to the home page
+2. THE case list page SHALL include a "Main Menu" button to navigate back to home
+3. THE case detail page SHALL include a "View all Cases" button to navigate back to the list
+4. THE navigation buttons SHALL be displayed in a sticky header with backdrop blur
+5. THE header SHALL display different titles based on whether viewing list or detail page
 
 ## Non-Functional Requirements
 
