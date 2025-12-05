@@ -58,6 +58,16 @@ const STORY_SCHEMA = {
     required: ["title", "introduction", "chapters", "patientName", "patientNumber", "imageGenerationPrompt", "story"],
 };
 
+// Slugify function for converting titles to URL-friendly slugs
+function slugify(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
 // Internal mutation to insert a story into the database
 export const insertStory = internalMutation({
     args: {
@@ -79,8 +89,10 @@ export const insertStory = internalMutation({
         story: v.string(),
     },
     handler: async (ctx, args) => {
+        const slug = slugify(args.title);
         const storyId = await ctx.db.insert("stories", {
             title: args.title,
+            slug,
             introduction: args.introduction,
             chapters: args.chapters,
             patientName: args.patientName,
@@ -377,22 +389,14 @@ export const getAllStories = query({
     },
 });
 
-// Slugify function for matching story titles to URL slugs
-function slugify(title: string): string {
-    return title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-}
-
-// Public query to get a story by its slug (derived from title)
+// Public query to get a story by its slug
 export const getStoryBySlug = query({
     args: { slug: v.string() },
     handler: async (ctx, args) => {
-        const stories = await ctx.db.query("stories").collect();
-        const story = stories.find((story) => slugify(story.title) === args.slug) ?? null;
+        const story = await ctx.db
+            .query("stories")
+            .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+            .unique();
 
         if (!story) {
             return null;

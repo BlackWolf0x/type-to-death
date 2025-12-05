@@ -15,6 +15,7 @@ const schema = defineSchema({
 
     stories: defineTable({
         title: v.string(),
+        slug: v.string(),
         introduction: v.string(),
         chapters: v.array(
             v.object({
@@ -29,10 +30,12 @@ const schema = defineSchema({
         patientName: v.string(),
         patientNumber: v.string(),
         createdAt: v.number(),
-        story: v.optional(v.string()),
+        story: v.string(),
+        imageGenerationPrompt: v.string(),
         storageId: v.optional(v.id("_storage")),
-        imageGenerationPrompt: v.optional(v.string()),
-    }).index("by_createdAt", ["createdAt"]),
+    })
+        .index("by_createdAt", ["createdAt"])
+        .index("by_slug", ["slug"]),
 
     highscores: defineTable({
         storyId: v.id("stories"),
