@@ -98,10 +98,11 @@ export const addFakeUsersWithScores = mutation({
                 email: `${randomUsername.toLowerCase()}@fake.test`,
             });
 
-            // Generate random stats
-            const accuracy = 70 + Math.random() * 30; // 70-100%
-            const wordPerMinute = 30 + Math.random() * 120; // 30-150 WPM
-            const timeTaken = 30 + Math.random() * 270; // 30-300 seconds
+            // Generate random stats tuned for 1-2 million score range
+            // Score formula: ((Accuracy² × WPM) / Time) × 1000
+            const accuracy = 80 + Math.random() * 9; // 80-89%
+            const wordPerMinute = 55 + Math.random() * 5; // 55-60 WPM
+            const timeTaken = 240 + Math.random() * 60; // 240-300 seconds (4-5 minutes)
 
             // Calculate score: ((Accuracy² × WPM) / Time) × 1000
             const score = ((accuracy * accuracy * wordPerMinute) / timeTaken) * 1000;
