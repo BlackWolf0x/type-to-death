@@ -30,7 +30,7 @@ const schema = defineSchema({
         patientNumber: v.string(),
         createdAt: v.number(),
         story: v.optional(v.string()),
-        storageId: v.optional(v.string()),
+        storageId: v.optional(v.id("_storage")),
         imageGenerationPrompt: v.optional(v.string()),
     }).index("by_createdAt", ["createdAt"]),
 

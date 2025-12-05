@@ -88,3 +88,16 @@ function handleButtonPress() {
 Use the Convex CLI to push your functions to a deployment. See everything
 the Convex CLI can do by running `npx convex -h` in your project root
 directory. To learn more, launch the docs with `npx convex docs`.
+
+## Environment Variables
+
+The following environment variables are required for full functionality:
+
+### CLAUDE_API_KEY
+Required for story generation using Claude AI.
+
+### RECRAFT_API_KEY
+Required for patient portrait image generation using Recraft.ai.
+- Get your API key from: https://www.recraft.ai/
+- Add to Convex dashboard: Settings > Environment Variables
+- The image generation will be skipped gracefully if this key is not set
