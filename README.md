@@ -243,6 +243,8 @@ NEXT_PUBLIC_CONVEX_URL=https://your-deployment-name.convex.cloud
 - Convex (database + serverless functions)
 - Convex Auth (authentication)
 - Anthropic Claude API (story generation)
+- Recraft.ai API (AI image generation for stories)
+- TinyPNG API (image compression)
 
 **Game:**
 - Unity 6.1 (WebGL build)
