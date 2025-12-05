@@ -58,6 +58,16 @@ const STORY_SCHEMA = {
     required: ["title", "introduction", "chapters", "patientName", "patientNumber", "imageGenerationPrompt", "story"],
 };
 
+// Slugify function for converting titles to URL-friendly slugs
+function slugify(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
 // Internal mutation to insert a story into the database
 export const insertStory = internalMutation({
     args: {
@@ -79,8 +89,10 @@ export const insertStory = internalMutation({
         story: v.string(),
     },
     handler: async (ctx, args) => {
+        const slug = slugify(args.title);
         const storyId = await ctx.db.insert("stories", {
             title: args.title,
+            slug,
             introduction: args.introduction,
             chapters: args.chapters,
             patientName: args.patientName,
@@ -90,6 +102,20 @@ export const insertStory = internalMutation({
             createdAt: Date.now(),
         });
         return storyId;
+    },
+});
+
+// Internal mutation to update a story's image storage ID
+export const updateStoryImage = internalMutation({
+    args: {
+        storyId: v.id("stories"),
+        storageId: v.id("_storage"),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.storyId, {
+            storageId: args.storageId,
+        });
+        console.log(`Updated story ${args.storyId} with image storageId: ${args.storageId}`);
     },
 });
 
@@ -189,7 +215,7 @@ export const generateStory = internalAction({
             }
 
             // Insert the story into the database
-            await ctx.runMutation(internal.stories.insertStory, {
+            const storyId = await ctx.runMutation(internal.stories.insertStory, {
                 title: story.title,
                 introduction: story.introduction,
                 chapters: story.chapters,
@@ -200,6 +226,13 @@ export const generateStory = internalAction({
             });
 
             console.log("Successfully generated and stored story:", story.title);
+
+            // Schedule patient portrait image generation (async, non-blocking)
+            await ctx.scheduler.runAfter(0, internal.stories.generatePatientPortrait, {
+                storyId,
+                imageGenerationPrompt: story.imageGenerationPrompt,
+            });
+            console.log("Scheduled patient portrait generation for story:", storyId);
         } catch (error) {
             console.error(`Story generation failed (attempt ${currentRetry + 1}/${MAX_RETRIES}):`, error);
 
@@ -216,6 +249,91 @@ export const generateStory = internalAction({
     },
 });
 
+// Internal action to generate patient portrait image using Recraft.ai
+export const generatePatientPortrait = internalAction({
+    args: {
+        storyId: v.id("stories"),
+        imageGenerationPrompt: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const { storyId, imageGenerationPrompt } = args;
+
+        // Validate prompt is not empty or whitespace-only
+        if (!imageGenerationPrompt || imageGenerationPrompt.trim().length === 0) {
+            console.warn(`Skipping image generation for story ${storyId}: empty or whitespace-only prompt`);
+            return;
+        }
+
+        // Check for API key
+        const apiKey = process.env.RECRAFT_API_KEY;
+        if (!apiKey) {
+            console.error("RECRAFT_API_KEY environment variable not set - skipping image generation");
+            return;
+        }
+
+        try {
+            console.log(`Starting image generation for story ${storyId}`);
+
+            // Call Recraft.ai API
+            const response = await fetch("https://external.api.recraft.ai/v1/images/generations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                    prompt: imageGenerationPrompt,
+                    // style: "digital_illustration",
+                    style_id: "1f9a9d70-2d71-4b85-9106-646bbddf1fd0",
+                    model: "recraftv2",
+                    size: "1024x1536",
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Recraft.ai API error (${response.status}): ${errorText}`);
+                return;
+            }
+
+            const data = await response.json();
+
+            // Extract image URL from response
+            if (!data.data || !data.data[0] || !data.data[0].url) {
+                console.error("Invalid Recraft.ai response - missing image URL:", JSON.stringify(data));
+                return;
+            }
+
+            const imageUrl = data.data[0].url;
+            console.log(`Image generated, downloading from: ${imageUrl}`);
+
+            // Download the image
+            const imageResponse = await fetch(imageUrl);
+            if (!imageResponse.ok) {
+                console.error(`Failed to download image (${imageResponse.status}): ${imageUrl}`);
+                return;
+            }
+
+            const imageBlob = await imageResponse.blob();
+
+            // Store the image in Convex storage
+            const storageId = await ctx.storage.store(imageBlob);
+            console.log(`Image stored with storageId: ${storageId}`);
+
+            // Update the story document with the storage ID
+            await ctx.runMutation(internal.stories.updateStoryImage, {
+                storyId,
+                storageId,
+            });
+
+            console.log(`Successfully generated and stored patient portrait for story ${storyId}`);
+        } catch (error) {
+            console.error(`Image generation failed for story ${storyId}:`, error);
+            // Do not throw - image generation failure should not affect story generation
+        }
+    },
+});
+
 // Public query to get the latest story
 export const getLatestStory = query({
     args: {},
@@ -226,7 +344,20 @@ export const getLatestStory = query({
             .order("desc")
             .first();
 
-        return story;
+        if (!story) {
+            return null;
+        }
+
+        // Convert storageId to image URL
+        let imageUrl: string | null = null;
+        if (story.storageId) {
+            imageUrl = await ctx.storage.getUrl(story.storageId);
+        }
+
+        return {
+            ...story,
+            imageUrl,
+        };
     },
 });
 
@@ -240,25 +371,46 @@ export const getAllStories = query({
             .order("desc")
             .collect();
 
-        return stories;
+        // Convert storageId to image URL for each story
+        const storiesWithImageUrls = await Promise.all(
+            stories.map(async (story) => {
+                let imageUrl: string | null = null;
+                if (story.storageId) {
+                    imageUrl = await ctx.storage.getUrl(story.storageId);
+                }
+                return {
+                    ...story,
+                    imageUrl,
+                };
+            })
+        );
+
+        return storiesWithImageUrls;
     },
 });
 
-// Slugify function for matching story titles to URL slugs
-function slugify(title: string): string {
-    return title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-|-$/g, "");
-}
-
-// Public query to get a story by its slug (derived from title)
+// Public query to get a story by its slug
 export const getStoryBySlug = query({
     args: { slug: v.string() },
     handler: async (ctx, args) => {
-        const stories = await ctx.db.query("stories").collect();
-        return stories.find((story) => slugify(story.title) === args.slug) ?? null;
+        const story = await ctx.db
+            .query("stories")
+            .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+            .unique();
+
+        if (!story) {
+            return null;
+        }
+
+        // Convert storageId to image URL
+        let imageUrl: string | null = null;
+        if (story.storageId) {
+            imageUrl = await ctx.storage.getUrl(story.storageId);
+        }
+
+        return {
+            ...story,
+            imageUrl,
+        };
     },
 });
