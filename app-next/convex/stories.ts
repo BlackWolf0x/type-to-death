@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import Anthropic from "@anthropic-ai/sdk";
 import { STORY_PROMPT } from "./prompt";
 import type { Story } from "../types";
+import { compressImage } from "../lib/image-compression";
 
 // JSON Schema for the story structure - used for tool-based structured output
 const STORY_SCHEMA = {
@@ -316,8 +317,14 @@ export const generatePatientPortrait = internalAction({
 
             const imageBlob = await imageResponse.blob();
 
-            // Store the image in Convex storage
-            const storageId = await ctx.storage.store(imageBlob);
+            // Compress the image before storing
+            const compressedBlob = await compressImage(imageBlob, {
+                maxWidthOrHeight: 1024,
+                quality: 0.8,
+            });
+
+            // Store the compressed image in Convex storage
+            const storageId = await ctx.storage.store(compressedBlob);
             console.log(`Image stored with storageId: ${storageId}`);
 
             // Update the story document with the storage ID
