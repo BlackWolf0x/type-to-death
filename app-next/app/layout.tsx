@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Metal_Mania } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { MobileWarning } from "@/components/mobile-warning";
+import { PostHogProvider } from "./PostHogProvider";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -35,7 +36,9 @@ export default function RootLayout({
 			<body className={`${geistSans.variable} ${geistMono.variable} ${metalMania.variable} antialiased`} >
 				<MobileWarning />
 				<ConvexClientProvider>
-					{children}
+					<PostHogProvider>
+						{children}
+					</PostHogProvider>
 				</ConvexClientProvider>
 			</body>
 		</html>
