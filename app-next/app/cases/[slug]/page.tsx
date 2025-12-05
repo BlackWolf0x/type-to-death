@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, FileText, FolderClosed, Home, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, FolderClosed, Home, Loader2, Skull } from "lucide-react";
 
 export default function CaseDetailPage() {
     const params = useParams();
@@ -43,7 +43,7 @@ export default function CaseDetailPage() {
 
             {/* Case Detail */}
             {story && (
-                <div className="space-y-16">
+                <div className="space-y-12">
 
                     {/* Patient Header */}
                     <div className="text-center">
@@ -55,6 +55,15 @@ export default function CaseDetailPage() {
                         <h1 className="text-5xl font-metalMania text-red-500 drop-shadow-[0_0_10px_rgba(0,0,0,0.9)]">
                             {story.title}
                         </h1>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <Button size="xl" variant="outlineRed" asChild>
+                            <Link href={`/play?caseid=${story._id}`}>
+                                <Skull />
+                                Play This Case
+                            </Link>
+                        </Button>
                     </div>
 
                     {/* Full Story */}

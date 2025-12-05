@@ -107,10 +107,6 @@ CONTENT GUIDELINES:
 
 IMAGE GENERATION PROMPT:
 - Create a consistent prompt for generating a portrait photo of the patient that reflects their traumatic experience
-- The prompt MUST describe the specific patient/protagonist from your story (matching their gender, age, appearance, background)
-- Focus on: facial features, age, clothing/attire, expression, and emotional state
-- The portrait should convey a dark, sad, haunted tone - reflecting the trauma they experienced in the story
-- Include emotional descriptors: tired eyes, haunted expression, weary look, troubled gaze, somber demeanor, etc.
 - Should be 2-3 sentences, clear and specific
 - Suitable for AI image generation (Stable Diffusion, DALL-E, Midjourney style prompts)
 - Use moody, atmospheric photography style with darker tones

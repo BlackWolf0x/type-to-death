@@ -1,6 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
+import { useSearchParams } from 'next/navigation';
+import Image from "next/image";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -10,13 +12,15 @@ import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { ModalLeaderboard } from "@/components/modal-leaderboard";
-import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, XCircle } from "lucide-react";
+import { Clock, Eye, FolderClosed, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, User, XCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModalAuth } from "@/components/modal-auth";
+import { Id } from "@/convex/_generated/dataModel";
+import Link from "next/link";
 
-export default function PlayPage() {
+function PlayContent() {
     const [isReady, setIsReady] = useState(false);
     const [showIntro, setShowIntro] = useState(false);
     const [introSeen, setIntroSeen] = useState(false);
@@ -33,7 +37,13 @@ export default function PlayPage() {
     const [scoreSubmitError, setScoreSubmitError] = useState<string | null>(null);
 
     // Fetch story from Convex backend
-    const story = useQuery(api.stories.getLatestStory);
+    const searchParams = useSearchParams()
+    const caseId = searchParams.get('caseid')
+
+    const story = useQuery(api.stories.getStory, {
+        storyId: caseId as Id<"stories"> || undefined
+    });
+
     const submitScore = useMutation(api.highscores.submitScore);
     const { isAuthenticated } = useConvexAuth();
 
@@ -146,7 +156,7 @@ export default function PlayPage() {
         return () => clearInterval(interval);
     }, [isTimerRunning, tick]);
 
-    // Send win event to Unity when story is complete and submit score
+    // Send win event to Unity when story is complete
     useEffect(() => {
         if (isStoryComplete && gameStarted && !gameWon) {
             sendMessage("GameManager", "GameWon");
@@ -159,29 +169,31 @@ export default function PlayPage() {
             setTimeout(() => {
                 setShowWinOverlay(true);
             }, 1500);
-
-            // Submit score to leaderboard (using raw values without rounding)
-            if (story?._id) {
-                setScoreSubmitStatus('submitting');
-                setScoreSubmitError(null);
-                submitScore({
-                    storyId: story._id,
-                    wordPerMinute: wpmRaw,
-                    accuracy: accuracyRaw,
-                    timeTaken: elapsedTime,
-                })
-                    .then(() => {
-                        setScoreSubmitStatus('success');
-                    })
-                    .catch((error) => {
-                        setScoreSubmitStatus('error');
-                        const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
-                        setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
-                        console.error("Failed to submit score:", error);
-                    });
-            }
         }
-    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer, story, submitScore, wpmRaw, accuracyRaw, elapsedTime]);
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer]);
+
+    // Submit score only when win overlay is fully visible
+    useEffect(() => {
+        if (showWinOverlay && story?._id && scoreSubmitStatus === 'idle') {
+            setScoreSubmitStatus('submitting');
+            setScoreSubmitError(null);
+            submitScore({
+                storyId: story._id,
+                wordPerMinute: wpmRaw,
+                accuracy: accuracyRaw,
+                timeTaken: elapsedTime,
+            })
+                .then(() => {
+                    setScoreSubmitStatus('success');
+                })
+                .catch((error) => {
+                    setScoreSubmitStatus('error');
+                    const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
+                    setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
+                    console.error("Failed to submit score:", error);
+                });
+        }
+    }, [showWinOverlay, story, submitScore, wpmRaw, accuracyRaw, elapsedTime, scoreSubmitStatus]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
@@ -310,10 +322,22 @@ export default function PlayPage() {
                             {story?.title}
                         </h1>
                         <CardContent>
-                            <ScrollArea className="h-[350px] w-full rounded-md pr-2">
-                                <p className="p-4 text-2xl leading-relaxed text-justify whitespace-pre-line">
-                                    {story?.introduction.replace(/\\n/g, '\n')}
-                                </p>
+                            <ScrollArea className="h-[350px] w-full pr-2">
+                                <div className="flex gap-6">
+
+                                    <figure className="shrink-0 h-fit mt-6 border-4 border-white">
+                                        {story?.imageUrl ? (
+                                            <Image src={`${story.imageUrl}`} quality={25} width={200} height={250} alt="case" />
+                                        ) : (
+                                            <div className="w-[100px] h-[150px] flex justify-center items-center">
+                                                <User size={80} />
+                                            </div>
+                                        )}
+                                    </figure>
+                                    <div className="p-4 text-2xl leading-relaxed text-justify whitespace-pre-line">
+                                        {story?.introduction.replace(/\\n/g, '\n')}
+                                    </div>
+                                </div>
                             </ScrollArea>
                         </CardContent>
                     </Card>
@@ -345,14 +369,27 @@ export default function PlayPage() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleStartGame}
-                        variant="outlineRed"
-                        size="xl"
-                    >
-                        Start Challenge
-                        <MoveRight className="ml-2 translate-y-0.5" />
-                    </Button>
+                    <div className="flex gap-6">
+
+                        <Button
+                            variant="outline"
+                            size="xl"
+                            asChild
+                        >
+                            <Link href="/cases">
+                                <FolderClosed className="mr-2" />
+                                Play Other Cases
+                            </Link>
+                        </Button>
+                        <Button
+                            onClick={handleStartGame}
+                            variant="outlineRed"
+                            size="xl"
+                        >
+                            Start Challenge
+                            <MoveRight className="ml-2 translate-y-0.5" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -522,5 +559,20 @@ export default function PlayPage() {
                 </>
             )}
         </>
+    );
+}
+
+export default function PlayPage() {
+    return (
+        <Suspense fallback={
+            <div className="fixed inset-0 flex items-center justify-center bg-black text-white">
+                <div className="flex items-center gap-3">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <span>Loading...</span>
+                </div>
+            </div>
+        }>
+            <PlayContent />
+        </Suspense>
     );
 }

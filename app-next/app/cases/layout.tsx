@@ -26,6 +26,7 @@ export default function CasesLayout({
                     alt="Background"
                     fill
                     className={`object-cover sepia opacity-40`}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     priority
                 />
 

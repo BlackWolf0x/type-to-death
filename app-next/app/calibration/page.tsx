@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useWebcam, WebcamErrorCode, type WebcamError } from '@/hooks/useWebcam';
 import {
     useBlinkDetector,
@@ -140,13 +140,17 @@ const HORROR_IMAGES = [
 ];
 const DEFAULT_IMAGE = '/operating-room.png';
 
-export default function CalibrationPage() {
+function CalibrationContent() {
     const router = useRouter();
     const [pageState, setPageState] = useState<PageState>('webcam');
     const eyeCanvasRef = useRef<HTMLCanvasElement>(null);
     const segmentCanvasRef = useRef<HTMLCanvasElement>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 = default image
     const prevBlinkCountRef = useRef(0);
+
+    // In case there is a custom case to play
+    const searchParams = useSearchParams()
+    const caseId = searchParams.get('caseid')
 
     // Webcam hook
     const webcam = useWebcam();
@@ -229,7 +233,8 @@ export default function CalibrationPage() {
     };
 
     const handleStartGame = () => {
-        router.push('/play?from=calibration');
+        const url = !caseId ? '/play?from=calibration' : `/play?from=calibration&caseid=${caseId}`
+        router.push(url);
     };
 
     const handleRecalibrate = () => {
@@ -500,5 +505,17 @@ export default function CalibrationPage() {
                 )}
             </Card>
         </div>
+    );
+}
+
+export default function CalibrationPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex min-h-screen items-center justify-center bg-black">
+                <Loader2 className="h-10 w-10 animate-spin text-zinc-500" />
+            </div>
+        }>
+            <CalibrationContent />
+        </Suspense>
     );
 }

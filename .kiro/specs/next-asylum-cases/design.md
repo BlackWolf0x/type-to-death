@@ -4,10 +4,12 @@
 
 The Asylum Cases feature adds two new pages to the Next.js application with a shared layout:
 1. A case list page (`/cases`) that displays all stories as polaroid-style cards with patient photos
-2. A case detail page (`/cases/[slug]`) that shows the full story content in a paper document format
+2. A case detail page (`/cases/[slug]`) that shows the full story content in a paper document format with a "Play This Story" button
 3. A shared layout component (`/cases/layout.tsx`) that provides consistent navigation and atmospheric styling
 
 The implementation uses Next.js App Router with dynamic routes, Convex for data fetching, and custom styled components. Story titles are converted to URL slugs by removing special characters and replacing spaces with dashes. The visual design features polaroid-style case cards with random rotation, archive background imagery, VHS film grain effects, and paper texture overlays for an immersive horror aesthetic.
+
+The feature integrates with the gameplay system by allowing users to select specific stories to play. When a user clicks "Play This Story" on a case detail page, they are navigated to `/play?caseid={storyId}`, and the play page loads that specific story instead of the latest one.
 
 ## Architecture
 
@@ -90,13 +92,16 @@ The implementation uses Next.js App Router with dynamic routes, Convex for data 
 - Render full story text with proper formatting
 - Handle escaped characters (\\n, \\") conversion
 - Display patient header with number and name
+- Display "Play This Story" button that links to gameplay with specific story
 - Handle not found state
 - Fall back to introduction if full story unavailable
 
 **Dependencies:**
 - Convex `useQuery` hook
 - Next.js `useParams` hook
-- Lucide icons (Loader2, FolderClosed, ArrowLeft)
+- Next.js `Link` component
+- shadcn/ui Button component
+- Lucide icons (Loader2, FolderClosed, ArrowLeft, Skull)
 
 **Visual Features:**
 - Paper document styling with texture overlay
@@ -104,6 +109,7 @@ The implementation uses Next.js App Router with dynamic routes, Convex for data 
 - Proper text formatting with whitespace-pre-line
 - Centered patient header with monospace font
 - Large title in horror font (metalMania)
+- Prominent "Play This Story" button with skull icon
 
 ## Data Models
 
@@ -127,13 +133,70 @@ export const getAllStories = query({
 ### Convex Query: `getStoryBySlug`
 
 ```typescript
-// New query in convex/stories.ts
+// Query in convex/stories.ts
 export const getStoryBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    const stories = await ctx.db.query("stories").collect();
-    // Find story where slugified title matches the slug
-    return stories.find(story => slugify(story.title) === args.slug) ?? null;
+    const story = await ctx.db
+      .query("stories")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .unique();
+
+    if (!story) {
+      return null;
+    }
+
+    // Convert storageId to image URL
+    let imageUrl: string | null = null;
+    if (story.storageId) {
+      imageUrl = await ctx.storage.getUrl(story.storageId);
+    }
+
+    return {
+      ...story,
+      imageUrl,
+    };
+  },
+});
+```
+
+### Convex Query: `getStory` (Updated)
+
+```typescript
+// Updated query in convex/stories.ts
+export const getStory = query({
+  args: {
+    storyId: v.optional(v.id("stories")),
+  },
+  handler: async (ctx, args) => {
+    let story;
+
+    if (args.storyId) {
+      // Fetch story by ID
+      story = await ctx.db.get(args.storyId);
+    } else {
+      // Fetch latest story
+      story = await ctx.db
+        .query("stories")
+        .withIndex("by_createdAt")
+        .order("desc")
+        .first();
+    }
+
+    if (!story) {
+      return null;
+    }
+
+    // Convert storageId to image URL
+    let imageUrl: string | null = null;
+    if (story.storageId) {
+      imageUrl = await ctx.storage.getUrl(story.storageId);
+    }
+
+    return {
+      ...story,
+      imageUrl,
+    };
   },
 });
 ```
@@ -234,15 +297,25 @@ Based on the prework analysis, the following properties can be combined and veri
 **Verification:** All required fields from the story document appear in the rendered output with proper formatting.
 **Validates:** Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
 
-### P6: Slug Generation Consistency
-**Property:** *For any* story title, the slugify function produces a URL-safe string containing only lowercase letters, numbers, and dashes.
-**Verification:** Slugified output matches regex `/^[a-z0-9-]*$/` and round-trip lookup finds the original story.
-**Validates:** Requirements 2.1
-
 ### P5: Text Formatting Correctness
 **Property:** *For any* story text containing escaped characters (\\n, \\"), the detail page displays them as proper formatting (newlines, quotes).
 **Verification:** Rendered text contains actual newlines and quotes, not escaped character sequences.
 **Validates:** Requirements 2.6
+
+### P6: Slug Generation Consistency
+**Property:** *For any* story title, the slugify function produces a URL-safe string containing only lowercase letters, numbers, and dashes.
+**Verification:** Slugified output matches regex `/^[a-z0-9-]*$/` and round-trip lookup finds the original story.
+**Validates:** Requirements 2.9
+
+### P7: Story Selection Navigation
+**Property:** *For any* story ID, clicking "Play This Story" navigates to `/play?caseid={storyId}` and the play page loads that specific story.
+**Verification:** URL contains correct caseid parameter and play page fetches story by that ID.
+**Validates:** Requirements 5.1, 5.2
+
+### P8: Story Query Parameter Handling
+**Property:** *For any* play page load, if caseid parameter is present, the system fetches that story; otherwise it fetches the latest story.
+**Verification:** Query uses storyId when caseid is present, undefined when absent.
+**Validates:** Requirements 5.3, 5.4
 
 ## Edge Cases
 
@@ -293,11 +366,55 @@ Add a navigation button to the home banner, next to the Leaderboard button:
 </div>
 ```
 
+### Play Page Integration
+
+Update the play page to accept and handle the caseid query parameter:
+
+```tsx
+// In app/play/page.tsx
+export default function PlayPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ caseId?: string }>;
+}) {
+    const [resolvedSearchParams, setResolvedSearchParams] = useState<{ caseId?: string }>({});
+
+    // Resolve searchParams promise
+    useEffect(() => {
+        searchParams.then(setResolvedSearchParams);
+    }, [searchParams]);
+
+    // Fetch story from Convex backend (use caseId if provided)
+    const story = useQuery(api.stories.getStory, {
+        storyId: resolvedSearchParams.caseId as any
+    });
+    
+    // Rest of component...
+}
+```
+
+### Case Detail Page Integration
+
+Add "Play This Story" button to case detail page:
+
+```tsx
+// In app/cases/[slug]/page.tsx
+<div className="flex justify-center">
+    <Button size="xl" variant="outlineRed" asChild>
+        <Link href={`/play?caseid=${story._id}`}>
+            <Skull />
+            Play This Story
+        </Link>
+    </Button>
+</div>
+```
+
 ### Convex Stories Module
 
 Add new queries to `convex/stories.ts`:
 - `getAllStories` - Returns all stories ordered by createdAt desc
-- `getStoryBySlug` - Returns single story by matching slugified title
+- `getStoryBySlug` - Returns single story by slug using by_slug index
+- `getStory` (updated) - Accepts optional storyId parameter, fetches by ID if provided, otherwise fetches latest
 
 ## Visual Design Details
 
