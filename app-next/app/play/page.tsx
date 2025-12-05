@@ -12,7 +12,7 @@ import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { ModalLeaderboard } from "@/components/modal-leaderboard";
-import { Clock, Eye, FolderClosed, Fullscreen, Headphones, Keyboard, Loader2, MoveLeft, MoveRight, Target, Trophy, User, XCircle } from "lucide-react";
+import { Clock, Eye, FolderClosed, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, User, XCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -156,7 +156,7 @@ function PlayContent() {
         return () => clearInterval(interval);
     }, [isTimerRunning, tick]);
 
-    // Send win event to Unity when story is complete and submit score
+    // Send win event to Unity when story is complete
     useEffect(() => {
         if (isStoryComplete && gameStarted && !gameWon) {
             sendMessage("GameManager", "GameWon");
@@ -169,29 +169,31 @@ function PlayContent() {
             setTimeout(() => {
                 setShowWinOverlay(true);
             }, 1500);
-
-            // Submit score to leaderboard (using raw values without rounding)
-            if (story?._id) {
-                setScoreSubmitStatus('submitting');
-                setScoreSubmitError(null);
-                submitScore({
-                    storyId: story._id,
-                    wordPerMinute: wpmRaw,
-                    accuracy: accuracyRaw,
-                    timeTaken: elapsedTime,
-                })
-                    .then(() => {
-                        setScoreSubmitStatus('success');
-                    })
-                    .catch((error) => {
-                        setScoreSubmitStatus('error');
-                        const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
-                        setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
-                        console.error("Failed to submit score:", error);
-                    });
-            }
         }
-    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer, story, submitScore, wpmRaw, accuracyRaw, elapsedTime]);
+    }, [isStoryComplete, gameStarted, gameWon, sendMessage, resetTypingGame, stopTimer]);
+
+    // Submit score only when win overlay is fully visible
+    useEffect(() => {
+        if (showWinOverlay && story?._id && scoreSubmitStatus === 'idle') {
+            setScoreSubmitStatus('submitting');
+            setScoreSubmitError(null);
+            submitScore({
+                storyId: story._id,
+                wordPerMinute: wpmRaw,
+                accuracy: accuracyRaw,
+                timeTaken: elapsedTime,
+            })
+                .then(() => {
+                    setScoreSubmitStatus('success');
+                })
+                .catch((error) => {
+                    setScoreSubmitStatus('error');
+                    const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
+                    setScoreSubmitError(errorMessage.includes("Unauthenticated") ? "Sign in to save your score" : errorMessage);
+                    console.error("Failed to submit score:", error);
+                });
+        }
+    }, [showWinOverlay, story, submitScore, wpmRaw, accuracyRaw, elapsedTime, scoreSubmitStatus]);
 
     const handleBlink = useCallback(() => {
         sendMessage("Monster", "OnBlinkDetected");
