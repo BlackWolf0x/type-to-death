@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Award, MoveRight, Skull } from "lucide-react";
+import { FileText, MoveRight, Skull } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { ModalLeaderboard } from "./modal-leaderboard";
 
@@ -85,6 +85,13 @@ export function HomeBanner() {
                     </Button>
 
                     <ModalLeaderboard />
+
+                    <Button variant="outlineRed" size="lg" asChild>
+                        <Link href="/cases">
+                            <FileText className="w-4 h-4 mr-2" />
+                            Case Files
+                        </Link>
+                    </Button>
                 </div>
 
                 <p className="text-base font-light text-shadow-sm text-shadow-black">

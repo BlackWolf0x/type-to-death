@@ -29,6 +29,9 @@ const schema = defineSchema({
         patientName: v.string(),
         patientNumber: v.string(),
         createdAt: v.number(),
+        story: v.optional(v.string()),
+        storageId: v.optional(v.string()),
+        imageGenerationPrompt: v.optional(v.string()),
     }).index("by_createdAt", ["createdAt"]),
 
     highscores: defineTable({
