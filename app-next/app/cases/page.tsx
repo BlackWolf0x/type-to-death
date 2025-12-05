@@ -90,7 +90,7 @@ export default function CasesPage() {
                                             >
                                                 {story.imageUrl ? (
 
-                                                    <Image src={`${story.imageUrl}`} width={100} height={150} alt="case" />
+                                                    <Image src={`${story.imageUrl}`} quality={25} width={100} height={150} alt="case" />
                                                 ) : (
                                                     <div className="w-[100px] h-[150px] flex justify-center items-center">
                                                         <User size={80} />

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from 'next/navigation';
+import Image from "next/image";
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -11,12 +12,13 @@ import { TypingGame, useTypingGameStore } from "@/typing-game";
 import { useGameStatsStore, formatTime, calculateWPM, calculateAccuracy, calculateWPMRaw, calculateAccuracyRaw } from "@/stores/gameStatsStore";
 import { Button } from "@/components/ui/button";
 import { ModalLeaderboard } from "@/components/modal-leaderboard";
-import { Clock, Eye, Fullscreen, Headphones, Keyboard, Loader2, MoveRight, Target, Trophy, XCircle } from "lucide-react";
+import { Clock, Eye, FolderClosed, Fullscreen, Headphones, Keyboard, Loader2, MoveLeft, MoveRight, Target, Trophy, User, XCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModalAuth } from "@/components/modal-auth";
 import { Id } from "@/convex/_generated/dataModel";
+import Link from "next/link";
 
 function PlayContent() {
     const [isReady, setIsReady] = useState(false);
@@ -318,10 +320,22 @@ function PlayContent() {
                             {story?.title}
                         </h1>
                         <CardContent>
-                            <ScrollArea className="h-[350px] w-full rounded-md pr-2">
-                                <p className="p-4 text-2xl leading-relaxed text-justify whitespace-pre-line">
-                                    {story?.introduction.replace(/\\n/g, '\n')}
-                                </p>
+                            <ScrollArea className="h-[350px] w-full pr-2">
+                                <div className="flex gap-6">
+
+                                    <figure className="shrink-0 h-fit mt-6 border-4 border-white">
+                                        {story?.imageUrl ? (
+                                            <Image src={`${story.imageUrl}`} quality={25} width={200} height={250} alt="case" />
+                                        ) : (
+                                            <div className="w-[100px] h-[150px] flex justify-center items-center">
+                                                <User size={80} />
+                                            </div>
+                                        )}
+                                    </figure>
+                                    <div className="p-4 text-2xl leading-relaxed text-justify whitespace-pre-line">
+                                        {story?.introduction.replace(/\\n/g, '\n')}
+                                    </div>
+                                </div>
                             </ScrollArea>
                         </CardContent>
                     </Card>
@@ -353,14 +367,27 @@ function PlayContent() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={handleStartGame}
-                        variant="outlineRed"
-                        size="xl"
-                    >
-                        Start Challenge
-                        <MoveRight className="ml-2 translate-y-0.5" />
-                    </Button>
+                    <div className="flex gap-6">
+
+                        <Button
+                            variant="outline"
+                            size="xl"
+                            asChild
+                        >
+                            <Link href="/cases">
+                                <FolderClosed className="mr-2" />
+                                Play Other Cases
+                            </Link>
+                        </Button>
+                        <Button
+                            onClick={handleStartGame}
+                            variant="outlineRed"
+                            size="xl"
+                        >
+                            Start Challenge
+                            <MoveRight className="ml-2 translate-y-0.5" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 

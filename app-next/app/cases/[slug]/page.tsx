@@ -61,7 +61,7 @@ export default function CaseDetailPage() {
                         <Button size="xl" variant="outlineRed" asChild>
                             <Link href={`/play?caseid=${story._id}`}>
                                 <Skull />
-                                Play This Story
+                                Play This Case
                             </Link>
                         </Button>
                     </div>
