@@ -106,11 +106,13 @@ CONTENT GUIDELINES:
 - Do not use the examples given literally, create your own based on them.
 
 IMAGE GENERATION PROMPT:
-- Create a consistent prompt for generating a portrait photo of the patient that reflects their traumatic experience
-- Should be 2-3 sentences, clear and specific
-- Suitable for AI image generation (Stable Diffusion, DALL-E, Midjourney style prompts)
-- Use moody, atmospheric photography style with darker tones
-- Do not include names or text in the image
+- Create a prompt for generating a portrait photo of the SAME PERSON who is the protagonist in the story
+- The name MUST match the patientName field - this is the same character from the story
+- Include: name, age, gender, ethnicity, BMI/body type, and a background related to the story
+- Format: "Portrait of [name], [age] year old [gender] [ethnicity], [body type], background: [story-related setting]"
+- Example: "Portrait of Sarah Chen, 34 year old female Asian, slim build, background: abandoned lighthouse at dusk"
+- The background should hint at the story's setting or theme without being too graphic
+- Keep the person description simple and factual
 
 FULL STORY:
 - Combine the introduction and all 8 chapters into a single, cohesive readable narrative
