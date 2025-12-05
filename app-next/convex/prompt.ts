@@ -105,4 +105,24 @@ CONTENT GUIDELINES:
 - Remember: Latham Asylum specializes in patients who have been victims of horror incidents and unexplainable phenomena
 - Do not use the examples given literally, create your own based on them.
 
+IMAGE GENERATION PROMPT:
+- Create a consistent prompt for generating a portrait photo of the patient that reflects their traumatic experience
+- The prompt MUST describe the specific patient/protagonist from your story (matching their gender, age, appearance, background)
+- Focus on: facial features, age, clothing/attire, expression, and emotional state
+- The portrait should convey a dark, sad, haunted tone - reflecting the trauma they experienced in the story
+- Include emotional descriptors: tired eyes, haunted expression, weary look, troubled gaze, somber demeanor, etc.
+- Should be 2-3 sentences, clear and specific
+- Suitable for AI image generation (Stable Diffusion, DALL-E, Midjourney style prompts)
+- Use moody, atmospheric photography style with darker tones
+- Do not include names or text in the image
+
+FULL STORY:
+- Combine the introduction and all 8 chapters into a single, cohesive readable narrative
+- This is the complete story that users can read on the case detail page
+- Use paragraph breaks (\\n\\n) between the introduction and each chapter for readability
+- The story should flow naturally as one continuous narrative
+- Include chapter transitions that feel seamless when read together
+- This field is for display purposes, not for typing practice
+
 `;
+

@@ -26,6 +26,7 @@ import {
     RefreshCw,
     Play,
     Webcam,
+    TriangleAlert,
 } from 'lucide-react';
 import { VHSStatic } from '@/components/vhs-static';
 import { CalibrationCard } from '@/components/calibration-card';
@@ -239,6 +240,27 @@ export default function CalibrationPage() {
     const webcamErrorUI = webcam.error ? getWebcamErrorUI(webcam.error) : null;
     const blinkErrorUI = blink.error ? getBlinkErrorUI(blink.error) : null;
 
+
+    // Instructions
+    const Instructions = () => {
+        return (
+            <div className="flex items-center gap-6">
+                <div className="border py-4 px-6 rounded-xl flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                    <div className="shrink-0 bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                        <TriangleAlert size={20} className='text-amber-500' />
+                    </div>
+                    Webcam should be around eye level.
+                </div>
+                <div className="border py-4 px-6 rounded-xl flex items-center justify-center gap-4 leading-tight text-muted-foreground">
+                    <div className="shrink-0 bg-zinc-900 size-10 rounded-full flex items-center justify-center">
+                        <TriangleAlert size={20} className='text-amber-500' />
+                    </div>
+                    Recalibrate if you moved or sit in a different position.
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="relative flex min-h-screen items-center justify-center p-4 font-sans bg-black">
             {/* Background image - cycles through horror images on blink */}
@@ -335,6 +357,8 @@ export default function CalibrationPage() {
 
                             {blink.isInitialized && (
                                 <>
+                                    <Instructions />
+
                                     {/* Video Preview - show raw video during calibration */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                         <video
@@ -419,6 +443,7 @@ export default function CalibrationPage() {
                         </CardHeader>
 
                         <CardContent className="space-y-6">
+                            <Instructions />
                             <div className="relative aspect-video overflow-hidden rounded-lg bg-black">
                                 <video
                                     ref={webcam.setVideoRef}

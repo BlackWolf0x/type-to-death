@@ -91,6 +91,17 @@
   - Use useAuthActions signOut for logout functionality
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
+- [x] 13. Implement user-friendly error handling for authentication
+  - Add getAuthErrorMessage helper function to map Convex error codes to user-friendly messages
+  - Map InvalidAccountId, InvalidSecret, and credential errors to "Invalid email or password."
+  - Map duplicate account errors to "An account with this email already exists."
+  - Map weak password errors to "Password is too weak. Please use a stronger password."
+  - Map invalid email errors to "Please enter a valid email address."
+  - Update handleSignIn to use error mapping with default "Invalid email or password."
+  - Update handleSignUp to use error mapping with default "Registration failed. Please try again."
+  - _Properties: P9_
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
+
 ## Implementation Notes
 
 - Use `bunx` instead of `npx` for all Convex CLI commands

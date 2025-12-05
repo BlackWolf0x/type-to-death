@@ -77,7 +77,52 @@ export const setUsername = mutation({
 - Check username availability across all users
 - Save username to user's profile with validation
 
-### 3. ModalSetUsername Component
+### 3. Authentication Error Handling
+
+Location: `app-next/components/modal-auth.tsx`
+
+```typescript
+const getAuthErrorMessage = (err: unknown, defaultMessage: string): string => {
+  if (!(err instanceof Error)) return defaultMessage;
+  
+  const message = err.message.toLowerCase();
+  
+  // Map Convex auth errors to user-friendly messages
+  if (
+    message.includes("invalidaccountid") ||
+    message.includes("invalid account") ||
+    message.includes("invalidsecret") ||
+    message.includes("invalid secret") ||
+    message.includes("account not found") ||
+    message.includes("wrong password") ||
+    message.includes("invalid credentials")
+  ) {
+    return "Invalid email or password.";
+  }
+  
+  if (message.includes("account already exists") || message.includes("email already")) {
+    return "An account with this email already exists.";
+  }
+  
+  if (message.includes("weak password") || message.includes("password too short")) {
+    return "Password is too weak. Please use a stronger password.";
+  }
+  
+  if (message.includes("invalid email")) {
+    return "Please enter a valid email address.";
+  }
+  
+  return defaultMessage;
+};
+```
+
+**Responsibilities:**
+- Map Convex authentication error codes to user-friendly messages
+- Prevent exposure of internal error details
+- Provide consistent error messaging across sign in and sign up flows
+- Follow security best practices by not revealing whether an email exists
+
+### 4. ModalSetUsername Component
 
 Location: `app-next/components/modal-set-username.tsx`
 
@@ -385,6 +430,11 @@ setUsername(username: string):
 **Verification:** Call setUsername with valid available username, query user, verify username is saved
 **Covers:** Requirements 3.6, 3.7
 
+### P9: Authentication Error Mapping
+**Property:** *For any* Convex authentication error, the error message displayed to the user should be user-friendly and not expose internal error codes
+**Verification:** Trigger various authentication errors (invalid credentials, duplicate account, weak password), verify displayed messages match expected user-friendly text
+**Covers:** Requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6
+
 ## Integration Points
 
 ### Existing Next.js App Structure
@@ -501,6 +551,32 @@ app-next/
    - Set invalid URL in .env.local
    - Start app
    - Verify connection error is handled gracefully
+
+### Authentication Error Handling Testing
+
+1. **Invalid Credentials Test**
+   - Attempt sign in with wrong password
+   - Verify error message is "Invalid email or password."
+   - Attempt sign in with non-existent email
+   - Verify error message is "Invalid email or password."
+
+2. **Duplicate Account Test**
+   - Create account with email
+   - Attempt to create another account with same email
+   - Verify error message is "An account with this email already exists."
+
+3. **Weak Password Test**
+   - Attempt sign up with weak password (if validation exists)
+   - Verify error message is "Password is too weak. Please use a stronger password."
+
+4. **Invalid Email Test**
+   - Attempt sign up with invalid email format (if validation exists)
+   - Verify error message is "Please enter a valid email address."
+
+5. **Error Code Exposure Test**
+   - Trigger various authentication errors
+   - Verify no internal error codes (InvalidAccountId, InvalidSecret) are shown to user
+   - Verify all errors show user-friendly messages
 
 ### Username Feature Testing
 

@@ -9,4 +9,6 @@ export interface Story {
     chapters: Chapter[];
     patientName: string;
     patientNumber: string;
+    imageGenerationPrompt: string;
+    story: string;
 }

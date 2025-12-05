@@ -46,8 +46,16 @@ const STORY_SCHEMA = {
             type: "string" as const,
             description: "The patient's identification number prefixed with hashtag (e.g., #928, #2120, #15847)",
         },
+        imageGenerationPrompt: {
+            type: "string" as const,
+            description: "A prompt focused on generating an image for the current story, make sure that the person in the story is always included in the image.",
+        },
+        story: {
+            type: "string" as const,
+            description: "The full readable story combining the introduction and all chapters into a cohesive narrative. Use paragraph breaks (\\n\\n) between sections for readability.",
+        },
     },
-    required: ["title", "introduction", "chapters", "patientName", "patientNumber"],
+    required: ["title", "introduction", "chapters", "patientName", "patientNumber", "imageGenerationPrompt", "story"],
 };
 
 // Internal mutation to insert a story into the database
@@ -67,6 +75,8 @@ export const insertStory = internalMutation({
         ),
         patientName: v.string(),
         patientNumber: v.string(),
+        imageGenerationPrompt: v.string(),
+        story: v.string(),
     },
     handler: async (ctx, args) => {
         const storyId = await ctx.db.insert("stories", {
@@ -75,6 +85,8 @@ export const insertStory = internalMutation({
             chapters: args.chapters,
             patientName: args.patientName,
             patientNumber: args.patientNumber,
+            imageGenerationPrompt: args.imageGenerationPrompt,
+            story: args.story,
             createdAt: Date.now(),
         });
         return storyId;
@@ -120,7 +132,7 @@ export const generateStory = internalAction({
         try {
             // Get all previous story data (titles and patient identities) to avoid repetition
             const previousStoryData = await ctx.runQuery(internal.stories.getPreviousStoryData);
-            
+
             // Construct enhanced prompt with previous titles and patient identities
             let enhancedPrompt = STORY_PROMPT;
             if (previousStoryData.length > 0) {
@@ -128,7 +140,7 @@ export const generateStory = internalAction({
                 const patientIdentitiesList = previousStoryData
                     .map(story => `- Name: ${story.patientName}, Number: ${story.patientNumber}`)
                     .join('\n');
-                
+
                 enhancedPrompt += `\n\nPREVIOUSLY USED (avoid these and create something completely different):\n\nTitles:\n${titlesList}\n\nPatient Identities:\n${patientIdentitiesList}`;
             }
 
@@ -168,7 +180,7 @@ export const generateStory = internalAction({
             const story = toolUseBlock.input as Story;
 
             // Validate required fields
-            if (!story.title || !story.introduction || !story.chapters || !story.patientName || !story.patientNumber) {
+            if (!story.title || !story.introduction || !story.chapters || !story.patientName || !story.patientNumber || !story.imageGenerationPrompt || !story.story) {
                 throw new Error("Invalid story structure - missing required fields");
             }
 
@@ -183,6 +195,8 @@ export const generateStory = internalAction({
                 chapters: story.chapters,
                 patientName: story.patientName,
                 patientNumber: story.patientNumber,
+                imageGenerationPrompt: story.imageGenerationPrompt,
+                story: story.story,
             });
 
             console.log("Successfully generated and stored story:", story.title);
@@ -190,7 +204,7 @@ export const generateStory = internalAction({
             console.error(`Story generation failed (attempt ${currentRetry + 1}/${MAX_RETRIES}):`, error);
 
             // Schedule retry if we haven't exceeded max retries
-            if (currentRetry < MAX_RETRIES ) {
+            if (currentRetry < MAX_RETRIES) {
                 console.log(`Scheduling retry in 5 minutes (attempt ${currentRetry + 2}/${MAX_RETRIES})`);
                 await ctx.scheduler.runAfter(RETRY_DELAY_MS, internal.stories.generateStory, {
                     retryCount: currentRetry + 1,
@@ -213,5 +227,38 @@ export const getLatestStory = query({
             .first();
 
         return story;
+    },
+});
+
+// Public query to get all stories ordered by creation date (newest first)
+export const getAllStories = query({
+    args: {},
+    handler: async (ctx) => {
+        const stories = await ctx.db
+            .query("stories")
+            .withIndex("by_createdAt")
+            .order("desc")
+            .collect();
+
+        return stories;
+    },
+});
+
+// Slugify function for matching story titles to URL slugs
+function slugify(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
+// Public query to get a story by its slug (derived from title)
+export const getStoryBySlug = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        const stories = await ctx.db.query("stories").collect();
+        return stories.find((story) => slugify(story.title) === args.slug) ?? null;
     },
 });
