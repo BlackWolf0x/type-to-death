@@ -5,6 +5,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { STORY_PROMPT } from "./prompt";
 import type { Story } from "../types";
 import { compressImage } from "../lib/image-compression";
+import { enhancePortraitPrompt } from "./facialFeatures";
+import { generateFormattedCharacter } from "./characterTraits";
 
 // JSON Schema for the story structure - used for tool-based structured output
 const STORY_SCHEMA = {
@@ -41,7 +43,7 @@ const STORY_SCHEMA = {
         },
         patientName: {
             type: "string" as const,
-            description: "The patient's full name (first and last name)",
+            description: "The patient's full name (first and last name). Must be culturally appropriate for the character's ethnicity and gender specified in CHARACTER REQUIREMENT.",
         },
         patientNumber: {
             type: "string" as const,
@@ -49,7 +51,7 @@ const STORY_SCHEMA = {
         },
         imageGenerationPrompt: {
             type: "string" as const,
-            description: "A prompt focused on generating an image for the current story, make sure that the person in the story is always included in the image.",
+            description: "Portrait prompt with: name, age, gender, ethnicity, body type, and story-related background. Format: 'Portrait of [name], [age] year old [gender] [ethnicity], [body type], background: [setting]'",
         },
         story: {
             type: "string" as const,
@@ -160,8 +162,16 @@ export const generateStory = internalAction({
             // Get all previous story data (titles and patient identities) to avoid repetition
             const previousStoryData = await ctx.runQuery(internal.stories.getPreviousStoryData);
 
-            // Construct enhanced prompt with previous titles and patient identities
+            // Generate a random character description for the protagonist
+            const characterDescription = generateFormattedCharacter();
+            console.log(`Generated character: ${characterDescription}`);
+
+            // Construct enhanced prompt with character description and previous titles
             let enhancedPrompt = STORY_PROMPT;
+            
+            // Add character description requirement
+            enhancedPrompt += `\n\nCHARACTER REQUIREMENT:\nThe protagonist of this story MUST be ${characterDescription}. Use this exact description for the patient and ensure the imageGenerationPrompt matches this character.`;
+            
             if (previousStoryData.length > 0) {
                 const titlesList = previousStoryData.map(story => `- ${story.title}`).join('\n');
                 const patientIdentitiesList = previousStoryData
@@ -275,6 +285,13 @@ export const generatePatientPortrait = internalAction({
         try {
             console.log(`Starting image generation for story ${storyId}`);
 
+            // Enhance the base prompt with random facial features
+            const enhancedPrompt = enhancePortraitPrompt(imageGenerationPrompt);
+            
+            // Add moody atmosphere suffix for horror aesthetic
+            const finalPrompt = `${enhancedPrompt}, heavy moody atmosphere, dark tones, unsettling mood`;
+            console.log(`Final prompt: ${finalPrompt}`);
+
             // Call Recraft.ai API
             const response = await fetch("https://external.api.recraft.ai/v1/images/generations", {
                 method: "POST",
@@ -283,8 +300,7 @@ export const generatePatientPortrait = internalAction({
                     "Authorization": `Bearer ${apiKey}`,
                 },
                 body: JSON.stringify({
-                    prompt: imageGenerationPrompt,
-                    // style: "digital_illustration",
+                    prompt: finalPrompt,
                     style_id: "1f9a9d70-2d71-4b85-9106-646bbddf1fd0",
                     model: "recraftv2",
                     size: "1024x1536",

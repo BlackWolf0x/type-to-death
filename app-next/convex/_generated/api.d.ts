@@ -9,7 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as characterTraits from "../characterTraits.js";
 import type * as crons from "../crons.js";
+import type * as facialFeatures from "../facialFeatures.js";
 import type * as highscores from "../highscores.js";
 import type * as http from "../http.js";
 import type * as mock from "../mock.js";
@@ -25,7 +27,9 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  characterTraits: typeof characterTraits;
   crons: typeof crons;
+  facialFeatures: typeof facialFeatures;
   highscores: typeof highscores;
   http: typeof http;
   mock: typeof mock;
