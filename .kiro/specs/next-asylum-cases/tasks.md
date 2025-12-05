@@ -45,6 +45,7 @@
   - Display not found state if story doesn't exist
   - Render patient header (number, name) in monospace font
   - Render story title in large horror font
+  - Add "Play This Story" button that links to `/play?caseid={story._id}`
   - Display full story text with paper document styling:
     - Amber/cream paper background
     - Paper texture overlay using SVG noise filter
@@ -52,7 +53,7 @@
     - Proper text formatting with `whitespace-pre-line`
   - Handle escaped characters (\\n, \\") by converting to proper formatting
   - Fall back to introduction if full story unavailable
-  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 3.3, 3.4_
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.10, 3.3, 3.4_
 
 - [x] 6. Add navigation button to home banner
   - Update `app-next/components/home-banner.tsx`
@@ -97,6 +98,25 @@
   - Format: Introduction\n\nChapter 1\n\nChapter 2... etc.
   - This field is for display purposes on case detail pages
 
+- [x] 12. Update getStory query to accept optional storyId
+  - Rename `getLatestStory` to `getStory` in `app-next/convex/stories.ts`
+  - Add optional `storyId` parameter of type `v.optional(v.id("stories"))`
+  - If storyId is provided, fetch story by ID using `ctx.db.get(args.storyId)`
+  - If storyId is not provided, fetch latest story (existing behavior)
+  - Return story with imageUrl (convert storageId to URL)
+  - _Requirements: 5.3, 5.4_
+  - _Properties: P8_
+
+- [x] 13. Update play page to accept caseid query parameter
+  - Update `app-next/app/play/page.tsx` to accept searchParams prop
+  - Add searchParams type: `Promise<{ caseId?: string }>`
+  - Add state to resolve searchParams promise
+  - Use `useEffect` to resolve searchParams and store in state
+  - Pass `resolvedSearchParams.caseId` to `getStory` query as storyId
+  - Query will fetch specific story if caseId provided, latest story otherwise
+  - _Requirements: 5.1, 5.2_
+  - _Properties: P7, P8_
+
 ## Implementation Notes
 
 - Start with the slug utility since it's used by both Convex queries and page components
@@ -116,7 +136,7 @@
 
 ## Estimated Effort
 
-- Total Tasks: 11
-- Estimated Time: 3-4 hours
-- Complexity: Medium (custom visual design adds complexity)
+- Total Tasks: 13
+- Estimated Time: 4-5 hours
+- Complexity: Medium (custom visual design and query parameter handling adds complexity)
 - Risk Level: Low

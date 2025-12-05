@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from 'next/navigation';
 import { Unity, useUnityContext } from "react-unity-webgl";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -15,6 +16,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ModalAuth } from "@/components/modal-auth";
+import { Id } from "@/convex/_generated/dataModel";
 
 export default function PlayPage() {
     const [isReady, setIsReady] = useState(false);
@@ -33,7 +35,13 @@ export default function PlayPage() {
     const [scoreSubmitError, setScoreSubmitError] = useState<string | null>(null);
 
     // Fetch story from Convex backend
-    const story = useQuery(api.stories.getLatestStory);
+    const searchParams = useSearchParams()
+    const caseId = searchParams.get('caseid')
+
+    const story = useQuery(api.stories.getStory, {
+        storyId: caseId as Id<"stories"> || undefined
+    });
+
     const submitScore = useMutation(api.highscores.submitScore);
     const { isAuthenticated } = useConvexAuth();
 

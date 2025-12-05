@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useWebcam, WebcamErrorCode, type WebcamError } from '@/hooks/useWebcam';
 import {
     useBlinkDetector,
@@ -148,6 +148,10 @@ export default function CalibrationPage() {
     const [currentImageIndex, setCurrentImageIndex] = useState(-1); // -1 = default image
     const prevBlinkCountRef = useRef(0);
 
+    // In case there is a custom case to play
+    const searchParams = useSearchParams()
+    const caseId = searchParams.get('caseid')
+
     // Webcam hook
     const webcam = useWebcam();
 
@@ -229,7 +233,8 @@ export default function CalibrationPage() {
     };
 
     const handleStartGame = () => {
-        router.push('/play?from=calibration');
+        const url = !caseId ? '/play?from=calibration' : `/play?from=calibration&caseid=${caseId}`
+        router.push(url);
     };
 
     const handleRecalibrate = () => {

@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, FileText, FolderClosed, Loader2 } from "lucide-react";
+import { ArrowLeft, FileText, FolderClosed, Loader2, User } from "lucide-react";
 import { slugify } from "@/lib/slug";
 import Image from "next/image";
 import { VHSStatic } from "@/components/vhs-static";
@@ -85,10 +85,17 @@ export default function CasesPage() {
                                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[calc(100%-10px)] h-[calc(100%-20px)] rounded-t-xl shadow-[0px_-4px_4px_0px_rgba(0,0,0,0.4)] bg-[#D5BD8F]">
 
                                             <figure
-                                                className="absolute top-10 left-6"
+                                                className="absolute top-10 left-6 border-4 border-white shadow-lg shadow-black/60"
                                                 style={{ transform: `rotate(${imageRotation}deg)` }}
                                             >
-                                                <Image src={`/case-images/test.jpg`} width={100} height={133} alt="case" className="border-4 border-white shadow-lg shadow-black/60" />
+                                                {story.imageUrl ? (
+
+                                                    <Image src={`${story.imageUrl}`} width={100} height={150} alt="case" />
+                                                ) : (
+                                                    <div className="w-[100px] h-[150px] flex justify-center items-center">
+                                                        <User size={80} />
+                                                    </div>
+                                                )}
                                             </figure>
 
                                             <div className="pl-38 pr-2 pt-10 text-black italic">

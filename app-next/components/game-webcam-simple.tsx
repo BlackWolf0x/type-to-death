@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useWebcam } from "@/hooks/useWebcam";
 import { useBlinkDetector } from "@/hooks/useBlinkDetector";
 
@@ -52,6 +52,10 @@ export function GameWebcamSimple({ onBlink, onReady, onBlinkDataChange, gameStar
     const webcam = useWebcam({ autoStart: false });
     const blink = useBlinkDetector({ videoRef: webcam.videoRef });
 
+    // In case there is a custom case to play
+    const searchParams = useSearchParams()
+    const caseId = searchParams.get('caseid')
+
     // Keep a ref of current blink count so we can read it in setTimeout
     useEffect(() => {
         currentBlinkCountRef.current = blink.blinkCount;
@@ -78,17 +82,19 @@ export function GameWebcamSimple({ onBlink, onReady, onBlinkDataChange, gameStar
     useEffect(() => {
         if (hasRedirected.current) return;
 
+        const url = !caseId ? '/calibration' : `/calibration?caseid=${caseId}`
+
         const checkAndStart = async () => {
             if (!hasStoredCalibration()) {
                 hasRedirected.current = true;
-                router.replace('/calibration');
+                router.replace(url);
                 return;
             }
 
             const permissionState = await checkCameraPermission();
             if (permissionState !== 'granted') {
                 hasRedirected.current = true;
-                router.replace('/calibration');
+                router.replace(url);
                 return;
             }
 

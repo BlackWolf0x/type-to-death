@@ -46,6 +46,7 @@ The game already generates AI-powered horror stories stored in Convex with patie
 7. WHEN a user clicks a back button, THE system SHALL navigate to the case list
 8. IF the case slug does not match any story, THEN THE system SHALL display a not found message
 9. THE system SHALL generate URL slugs by removing special characters and replacing spaces with dashes
+10. THE case detail page SHALL display a "Play This Story" button that navigates to the game with the specific story loaded
 
 ### Requirement 3: Visual Design
 
@@ -71,6 +72,17 @@ The game already generates AI-powered horror stories stored in Convex with patie
 3. THE case detail page SHALL include a "View all Cases" button to navigate back to the list
 4. THE navigation buttons SHALL be displayed in a sticky header with backdrop blur
 5. THE header SHALL display different titles based on whether viewing list or detail page
+
+### Requirement 5: Story Selection for Gameplay
+
+**User Story:** As a user, I want to play a specific story from the case files, so that I can experience that particular narrative.
+
+#### Acceptance Criteria
+
+1. WHEN a user clicks "Play This Story" on a case detail page, THE system SHALL navigate to `/play?caseid={storyId}`
+2. WHEN the play page receives a caseid query parameter, THE system SHALL load that specific story instead of the latest story
+3. THE play page SHALL fetch the story by ID when caseid is provided
+4. THE play page SHALL fall back to fetching the latest story when no caseid is provided
 
 ## Non-Functional Requirements
 

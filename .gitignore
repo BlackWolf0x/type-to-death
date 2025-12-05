@@ -120,5 +120,5 @@ InitTestScene*.unity*
 fmod_editor.log
 
 # Ignore obsolete app folder - deleted on main branch
-app
+./app
 

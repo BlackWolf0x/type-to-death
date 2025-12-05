@@ -334,15 +334,25 @@ export const generatePatientPortrait = internalAction({
     },
 });
 
-// Public query to get the latest story
-export const getLatestStory = query({
-    args: {},
-    handler: async (ctx) => {
-        const story = await ctx.db
-            .query("stories")
-            .withIndex("by_createdAt")
-            .order("desc")
-            .first();
+// Public query to get a story by ID or the latest story
+export const getStory = query({
+    args: {
+        storyId: v.optional(v.id("stories")),
+    },
+    handler: async (ctx, args) => {
+        let story;
+
+        if (args.storyId) {
+            // Fetch story by ID
+            story = await ctx.db.get(args.storyId);
+        } else {
+            // Fetch latest story
+            story = await ctx.db
+                .query("stories")
+                .withIndex("by_createdAt")
+                .order("desc")
+                .first();
+        }
 
         if (!story) {
             return null;
